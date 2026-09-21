@@ -26,24 +26,45 @@
 
 .stat-card {
   background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border-left: 4px solid #2563eb;
+  border-radius: var(--radius, 16px);
+  padding: 22px 24px;
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.1));
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
 }
+
+.stat-card:hover {
+  box-shadow: var(--shadow-md, 0 4px 16px rgba(0, 0, 0, 0.1));
+  transform: translateY(-2px);
+}
+
+.stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.stat-icon.positive { background: var(--secondary-soft, #ecfdf5); color: #10b981; }
+.stat-icon.negative { background: var(--danger-soft, #fef2f2); color: #ef4444; }
+.stat-icon.warning { background: var(--warning-soft, #fffbeb); color: #f59e0b; }
 
 .stat-label {
   font-size: 12px;
   color: #6b7280;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  margin-bottom: 10px;
 }
 
 .stat-value {
-  font-size: 24px;
-  font-weight: bold;
+  font-size: 22px;
+  font-weight: 800;
   margin-bottom: 4px;
+  letter-spacing: -0.3px;
 }
 
 .stat-value.positive {
@@ -67,22 +88,79 @@
 
 .chart-card {
   background: white;
-  border-radius: 12px;
+  border-radius: var(--radius, 16px);
   padding: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.1));
 }
 
 .chart-card h2 {
-  font-size: 18px;
+  font-size: 16px;
+  font-weight: 700;
   margin: 0 0 16px 0;
   color: #1f2937;
+}
+
+.donut-wrapper {
+  position: relative;
+}
+
+.donut-center {
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+.donut-center-label {
+  font-size: 11px;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.donut-center-value {
+  font-size: 15px;
+  font-weight: 800;
+  color: #1f2937;
+  margin-top: 2px;
+}
+
+.legend-label {
+  font-size: 12px;
+  color: #4b5563;
 }
 
 .no-data {
   text-align: center;
   color: #6b7280;
-  padding: 40px 20px;
+  padding: 32px 20px;
   font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.no-data-icon {
+  color: #cbd5e1;
+  margin-bottom: 6px;
+}
+
+.no-data p {
+  font-weight: 600;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.no-data span {
+  font-size: 12px;
+  color: #9ca3af;
+  max-width: 240px;
 }
 
 .budget-list {
@@ -118,9 +196,8 @@
 
 .budget-spent {
   height: 100%;
-  background: linear-gradient(90deg, #10b981, #06b6d4);
   border-radius: 4px;
-  transition: width 0.3s ease;
+  transition: width 0.3s ease, background-color 0.3s ease;
 }
 
 .budget-info {
@@ -162,9 +239,29 @@
   transform: translateY(-2px);
 }
 
+.goal-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.goal-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--primary-soft, #eff6ff);
+  color: var(--primary-color, #2563eb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 .goal-card h3 {
-  font-size: 16px;
-  margin: 0 0 12px 0;
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0;
   color: #1f2937;
 }
 
@@ -206,6 +303,33 @@
   padding: 60px 20px;
   color: #6b7280;
   font-size: 16px;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #eef0f4 25%, #f7f8fa 37%, #eef0f4 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: var(--radius, 16px);
+}
+
+@keyframes shimmer {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.skeleton-title {
+  width: 260px;
+  height: 28px;
+  margin-bottom: 24px;
+  border-radius: 8px;
+}
+
+.skeleton-card {
+  height: 108px;
+}
+
+.skeleton-chart {
+  height: 320px;
 }
 
 @media (max-width: 768px) {

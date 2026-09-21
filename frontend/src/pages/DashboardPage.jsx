@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
-import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { TrendingUp, TrendingDown, Wallet, CreditCard, Target, Sparkles } from 'lucide-react'
 import './DashboardPage.css'
 
 const DashboardPage = () => {
@@ -26,7 +27,20 @@ const DashboardPage = () => {
     }
   }
 
-  if (loading) return <div className="loading">Memuat dashboard...</div>
+  if (loading) {
+    return (
+      <div className="dashboard-page">
+        <div className="skeleton skeleton-title"></div>
+        <div className="stats-grid">
+          {[0, 1, 2, 3].map(i => <div key={i} className="skeleton skeleton-card"></div>)}
+        </div>
+        <div className="charts-section">
+          <div className="skeleton skeleton-chart"></div>
+          <div className="skeleton skeleton-chart"></div>
+        </div>
+      </div>
+    )
+  }
   if (error) return <div className="alert alert-error">{error}</div>
   if (!dashboard) return <div className="alert alert-error">Data tidak tersedia</div>
 
@@ -37,8 +51,9 @@ const DashboardPage = () => {
     name,
     value: Math.round(amount)
   }))
+  const totalExpenseInChart = categoryData.reduce((sum, c) => sum + c.value, 0)
 
-  const COLORS = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#FF6B9D', '#95E1D3', '#A8E6CF']
+  const COLORS = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
 
   return (
     <div className="dashboard-page">
@@ -47,16 +62,19 @@ const DashboardPage = () => {
       {/* Overview Cards */}
       <div className="stats-grid">
         <div className="stat-card">
+          <div className="stat-icon positive"><TrendingUp size={20} /></div>
           <div className="stat-label">Pemasukan Bulan Ini</div>
           <div className="stat-value positive">Rp {overview.totalIncome.toLocaleString('id-ID')}</div>
         </div>
 
         <div className="stat-card">
+          <div className="stat-icon negative"><TrendingDown size={20} /></div>
           <div className="stat-label">Pengeluaran Bulan Ini</div>
           <div className="stat-value negative">Rp {overview.totalExpense.toLocaleString('id-ID')}</div>
         </div>
 
         <div className="stat-card">
+          <div className={`stat-icon ${overview.balance >= 0 ? 'positive' : 'negative'}`}><Wallet size={20} /></div>
           <div className="stat-label">Saldo Akhir</div>
           <div className={`stat-value ${overview.balance >= 0 ? 'positive' : 'negative'}`}>
             Rp {overview.balance.toLocaleString('id-ID')}
@@ -64,6 +82,7 @@ const DashboardPage = () => {
         </div>
 
         <div className="stat-card">
+          <div className="stat-icon warning"><CreditCard size={20} /></div>
           <div className="stat-label">Total Hutang</div>
           <div className="stat-value warning">Rp {debtSummary.totalDebt.toLocaleString('id-ID')}</div>
         </div>
@@ -74,27 +93,42 @@ const DashboardPage = () => {
         <div className="chart-card">
           <h2>Pengeluaran Berdasarkan Kategori</h2>
           {categoryData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={categoryData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, value }) => `${name}: Rp ${value.toLocaleString('id-ID')}`}
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {categoryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => `Rp ${value.toLocaleString('id-ID')}`} />
-              </PieChart>
-            </ResponsiveContainer>
+            <div className="donut-wrapper">
+              <ResponsiveContainer width="100%" height={280}>
+                <PieChart>
+                  <Pie
+                    data={categoryData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={70}
+                    outerRadius={100}
+                    paddingAngle={2}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {categoryData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => `Rp ${value.toLocaleString('id-ID')}`} />
+                  <Legend
+                    verticalAlign="bottom"
+                    iconType="circle"
+                    formatter={(value) => <span className="legend-label">{value}</span>}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="donut-center">
+                <span className="donut-center-label">Total</span>
+                <span className="donut-center-value">Rp {totalExpenseInChart.toLocaleString('id-ID')}</span>
+              </div>
+            </div>
           ) : (
-            <div className="no-data">Belum ada pengeluaran</div>
+            <div className="no-data">
+              <Sparkles size={28} className="no-data-icon" />
+              <p>Belum ada pengeluaran bulan ini</p>
+              <span>Catat pengeluaran pertama untuk melihat grafiknya di sini</span>
+            </div>
           )}
         </div>
 
@@ -122,7 +156,11 @@ const DashboardPage = () => {
               ))}
             </div>
           ) : (
-            <div className="no-data">Belum ada anggaran</div>
+            <div className="no-data">
+              <Wallet size={28} className="no-data-icon" />
+              <p>Belum ada anggaran</p>
+              <span>Buat anggaran per kategori supaya pengeluaran lebih terkontrol</span>
+            </div>
           )}
         </div>
       </div>
@@ -134,7 +172,10 @@ const DashboardPage = () => {
           <div className="goals-grid">
             {goals.map(goal => (
               <div key={goal.id} className="goal-card">
-                <h3>{goal.name}</h3>
+                <div className="goal-card-header">
+                  <div className="goal-icon"><Target size={16} /></div>
+                  <h3>{goal.name}</h3>
+                </div>
                 <div className="goal-progress">
                   <div className="progress-bar">
                     <div
