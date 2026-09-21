@@ -1,4 +1,5 @@
 require('dotenv').config();
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -66,6 +67,14 @@ if (debtRoutes) app.use('/api/debt', authenticate, debtRoutes);
 if (dashboardRoutes) app.use('/api/dashboard', authenticate, dashboardRoutes);
 if (reportsRoutes) app.use('/api/reports', authenticate, reportsRoutes);
 if (notificationRoutes) app.use('/api/notifications', authenticate, notificationRoutes);
+
+// Serve frontend build (single-service deployment)
+const frontendDist = path.join(__dirname, '../../frontend/dist');
+app.use(express.static(frontendDist));
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) return next();
+  res.sendFile(path.join(frontendDist, 'index.html'));
+});
 
 // Error handling
 app.use(notFound);

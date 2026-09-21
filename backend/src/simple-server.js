@@ -1,5 +1,6 @@
 // Minimal server - no Prisma dependency
 require('dotenv').config();
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -37,6 +38,14 @@ app.post('/api/auth/register', (req, res) => {
 
 app.post('/api/auth/login', (req, res) => {
   res.status(501).json({ error: 'Not implemented - database connection needed' });
+});
+
+// Serve frontend build (single-service deployment)
+const frontendDist = path.join(__dirname, '../../frontend/dist');
+app.use(express.static(frontendDist));
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) return next();
+  res.sendFile(path.join(frontendDist, 'index.html'));
 });
 
 // 404 handler
