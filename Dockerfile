@@ -12,6 +12,9 @@ RUN npm run build
 # Stage 2: Backend + serve frontend build
 FROM node:22-alpine
 
+# Prisma's musl query engine needs OpenSSL present at runtime
+RUN apk add --no-cache openssl
+
 WORKDIR /app
 
 # Copy backend
