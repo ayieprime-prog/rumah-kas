@@ -50,8 +50,14 @@ router.get('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
   const { source, amount, date } = req.body;
+  const { householdId } = req;
 
   try {
+    const existing = await prisma.income.findFirst({ where: { id, householdId } });
+    if (!existing) {
+      return res.status(404).json({ error: 'Income not found' });
+    }
+
     const income = await prisma.income.update({
       where: { id },
       data: { source, amount: amount ? parseFloat(amount) : undefined, date: date ? new Date(date) : undefined }
@@ -64,7 +70,14 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
+  const { householdId } = req;
+
   try {
+    const existing = await prisma.income.findFirst({ where: { id, householdId } });
+    if (!existing) {
+      return res.status(404).json({ error: 'Income not found' });
+    }
+
     await prisma.income.delete({ where: { id } });
     res.json({ message: 'Income deleted' });
   } catch (error) {

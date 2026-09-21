@@ -4,6 +4,29 @@ const { PrismaClient } = require('@prisma/client');
 const router = express.Router();
 const prisma = new PrismaClient();
 
+const monthOf = (date) => new Date(date).toISOString().slice(0, 7);
+
+async function adjustBudgetSpent(tx, householdId, month, categoryId, delta) {
+  if (!delta) return;
+  const budget = await tx.budget.findUnique({
+    where: { householdId_month_categoryId: { householdId, month, categoryId } }
+  });
+  if (!budget) return;
+  const nextSpent = Math.max(0, budget.spent + delta);
+  await tx.budget.update({ where: { id: budget.id }, data: { spent: nextSpent } });
+
+  if (delta > 0 && nextSpent > budget.limit && budget.spent <= budget.limit) {
+    const category = await tx.expenseCategory.findUnique({ where: { id: categoryId } });
+    await tx.notification.create({
+      data: {
+        type: 'BUDGET_EXCEEDED',
+        message: `Budget "${category?.name}" exceeded this month`,
+        householdId
+      }
+    });
+  }
+}
+
 // Create expense
 router.post('/', async (req, res) => {
   const { description, amount, categoryId, date } = req.body;
@@ -14,46 +37,20 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    const expense = await prisma.expense.create({
-      data: {
-        description,
-        amount: parseFloat(amount),
-        date: new Date(date),
-        householdId,
-        categoryId
-      },
-      include: { category: true }
-    });
-
-    // Update budget spent amount
-    const monthStr = new Date(date).toISOString().slice(0, 7);
-    const budget = await prisma.budget.findUnique({
-      where: {
-        householdId_month_categoryId: {
-          householdId,
-          month: monthStr,
-          categoryId
-        }
-      }
-    });
-
-    if (budget) {
-      await prisma.budget.update({
-        where: { id: budget.id },
-        data: { spent: budget.spent + parseFloat(amount) }
-      });
-
-      // Check if budget exceeded
-      if (budget.spent + parseFloat(amount) > budget.limit) {
-        await prisma.notification.create({
-          data: {
-            type: 'BUDGET_EXCEEDED',
-            message: `Budget "${budget.category?.name}" exceeded this month`,
-            householdId
-          }
-        });
-      }
+    const category = await prisma.expenseCategory.findFirst({ where: { id: categoryId, householdId } });
+    if (!category) {
+      return res.status(404).json({ error: 'Category not found' });
     }
+
+    const parsedAmount = parseFloat(amount);
+    const expense = await prisma.$transaction(async (tx) => {
+      const created = await tx.expense.create({
+        data: { description, amount: parsedAmount, date: new Date(date), householdId, categoryId },
+        include: { category: true }
+      });
+      await adjustBudgetSpent(tx, householdId, monthOf(date), categoryId, parsedAmount);
+      return created;
+    });
 
     res.status(201).json(expense);
   } catch (error) {
@@ -106,15 +103,34 @@ router.put('/:id', async (req, res) => {
   const { householdId } = req;
 
   try {
-    const expense = await prisma.expense.update({
-      where: { id },
-      data: {
-        description,
-        amount: amount ? parseFloat(amount) : undefined,
-        categoryId,
-        date: date ? new Date(date) : undefined
-      },
-      include: { category: true }
+    const existing = await prisma.expense.findFirst({ where: { id, householdId } });
+    if (!existing) {
+      return res.status(404).json({ error: 'Expense not found' });
+    }
+
+    if (categoryId && categoryId !== existing.categoryId) {
+      const category = await prisma.expenseCategory.findFirst({ where: { id: categoryId, householdId } });
+      if (!category) {
+        return res.status(404).json({ error: 'Category not found' });
+      }
+    }
+
+    const newAmount = amount !== undefined ? parseFloat(amount) : existing.amount;
+    const newCategoryId = categoryId || existing.categoryId;
+    const newDate = date ? new Date(date) : existing.date;
+
+    const expense = await prisma.$transaction(async (tx) => {
+      const updated = await tx.expense.update({
+        where: { id },
+        data: { description, amount: newAmount, categoryId, date: date ? newDate : undefined },
+        include: { category: true }
+      });
+
+      // Reverse the old amount from the old month/category budget, apply the new one
+      await adjustBudgetSpent(tx, householdId, monthOf(existing.date), existing.categoryId, -existing.amount);
+      await adjustBudgetSpent(tx, householdId, monthOf(newDate), newCategoryId, newAmount);
+
+      return updated;
     });
 
     res.json(expense);
@@ -127,9 +143,19 @@ router.put('/:id', async (req, res) => {
 // Delete expense
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
+  const { householdId } = req;
 
   try {
-    await prisma.expense.delete({ where: { id } });
+    const existing = await prisma.expense.findFirst({ where: { id, householdId } });
+    if (!existing) {
+      return res.status(404).json({ error: 'Expense not found' });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.expense.delete({ where: { id } });
+      await adjustBudgetSpent(tx, householdId, monthOf(existing.date), existing.categoryId, -existing.amount);
+    });
+
     res.json({ message: 'Expense deleted' });
   } catch (error) {
     console.error('Delete expense error:', error);

@@ -43,8 +43,14 @@ router.get('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
   const { name, totalAmount, paidAmount, monthlyPayment, startDate, endDate, creditor } = req.body;
+  const { householdId } = req;
 
   try {
+    const existing = await prisma.debt.findFirst({ where: { id, householdId } });
+    if (!existing) {
+      return res.status(404).json({ error: 'Debt not found' });
+    }
+
     const debt = await prisma.debt.update({
       where: { id },
       data: {
@@ -65,7 +71,14 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
+  const { householdId } = req;
+
   try {
+    const existing = await prisma.debt.findFirst({ where: { id, householdId } });
+    if (!existing) {
+      return res.status(404).json({ error: 'Debt not found' });
+    }
+
     await prisma.debt.delete({ where: { id } });
     res.json({ message: 'Debt deleted' });
   } catch (error) {

@@ -63,7 +63,7 @@ router.post('/register', async (req, res) => {
     const token = jwt.sign(
       { userId: user.id, householdId: household.id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN }
+      { expiresIn: process.env.JWT_EXPIRES_IN || '12h' }
     );
 
     res.status(201).json({
@@ -100,7 +100,7 @@ router.post('/login', async (req, res) => {
     const token = jwt.sign(
       { userId: user.id, householdId: user.householdId, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN }
+      { expiresIn: process.env.JWT_EXPIRES_IN || '12h' }
     );
 
     const household = await prisma.household.findUnique({
