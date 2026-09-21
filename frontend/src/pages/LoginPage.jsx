@@ -66,7 +66,7 @@ const LoginPage = ({ onLogin }) => {
             />
           </div>
 
-          <button type="submit" className="btn-primary" disabled={loading} style={{ width: '100%' }}>
+          <button type="submit" className="btn-pill" disabled={loading}>
             {loading ? 'Sedang masuk...' : 'Masuk'}
           </button>
         </form>

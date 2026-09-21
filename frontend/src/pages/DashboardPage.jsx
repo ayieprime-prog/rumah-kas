@@ -53,7 +53,7 @@ const DashboardPage = () => {
   }))
   const totalExpenseInChart = categoryData.reduce((sum, c) => sum + c.value, 0)
 
-  const COLORS = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
+  const COLORS = ['#b8860b', '#2b7fa3', '#b06a2e', '#3a8a4d', '#b23a63', '#6b4fbb']
 
   return (
     <div className="dashboard-page">
