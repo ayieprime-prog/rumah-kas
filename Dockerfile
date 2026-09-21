@@ -11,6 +11,9 @@ WORKDIR /app/backend
 # Install backend dependencies
 RUN npm install --legacy-peer-deps
 
+# Seed dummy data (optional - will fail silently if DB not ready, that's ok)
+RUN npm run seed:dummy || echo "⚠️ Seed skipped - database not yet ready, can run manually"
+
 # Expose port
 EXPOSE 5000
 
