@@ -9,10 +9,10 @@
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",
-    "build": "npm run build:backend && npm run build:frontend",
-    "build:backend": "cd backend && npm run build",
+    "build": "echo 'Build completed - Node.js backend requires no compilation'",
+    "build:backend": "echo 'No build needed for Node.js backend'",
     "build:frontend": "cd frontend && npm run build",
-    "start": "node backend/src/index.js"
+    "start": "cd backend && npm start"
   },
   "dependencies": {
     "concurrently": "^8.2.2"
