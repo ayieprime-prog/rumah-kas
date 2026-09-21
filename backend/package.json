@@ -7,7 +7,7 @@
     "dev": "nodemon src/index.js",
     "build": "echo 'No build needed for Node.js backend'",
     "start": "node src/index.js",
-    "postinstall": "npx prisma generate || true",
+    "postinstall": "echo 'Prisma generation skipped during install - will run at startup if needed' || true",
     "seed": "node prisma/seed.js",
     "migrate": "npx prisma db push --accept-data-loss --skip-generate",
     "prisma:studio": "npx prisma studio"

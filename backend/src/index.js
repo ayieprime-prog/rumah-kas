@@ -8,17 +8,24 @@ require('express-async-errors');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
 const { authenticate } = require('./middleware/auth');
 
-// Import routes
-const authRoutes = require('./routes/auth');
-const householdRoutes = require('./routes/household');
-const expenseRoutes = require('./routes/expenses');
-const incomeRoutes = require('./routes/income');
-const budgetRoutes = require('./routes/budget');
-const goalRoutes = require('./routes/goals');
-const debtRoutes = require('./routes/debt');
-const dashboardRoutes = require('./routes/dashboard');
-const reportsRoutes = require('./routes/reports');
-const notificationRoutes = require('./routes/notifications');
+// Import routes with error handling
+let authRoutes, householdRoutes, expenseRoutes, incomeRoutes, budgetRoutes, goalRoutes, debtRoutes, dashboardRoutes, reportsRoutes, notificationRoutes;
+
+try {
+  authRoutes = require('./routes/auth');
+  householdRoutes = require('./routes/household');
+  expenseRoutes = require('./routes/expenses');
+  incomeRoutes = require('./routes/income');
+  budgetRoutes = require('./routes/budget');
+  goalRoutes = require('./routes/goals');
+  debtRoutes = require('./routes/debt');
+  dashboardRoutes = require('./routes/dashboard');
+  reportsRoutes = require('./routes/reports');
+  notificationRoutes = require('./routes/notifications');
+} catch (err) {
+  console.error('⚠️ Warning: Could not load routes -', err.message);
+  console.error('ℹ️ This is expected if DATABASE_URL is not configured yet');
+}
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -43,22 +50,22 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+  res.json({ status: 'OK', timestamp: new Date().toISOString(), db: process.env.DATABASE_URL ? 'configured' : 'not_configured' });
 });
 
 // Public routes
-app.use('/api/auth', authRoutes);
+if (authRoutes) app.use('/api/auth', authRoutes);
 
 // Protected routes (require authentication)
-app.use('/api/household', authenticate, householdRoutes);
-app.use('/api/expenses', authenticate, expenseRoutes);
-app.use('/api/income', authenticate, incomeRoutes);
-app.use('/api/budget', authenticate, budgetRoutes);
-app.use('/api/goals', authenticate, goalRoutes);
-app.use('/api/debt', authenticate, debtRoutes);
-app.use('/api/dashboard', authenticate, dashboardRoutes);
-app.use('/api/reports', authenticate, reportsRoutes);
-app.use('/api/notifications', authenticate, notificationRoutes);
+if (householdRoutes) app.use('/api/household', authenticate, householdRoutes);
+if (expenseRoutes) app.use('/api/expenses', authenticate, expenseRoutes);
+if (incomeRoutes) app.use('/api/income', authenticate, incomeRoutes);
+if (budgetRoutes) app.use('/api/budget', authenticate, budgetRoutes);
+if (goalRoutes) app.use('/api/goals', authenticate, goalRoutes);
+if (debtRoutes) app.use('/api/debt', authenticate, debtRoutes);
+if (dashboardRoutes) app.use('/api/dashboard', authenticate, dashboardRoutes);
+if (reportsRoutes) app.use('/api/reports', authenticate, reportsRoutes);
+if (notificationRoutes) app.use('/api/notifications', authenticate, notificationRoutes);
 
 // Error handling
 app.use(notFound);
