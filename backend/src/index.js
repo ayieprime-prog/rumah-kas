@@ -11,6 +11,7 @@ const { authenticate } = require('./middleware/auth');
 
 // Import routes with error handling
 let authRoutes, householdRoutes, expenseRoutes, incomeRoutes, budgetRoutes, goalRoutes, debtRoutes, dashboardRoutes, reportsRoutes, notificationRoutes;
+let routeLoadError = null;
 
 try {
   authRoutes = require('./routes/auth');
@@ -24,8 +25,12 @@ try {
   reportsRoutes = require('./routes/reports');
   notificationRoutes = require('./routes/notifications');
 } catch (err) {
-  console.error('⚠️ Warning: Could not load routes -', err.message);
-  console.error('ℹ️ This is expected if DATABASE_URL is not configured yet');
+  routeLoadError = err.message;
+  console.error('========================================================');
+  console.error('⚠️  DEGRADED MODE: API routes failed to load');
+  console.error('⚠️  Reason:', err.message);
+  console.error('⚠️  Check /health - it will report routesLoaded: false');
+  console.error('========================================================');
 }
 
 const app = express();
@@ -45,13 +50,31 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
+// Stricter limiter for auth endpoints to slow down brute-force login/register attempts
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: 'Too many attempts, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+
 // Body parser
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString(), db: process.env.DATABASE_URL ? 'configured' : 'not_configured' });
+  res.json({
+    status: 'OK',
+    mode: routeLoadError ? 'degraded' : 'full',
+    routesLoaded: !routeLoadError,
+    routeLoadError: routeLoadError || undefined,
+    timestamp: new Date().toISOString(),
+    db: process.env.DATABASE_URL ? 'configured' : 'not_configured'
+  });
 });
 
 // Public routes

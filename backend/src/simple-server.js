@@ -20,6 +20,9 @@ app.use(express.json());
 app.get('/health', (req, res) => {
   res.json({
     status: 'OK',
+    mode: 'degraded',
+    routesLoaded: false,
+    warning: 'Running in minimal fallback mode - full API (src/index.js) failed to start. Check deploy logs for the root cause.',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
     database: process.env.DATABASE_URL ? 'configured' : 'not_configured'

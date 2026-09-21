@@ -17,6 +17,7 @@ import SettingsPage from './pages/SettingsPage'
 // Components
 import Layout from './components/Layout'
 import PrivateRoute from './components/PrivateRoute'
+import ErrorBoundary from './components/ErrorBoundary'
 
 // Styles
 import './App.css'
@@ -33,6 +34,23 @@ function App() {
       setLoading(false)
     }
   }, [token])
+
+  // Force logout on any expired/invalid token response, instead of leaving
+  // the user stuck on a page with generic "gagal memuat data" errors
+  useEffect(() => {
+    const interceptor = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401) {
+          localStorage.removeItem('token')
+          setToken(null)
+          setUser(null)
+        }
+        return Promise.reject(error)
+      }
+    )
+    return () => axios.interceptors.response.eject(interceptor)
+  }, [])
 
   const checkAuth = async () => {
     try {
@@ -65,33 +83,37 @@ function App() {
   }
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
-        <Route path="/register" element={<RegisterPage onRegister={handleLogin} />} />
+    <ErrorBoundary>
+      <Router>
+        <Routes>
+          <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
+          <Route path="/register" element={<RegisterPage onRegister={handleLogin} />} />
 
-        <Route
-          path="/*"
-          element={
-            <PrivateRoute user={user}>
-              <Layout user={user} onLogout={handleLogout}>
-                <Routes>
-                  <Route path="/" element={<DashboardPage />} />
-                  <Route path="/expenses" element={<ExpensesPage />} />
-                  <Route path="/income" element={<IncomePages />} />
-                  <Route path="/budget" element={<BudgetPage />} />
-                  <Route path="/goals" element={<GoalsPage />} />
-                  <Route path="/debt" element={<DebtPage />} />
-                  <Route path="/reports" element={<ReportsPage />} />
-                  <Route path="/settings" element={<SettingsPage />} />
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-              </Layout>
-            </PrivateRoute>
-          }
-        />
-      </Routes>
-    </Router>
+          <Route
+            path="/*"
+            element={
+              <PrivateRoute user={user}>
+                <Layout user={user} onLogout={handleLogout}>
+                  <ErrorBoundary>
+                    <Routes>
+                      <Route path="/" element={<DashboardPage />} />
+                      <Route path="/expenses" element={<ExpensesPage />} />
+                      <Route path="/income" element={<IncomePages />} />
+                      <Route path="/budget" element={<BudgetPage />} />
+                      <Route path="/goals" element={<GoalsPage />} />
+                      <Route path="/debt" element={<DebtPage />} />
+                      <Route path="/reports" element={<ReportsPage />} />
+                      <Route path="/settings" element={<SettingsPage />} />
+                      <Route path="*" element={<Navigate to="/" replace />} />
+                    </Routes>
+                  </ErrorBoundary>
+                </Layout>
+              </PrivateRoute>
+            }
+          />
+        </Routes>
+      </Router>
+    </ErrorBoundary>
   )
 }
 
