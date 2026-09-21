@@ -10,6 +10,10 @@ async function seedDummy() {
   try {
     console.log('🌱 Seeding dummy data...\n');
 
+    // 0. Clean up any previous test data (cascade deletes users/expenses/income)
+    console.log('🧹 Removing previous test household, if any...');
+    await prisma.household.deleteMany({ where: { name: 'Keluarga Budi - Test' } });
+
     // 1. Create Household
     console.log('📦 Creating household...');
     const household = await prisma.household.create({
@@ -70,7 +74,7 @@ async function seedDummy() {
         data: {
           description: 'Weekly groceries',
           amount: 500000,
-          category: 'Groceries',
+          categoryId: categories[0].id,
           date: new Date('2026-09-20'),
           householdId: household.id
         }
@@ -79,7 +83,7 @@ async function seedDummy() {
         data: {
           description: 'Electric bill',
           amount: 250000,
-          category: 'Utilities',
+          categoryId: categories[1].id,
           date: new Date('2026-09-15'),
           householdId: household.id
         }
@@ -88,7 +92,7 @@ async function seedDummy() {
         data: {
           description: 'Gas for car',
           amount: 150000,
-          category: 'Transportation',
+          categoryId: categories[2].id,
           date: new Date('2026-09-19'),
           householdId: household.id
         }
@@ -97,7 +101,7 @@ async function seedDummy() {
         data: {
           description: 'Movie tickets',
           amount: 100000,
-          category: 'Entertainment',
+          categoryId: categories[3].id,
           date: new Date('2026-09-18'),
           householdId: household.id
         }
