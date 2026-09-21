@@ -1,0 +1,223 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============= HOUSEHOLD & AUTH =============
+model Household {
+  id        String   @id @default(cuid())
+  name      String   // e.g., "Rumah Keluarga Budi"
+  currency  String   @default("IDR")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users          User[]
+  expenses       Expense[]
+  incomes        Income[]
+  budgets        Budget[]
+  goals          Goal[]
+  debts          Debt[]
+  recurring      RecurringExpense[]
+  categories     ExpenseCategory[]
+  notifications  Notification[]
+
+  @@index([createdAt])
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // hashed
+  name      String
+  role      UserRole @default(MEMBER) // ADMIN (creator), MEMBER (spouse)
+
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([householdId])
+  @@index([email])
+}
+
+enum UserRole {
+  ADMIN   // Pembuat akun / pemilik utama
+  MEMBER  // Anggota (suami/istri)
+}
+
+// ============= EXPENSES & INCOME =============
+model ExpenseCategory {
+  id        String   @id @default(cuid())
+  name      String
+  icon      String   @default("wallet")
+  color     String   @default("#FF6B6B")
+
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  expenses  Expense[]
+  budgets   Budget[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([householdId, name])
+  @@index([householdId])
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  description String
+  amount      Float
+  date        DateTime
+
+  householdId       String
+  household         Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  categoryId  String
+  category    ExpenseCategory @relation(fields: [categoryId], references: [id])
+
+  isRecurring Boolean @default(false)
+  recurringId String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([householdId])
+  @@index([categoryId])
+  @@index([date])
+}
+
+model Income {
+  id          String   @id @default(cuid())
+  source      String   // e.g., "Gaji Suami", "Passive Income", etc
+  amount      Float
+  date        DateTime
+
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  isRecurring Boolean @default(false)
+  recurringId String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([householdId])
+  @@index([date])
+}
+
+model RecurringExpense {
+  id          String   @id @default(cuid())
+  description String
+  amount      Float
+  frequency   String   // "DAILY", "WEEKLY", "MONTHLY", "YEARLY"
+  startDate   DateTime
+  endDate     DateTime? // null = indefinite
+
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([householdId])
+}
+
+// ============= BUDGETING & GOALS =============
+model Budget {
+  id          String   @id @default(cuid())
+  month       String   // "2026-09" format
+  limit       Float
+  spent       Float    @default(0)
+
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  categoryId  String
+  category    ExpenseCategory @relation(fields: [categoryId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([householdId, month, categoryId])
+  @@index([householdId])
+  @@index([month])
+}
+
+model Goal {
+  id          String   @id @default(cuid())
+  name        String   // e.g., "Liburan ke Bali", "Mobil Baru"
+  targetAmount Float
+  currentAmount Float @default(0)
+  targetDate  DateTime
+  description String?
+
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([householdId])
+  @@index([targetDate])
+}
+
+// ============= DEBT MANAGEMENT =============
+model Debt {
+  id          String   @id @default(cuid())
+  name        String   // e.g., "Cicilan Rumah", "Pinjam Teman"
+  totalAmount Float
+  paidAmount  Float    @default(0)
+  monthlyPayment Float
+  startDate   DateTime
+  endDate     DateTime? // estimated
+  creditor    String?   // e.g., "Bank XYZ", "Teman Budi"
+
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([householdId])
+}
+
+// ============= NOTIFICATIONS & ALERTS =============
+model Notification {
+  id        String   @id @default(cuid())
+  type      String   // "BUDGET_EXCEEDED", "GOAL_REACHED", "DEBT_PAYMENT_DUE"
+  message   String
+  read      Boolean  @default(false)
+
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([householdId])
+  @@index([read])
+}
+
+// ============= AUDIT LOG =============
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String   // "CREATE_EXPENSE", "UPDATE_BUDGET", etc
+  entity    String   // "EXPENSE", "BUDGET", "GOAL"
+  entityId  String
+  changes   String   // JSON stringified
+  userId    String
+
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([userId])
+}

@@ -1,0 +1,87 @@
+const express = require('express');
+const { PrismaClient } = require('@prisma/client');
+
+const router = express.Router();
+const prisma = new PrismaClient();
+
+// Get dashboard overview for current month
+router.get('/', async (req, res) => {
+  const { householdId } = req;
+  const now = new Date();
+  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+  try {
+    const [expenses, incomes, budgets, goals, debts] = await Promise.all([
+      prisma.expense.findMany({
+        where: {
+          householdId,
+          date: {
+            gte: new Date(`${currentMonth}-01`),
+            lte: new Date(now.getFullYear(), now.getMonth() + 1, 0)
+          }
+        },
+        include: { category: true }
+      }),
+      prisma.income.findMany({
+        where: {
+          householdId,
+          date: {
+            gte: new Date(`${currentMonth}-01`),
+            lte: new Date(now.getFullYear(), now.getMonth() + 1, 0)
+          }
+        }
+      }),
+      prisma.budget.findMany({
+        where: { householdId, month: currentMonth },
+        include: { category: true }
+      }),
+      prisma.goal.findMany({
+        where: { householdId }
+      }),
+      prisma.debt.findMany({
+        where: { householdId }
+      })
+    ]);
+
+    const totalIncome = incomes.reduce((sum, i) => sum + i.amount, 0);
+    const totalExpense = expenses.reduce((sum, e) => sum + e.amount, 0);
+    const balance = totalIncome - totalExpense;
+
+    // Group expenses by category
+    const expensesByCategory = {};
+    expenses.forEach(exp => {
+      const catName = exp.category.name;
+      if (!expensesByCategory[catName]) {
+        expensesByCategory[catName] = 0;
+      }
+      expensesByCategory[catName] += exp.amount;
+    });
+
+    // Calculate debt summary
+    const totalDebt = debts.reduce((sum, d) => sum + (d.totalAmount - d.paidAmount), 0);
+
+    res.json({
+      overview: {
+        currentMonth,
+        totalIncome,
+        totalExpense,
+        balance
+      },
+      expensesByCategory,
+      budgets,
+      goals: goals.map(g => ({
+        ...g,
+        progress: (g.currentAmount / g.targetAmount) * 100
+      })),
+      debtSummary: {
+        totalDebt,
+        debtCount: debts.length
+      }
+    });
+  } catch (error) {
+    console.error('Dashboard error:', error);
+    res.status(500).json({ error: 'Failed to fetch dashboard data' });
+  }
+});
+
+module.exports = router;
