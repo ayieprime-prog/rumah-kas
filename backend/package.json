@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon src/index.js",
     "build": "echo 'No build needed for Node.js backend'",
-    "start": "npx prisma db push --accept-data-loss --skip-generate && node prisma/seed.js && node src/index.js",
+    "start": "node src/index.js",
     "postinstall": "npx prisma generate",
     "seed": "node prisma/seed.js",
     "prisma:studio": "npx prisma studio"
