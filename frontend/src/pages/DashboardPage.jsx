@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
+import apiClient from '../utils/api'
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import './DashboardPage.css'
 
@@ -7,7 +7,6 @@ const DashboardPage = () => {
   const [dashboard, setDashboard] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const token = localStorage.getItem('token')
 
   useEffect(() => {
     fetchDashboard()
@@ -15,9 +14,7 @@ const DashboardPage = () => {
 
   const fetchDashboard = async () => {
     try {
-      const response = await axios.get('/api/dashboard', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      const response = await apiClient.get('/dashboard')
       setDashboard(response.data)
     } catch (err) {
       setError('Gagal mengambil data dashboard')

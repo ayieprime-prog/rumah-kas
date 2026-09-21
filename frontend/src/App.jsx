@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import axios from 'axios'
+import apiClient from './utils/api'
 
 // Pages
 import LoginPage from './pages/LoginPage'
@@ -36,9 +36,7 @@ function App() {
 
   const checkAuth = async () => {
     try {
-      const response = await axios.get('/api/auth/me', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      const response = await apiClient.get('/auth/me')
       setUser(response.data.user)
     } catch (error) {
       localStorage.removeItem('token')

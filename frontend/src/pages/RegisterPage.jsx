@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import axios from 'axios'
+import apiClient from '../utils/api'
 import './AuthPages.css'
 
 const RegisterPage = ({ onRegister }) => {
@@ -32,7 +32,7 @@ const RegisterPage = ({ onRegister }) => {
     setLoading(true)
 
     try {
-      const response = await axios.post('/api/auth/register', {
+      const response = await apiClient.post('/auth/register', {
         householdName: formData.householdName,
         name: formData.name,
         email: formData.email,

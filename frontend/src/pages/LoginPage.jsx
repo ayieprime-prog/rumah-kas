@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import axios from 'axios'
+import apiClient from '../utils/api'
 import './AuthPages.css'
 
 const LoginPage = ({ onLogin }) => {
@@ -20,7 +20,7 @@ const LoginPage = ({ onLogin }) => {
     setLoading(true)
 
     try {
-      const response = await axios.post('/api/auth/login', formData)
+      const response = await apiClient.post('/auth/login', formData)
       const { token, user } = response.data
       onLogin(token, user)
       navigate('/')
