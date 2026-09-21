@@ -28,7 +28,8 @@
     "prisma": "^5.20.0"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=18",
+    "npm": ">=8.0.0"
   },
-  "_rebuild": "2026-09-21-minimal-start-v3"
+  "_rebuild": "2026-09-21-force-npm-ci-v4"
 }
