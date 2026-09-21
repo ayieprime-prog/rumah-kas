@@ -3,19 +3,13 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-# Copy root package files
-COPY package*.json ./
-
-# Install root dependencies
-RUN npm ci
-
 # Copy backend
 COPY backend ./backend
 
 WORKDIR /app/backend
 
 # Install backend dependencies
-RUN npm ci
+RUN npm install --legacy-peer-deps
 
 # Expose port
 EXPOSE 5000
