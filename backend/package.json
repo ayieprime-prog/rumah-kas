@@ -10,7 +10,8 @@
     "postinstall": "echo 'Prisma generation skipped during install - will run at startup if needed' || true",
     "seed": "node prisma/seed.js",
     "seed:dummy": "node seed-dummy.js",
-    "migrate": "npx prisma db push --accept-data-loss --skip-generate",
+    "migrate": "npx prisma migrate deploy",
+    "migrate:dev": "npx prisma migrate dev",
     "prisma:studio": "npx prisma studio"
   },
   "dependencies": {
