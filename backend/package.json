@@ -6,10 +6,10 @@
   "scripts": {
     "dev": "nodemon src/index.js",
     "build": "echo 'No build needed for Node.js backend'",
-    "start": "prisma db push --accept-data-loss --skip-generate && node prisma/seed.js && node src/index.js",
-    "postinstall": "prisma generate",
+    "start": "npx prisma db push --accept-data-loss --skip-generate && node prisma/seed.js && node src/index.js",
+    "postinstall": "npx prisma generate",
     "seed": "node prisma/seed.js",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "npx prisma studio"
   },
   "dependencies": {
     "@prisma/client": "^5.20.0",
