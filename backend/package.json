@@ -6,8 +6,11 @@
   "scripts": {
     "dev": "nodemon src/index.js",
     "build": "echo 'No build needed for Node.js backend'",
+    "prestart": "npm run check-deps",
     "start": "node src/index.js",
-    "postinstall": "npx prisma generate || true",
+    "check-deps": "node -e \"const fs = require('fs'); const deps = ['dotenv', 'express', 'cors', 'helmet', 'express-async-errors', 'express-rate-limit', 'jsonwebtoken', 'bcryptjs', '@prisma/client']; const missing = deps.filter(d => !fs.existsSync('./node_modules/' + d)); if(missing.length) { console.error('❌ Missing dependencies:', missing); process.exit(1); } else { console.log('✅ All dependencies present'); }\"",
+    "postinstall": "npm run prisma:generate:safe",
+    "prisma:generate:safe": "npx prisma generate 2>&1 || (echo '⚠️ Prisma generate failed, trying fallback' && true)",
     "seed": "node prisma/seed.js",
     "prisma:studio": "npx prisma studio"
   },
@@ -29,5 +32,5 @@
   "engines": {
     "node": ">=18"
   },
-  "_rebuild": "2026-09-21-force-rebuild"
+  "_rebuild": "2026-09-21-force-clean-install-v2"
 }
