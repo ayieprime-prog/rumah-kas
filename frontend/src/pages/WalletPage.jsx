@@ -83,7 +83,7 @@ const WalletPage = () => {
 
   return (
     <div className="list-page">
-      <BackButton to="/" label="Beranda" />
+      <BackButton to="/keuangan" label="Keuangan" />
 
       <div className="page-header">
         <h1>Kelola Wallet</h1>
