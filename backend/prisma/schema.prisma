@@ -27,6 +27,7 @@ model Household {
   debts          Debt[]
   recurring      RecurringExpense[]
   categories     ExpenseCategory[]
+  wallets        Wallet[]
   notifications  Notification[]
   importantLinks ImportantLink[]
   maintenanceItems MaintenanceItem[]
@@ -93,6 +94,9 @@ model Expense {
   categoryId  String
   category    ExpenseCategory @relation(fields: [categoryId], references: [id])
 
+  walletId    String?
+  wallet      Wallet? @relation(fields: [walletId], references: [id], onDelete: SetNull)
+
   isRecurring Boolean @default(false)
   recurringId String? @unique
 
@@ -101,6 +105,7 @@ model Expense {
 
   @@index([householdId])
   @@index([categoryId])
+  @@index([walletId])
   @@index([date])
 }
 
@@ -113,6 +118,9 @@ model Income {
   householdId String
   household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
 
+  walletId    String?
+  wallet      Wallet? @relation(fields: [walletId], references: [id], onDelete: SetNull)
+
   isRecurring Boolean @default(false)
   recurringId String? @unique
 
@@ -120,6 +128,7 @@ model Income {
   updatedAt DateTime @updatedAt
 
   @@index([householdId])
+  @@index([walletId])
   @@index([date])
 }
 
@@ -192,6 +201,27 @@ model Debt {
 
   householdId String
   household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([householdId])
+}
+
+// ============= WALLET MANAGEMENT =============
+model Wallet {
+  id        String   @id @default(cuid())
+  name      String   // e.g., "Tunai", "BCA", "Dompet Digital"
+  type      String   @default("CASH") // CASH, BANK_ACCOUNT, DIGITAL_WALLET
+  balance   Float    @default(0)
+  icon      String   @default("wallet")
+  isActive  Boolean  @default(true)
+
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  expenses    Expense[]
+  incomes     Income[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
