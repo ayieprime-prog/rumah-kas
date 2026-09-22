@@ -6,14 +6,22 @@ const router = express.Router();
 const prisma = new PrismaClient();
 
 router.post('/', async (req, res) => {
-  const { source, amount, date } = req.body;
+  const { source, amount, date, walletId } = req.body;
   const { householdId, userId } = req;
 
   try {
+    if (walletId) {
+      const wallet = await prisma.wallet.findFirst({ where: { id: walletId, householdId } });
+      if (!wallet) {
+        return res.status(404).json({ error: 'Wallet not found' });
+      }
+    }
+
     const parsedAmount = parseFloat(amount);
     const income = await prisma.$transaction(async (tx) => {
       const created = await tx.income.create({
-        data: { source, amount: parsedAmount, date: new Date(date), householdId }
+        data: { source, amount: parsedAmount, date: new Date(date), householdId, walletId: walletId || null },
+        include: { wallet: true }
       });
       await logAudit(tx, {
         userId, householdId, action: 'CREATE_INCOME', entity: 'INCOME', entityId: created.id,
@@ -43,6 +51,7 @@ router.get('/', async (req, res) => {
     const [incomes, total] = await Promise.all([
       prisma.income.findMany({
         where,
+        include: { wallet: true },
         orderBy: { date: 'desc' },
         take: parseInt(limit),
         skip: parseInt(offset)
@@ -58,7 +67,7 @@ router.get('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
-  const { source, amount, date } = req.body;
+  const { source, amount, date, walletId } = req.body;
   const { householdId, userId } = req;
 
   try {
@@ -67,10 +76,23 @@ router.put('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Income not found' });
     }
 
+    if (walletId && walletId !== existing.walletId) {
+      const wallet = await prisma.wallet.findFirst({ where: { id: walletId, householdId } });
+      if (!wallet) {
+        return res.status(404).json({ error: 'Wallet not found' });
+      }
+    }
+
     const income = await prisma.$transaction(async (tx) => {
       const updated = await tx.income.update({
         where: { id },
-        data: { source, amount: amount ? parseFloat(amount) : undefined, date: date ? new Date(date) : undefined }
+        data: {
+          ...(source && { source }),
+          ...(amount && { amount: parseFloat(amount) }),
+          ...(date && { date: new Date(date) }),
+          ...(walletId !== undefined && { walletId: walletId || null })
+        },
+        include: { wallet: true }
       });
       await logAudit(tx, {
         userId, householdId, action: 'UPDATE_INCOME', entity: 'INCOME', entityId: id,

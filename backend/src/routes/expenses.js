@@ -30,7 +30,7 @@ async function adjustBudgetSpent(tx, householdId, month, categoryId, delta) {
 
 // Create expense
 router.post('/', async (req, res) => {
-  const { description, amount, categoryId, date } = req.body;
+  const { description, amount, categoryId, date, walletId } = req.body;
   const { householdId, userId } = req;
 
   if (!description || !amount || !categoryId || !date) {
@@ -43,11 +43,18 @@ router.post('/', async (req, res) => {
       return res.status(404).json({ error: 'Category not found' });
     }
 
+    if (walletId) {
+      const wallet = await prisma.wallet.findFirst({ where: { id: walletId, householdId } });
+      if (!wallet) {
+        return res.status(404).json({ error: 'Wallet not found' });
+      }
+    }
+
     const parsedAmount = parseFloat(amount);
     const expense = await prisma.$transaction(async (tx) => {
       const created = await tx.expense.create({
-        data: { description, amount: parsedAmount, date: new Date(date), householdId, categoryId },
-        include: { category: true }
+        data: { description, amount: parsedAmount, date: new Date(date), householdId, categoryId, walletId: walletId || null },
+        include: { category: true, wallet: true }
       });
       await adjustBudgetSpent(tx, householdId, monthOf(date), categoryId, parsedAmount);
       await logAudit(tx, {
@@ -86,7 +93,7 @@ router.get('/', async (req, res) => {
     const [expenses, total] = await Promise.all([
       prisma.expense.findMany({
         where,
-        include: { category: true },
+        include: { category: true, wallet: true },
         orderBy: { date: 'desc' },
         take: parseInt(limit),
         skip: parseInt(offset)
@@ -104,7 +111,7 @@ router.get('/', async (req, res) => {
 // Update expense
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
-  const { description, amount, categoryId, date } = req.body;
+  const { description, amount, categoryId, date, walletId } = req.body;
   const { householdId, userId } = req;
 
   try {
@@ -120,15 +127,29 @@ router.put('/:id', async (req, res) => {
       }
     }
 
+    if (walletId && walletId !== existing.walletId) {
+      const wallet = await prisma.wallet.findFirst({ where: { id: walletId, householdId } });
+      if (!wallet) {
+        return res.status(404).json({ error: 'Wallet not found' });
+      }
+    }
+
     const newAmount = amount !== undefined ? parseFloat(amount) : existing.amount;
     const newCategoryId = categoryId || existing.categoryId;
     const newDate = date ? new Date(date) : existing.date;
+    const newWalletId = walletId !== undefined ? walletId : existing.walletId;
 
     const expense = await prisma.$transaction(async (tx) => {
       const updated = await tx.expense.update({
         where: { id },
-        data: { description, amount: newAmount, categoryId, date: date ? newDate : undefined },
-        include: { category: true }
+        data: {
+          ...(description && { description }),
+          ...(amount !== undefined && { amount: newAmount }),
+          ...(categoryId && { categoryId }),
+          ...(date && { date: newDate }),
+          ...(walletId !== undefined && { walletId: newWalletId })
+        },
+        include: { category: true, wallet: true }
       });
 
       // Reverse the old amount from the old month/category budget, apply the new one

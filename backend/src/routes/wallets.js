@@ -1,6 +1,6 @@
-import express from 'express'
-import { PrismaClient } from '@prisma/client'
-import { authMiddleware } from '../middleware/auth.js'
+const express = require('express')
+const { PrismaClient } = require('@prisma/client')
+const { authMiddleware } = require('../middleware/auth')
 
 const router = express.Router()
 const prisma = new PrismaClient()
@@ -155,4 +155,4 @@ router.delete('/:id', authMiddleware, async (req, res) => {
   }
 })
 
-export default router
+module.exports = router
