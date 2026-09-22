@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient, AssetType } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 const handleError = (res, error, defaultMsg) => {
@@ -34,7 +34,7 @@ router.get('/', async (req, res) => {
       assets,
       summary: {
         totalValue: assets.reduce((sum, a) => sum + a.currentValue, 0),
-        byType: Object.values(require('../utils/asset-utils').AssetType).map(type => ({
+        byType: Object.values(AssetType).map(type => ({
           type,
           count: assets.filter(a => a.type === type).length,
           value: assets.filter(a => a.type === type).reduce((sum, a) => sum + a.currentValue, 0)

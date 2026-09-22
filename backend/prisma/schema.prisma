@@ -30,6 +30,11 @@ model Household {
   wallets        Wallet[]
   transfers      Transfer[]
   assets         Asset[]
+  auditLogs      AuditLog[]
+  events         Event[]
+  importantLinks ImportantLink[]
+  journalEntries JournalEntry[]
+  maintenanceItems MaintenanceItem[]
 
   @@index([createdAt])
 }
@@ -43,6 +48,9 @@ model User {
 
   householdId String
   household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  auditLogs      AuditLog[]
+  journalEntries JournalEntry[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -330,15 +338,110 @@ enum AssetType {
 
 // ============= AUDIT LOG =============
 model AuditLog {
-  id        String   @id @default(cuid())
-  action    String   // "CREATE_EXPENSE", "UPDATE_BUDGET", etc
-  entity    String   // "EXPENSE", "BUDGET", "GOAL"
-  entityId  String
-  changes   String   // JSON stringified
-  userId    String
+  id          String   @id @default(cuid())
+  action      String   // "CREATE_EXPENSE", "UPDATE_BUDGET", etc
+  entity      String   // "EXPENSE", "BUDGET", "GOAL"
+  entityId    String
+  summary     String
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 
-  @@index([createdAt])
   @@index([userId])
+  @@index([householdId])
+}
+
+// ============= KALENDER =============
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  startDate   DateTime
+  allDay      Boolean  @default(true)
+  category    String?
+
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([householdId])
+  @@index([startDate])
+}
+
+// ============= LINK PENTING =============
+model ImportantLink {
+  id       String  @id @default(cuid())
+  title    String
+  url      String
+  category String?
+  notes    String?
+
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([householdId])
+}
+
+// ============= JURNAL KELUARGA =============
+model JournalEntry {
+  id        String   @id @default(cuid())
+  content   String
+  mood      String?
+  entryDate DateTime @default(now())
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([householdId])
+  @@index([entryDate])
+}
+
+// ============= MAINTENANCE (SERVIS KENDARAAN & RUMAH) =============
+model MaintenanceItem {
+  id              String    @id @default(cuid())
+  name            String
+  type            String
+  intervalDays    Int?
+  lastServiceDate DateTime?
+  nextDueDate     DateTime?
+  notes           String?
+
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  logs MaintenanceLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([householdId])
+}
+
+model MaintenanceLog {
+  id          String   @id @default(cuid())
+  serviceDate DateTime
+  cost        Float?
+  notes       String?
+
+  maintenanceItemId String
+  maintenanceItem   MaintenanceItem @relation(fields: [maintenanceItemId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([maintenanceItemId])
 }

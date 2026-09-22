@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon src/index.js",
     "build": "echo 'No build needed for Node.js backend'",
-    "start": "node src/index.js || node src/simple-server.js",
+    "start": "npx prisma migrate deploy && node src/index.js",
     "postinstall": "echo 'Prisma generation skipped during install - will run at startup if needed' || true",
     "seed": "node prisma/seed.js",
     "seed:dummy": "node seed-dummy.js",
