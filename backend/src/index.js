@@ -54,8 +54,15 @@ app.set('trust proxy', 1);
 
 // Security middleware
 app.use(helmet());
+
+// CORS_ORIGIN boleh berisi beberapa origin dipisah koma (mis. localhost dev +
+// domain Railway) -- cors() cuma menerima array atau satu string origin
+// tunggal, jadi harus di-split dulu, kalau tidak semua origin selalu ditolak.
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000')
+  .split(',')
+  .map((origin) => origin.trim());
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: allowedOrigins,
   credentials: true
 }));
 
