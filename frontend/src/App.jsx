@@ -25,6 +25,7 @@ import AssetPage from './pages/AssetPage'
 import TransferPage from './pages/TransferPage'
 import AllocationPage from './pages/AllocationPage'
 import BudgetAnalyticsPage from './pages/BudgetAnalyticsPage'
+import ProfilePage from './pages/ProfilePage'
 
 // Components
 import Layout from './components/Layout'
@@ -104,7 +105,8 @@ function App() {
                 <Layout user={user}>
                   <ErrorBoundary>
                     <Routes>
-                      <Route path="/" element={<DashboardPage />} />
+                      <Route path="/" element={<DashboardPage user={user} />} />
+                      <Route path="/profile" element={<ProfilePage user={user} onUserUpdate={setUser} />} />
                       <Route path="/keuangan" element={<KeuanganHubPage />} />
                       <Route path="/expenses" element={<ExpensesPage />} />
                       <Route path="/income" element={<IncomePages />} />

@@ -11,7 +11,27 @@ const WALLET_ICONS = {
   wallet: Wallet
 }
 
-const DashboardPage = () => {
+// WMO weather codes (Open-Meteo) collapsed to a simple label + emoji.
+const WEATHER_CODES = {
+  0: ['Cerah', '☀️'], 1: ['Cerah berawan', '🌤️'], 2: ['Berawan', '⛅'], 3: ['Mendung', '☁️'],
+  45: ['Berkabut', '🌫️'], 48: ['Berkabut', '🌫️'],
+  51: ['Gerimis', '🌦️'], 53: ['Gerimis', '🌦️'], 55: ['Gerimis', '🌦️'],
+  61: ['Hujan ringan', '🌧️'], 63: ['Hujan', '🌧️'], 65: ['Hujan lebat', '🌧️'],
+  80: ['Hujan ringan', '🌦️'], 81: ['Hujan', '🌧️'], 82: ['Hujan lebat', '🌧️'],
+  95: ['Badai petir', '⛈️'], 96: ['Badai petir', '⛈️'], 99: ['Badai petir', '⛈️'],
+}
+// Jakarta -- fallback when geolocation is denied/unavailable so the widget
+// still shows something instead of just disappearing.
+const FALLBACK_COORDS = { latitude: -6.2088, longitude: 106.8456 }
+
+const greetingForHour = (hour) => {
+  if (hour < 10) return 'Selamat pagi'
+  if (hour < 15) return 'Selamat siang'
+  if (hour < 18) return 'Selamat sore'
+  return 'Selamat malam'
+}
+
+const DashboardPage = ({ user }) => {
   const navigate = useNavigate()
   const [dashboard, setDashboard] = useState(null)
   const [portfolio, setPortfolio] = useState(null)
@@ -19,11 +39,44 @@ const DashboardPage = () => {
   const [error, setError] = useState('')
   const [showBalance, setShowBalance] = useState(true)
   const [selectedWalletId, setSelectedWalletId] = useState(null)
+  const [now, setNow] = useState(new Date())
+  const [weather, setWeather] = useState(null)
 
   useEffect(() => {
     fetchDashboard()
     fetchPortfolio()
+    fetchWeather()
   }, [])
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000)
+    return () => clearInterval(timer)
+  }, [])
+
+  const fetchWeather = async () => {
+    const loadFor = async ({ latitude, longitude }) => {
+      try {
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`)
+        const data = await res.json()
+        if (data?.current_weather) {
+          const [label, icon] = WEATHER_CODES[data.current_weather.weathercode] || ['Cerah', '☀️']
+          setWeather({ temp: Math.round(data.current_weather.temperature), label, icon })
+        }
+      } catch (err) {
+        // Weather is a nice-to-have -- fail silently, dashboard works without it
+      }
+    }
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => loadFor({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
+        () => loadFor(FALLBACK_COORDS),
+        { timeout: 5000 }
+      )
+    } else {
+      loadFor(FALLBACK_COORDS)
+    }
+  }
 
   const fetchDashboard = async () => {
     try {
@@ -66,7 +119,13 @@ const DashboardPage = () => {
   if (!dashboard) return <div className="alert alert-error">Data tidak tersedia</div>
 
   const { overview, expensesByCategory, wallets = [], walletSummary = {}, budgets, goals, debtSummary } = dashboard
-  const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+  const today = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+  const timeLabel = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+  const headerStyle = user?.wallpaper ? {
+    backgroundImage: `linear-gradient(135deg, rgba(255,255,255,0.85), rgba(255,255,255,0.75)), url(${user.wallpaper})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center'
+  } : undefined
 
   // Calculate "uang bebas" (free money) = Saldo Aktif - Tabungan Goals
   const totalGoals = goals.reduce((sum, g) => sum + g.currentAmount, 0)
@@ -84,10 +143,16 @@ const DashboardPage = () => {
   return (
     <div className="dashboard-page">
       {/* Welcome Header */}
-      <div className="dashboard-header">
+      <div className="dashboard-header" style={headerStyle}>
         <div className="welcome-section">
-          <h1>Selamat pagi, Keluarga</h1>
-          <p>{today}</p>
+          <div className="welcome-topline">
+            <h1>{greetingForHour(now.getHours())}, Keluarga</h1>
+            <span className="welcome-clock">{timeLabel}</span>
+          </div>
+          <p>
+            {today}
+            {weather && <span className="welcome-weather"> · {weather.icon} {weather.temp}°C {weather.label}</span>}
+          </p>
         </div>
       </div>
 

@@ -45,6 +45,7 @@ model User {
   password  String   // hashed
   name      String
   role      UserRole @default(MEMBER) // ADMIN (creator), MEMBER (spouse)
+  wallpaper String?  // data URI (base64) untuk background dashboard pribadi
 
   householdId String
   household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)

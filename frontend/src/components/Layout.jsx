@@ -31,9 +31,9 @@ const Layout = ({ user, children }) => {
         <Link to="/" className="topbar-logo">
           ❤️ Pundi
         </Link>
-        <div className="topbar-user">
+        <Link to="/profile" className="topbar-user">
           <span>{user?.name}</span>
-        </div>
+        </Link>
       </header>
 
       <main className="main-content">

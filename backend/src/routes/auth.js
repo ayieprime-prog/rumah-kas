@@ -149,7 +149,7 @@ router.get('/me', authenticate, async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.userId },
-      select: { id: true, email: true, name: true, role: true, householdId: true }
+      select: { id: true, email: true, name: true, role: true, householdId: true, wallpaper: true }
     });
 
     const household = await prisma.household.findUnique({
@@ -159,6 +159,31 @@ router.get('/me', authenticate, async (req, res) => {
     res.json({ user, household });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch user' });
+  }
+});
+
+// data:image/<type>;base64,<...> only -- keeps wallpaper storage limited to
+// actual images, same guard style used elsewhere in the app for photo uploads.
+const isValidImageDataUri = (value) => /^data:image\/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+/]+=*$/.test(value);
+
+// Update own profile (currently just the personal dashboard wallpaper)
+router.put('/me', authenticate, async (req, res) => {
+  const { wallpaper } = req.body;
+
+  if (wallpaper !== undefined && wallpaper !== null && !isValidImageDataUri(wallpaper)) {
+    return res.status(400).json({ error: 'Wallpaper harus berupa gambar (PNG/JPG/WEBP/GIF)' });
+  }
+
+  try {
+    const user = await prisma.user.update({
+      where: { id: req.userId },
+      data: { wallpaper: wallpaper ?? null },
+      select: { id: true, email: true, name: true, role: true, householdId: true, wallpaper: true }
+    });
+    res.json({ user });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ error: 'Failed to update profile' });
   }
 });
 

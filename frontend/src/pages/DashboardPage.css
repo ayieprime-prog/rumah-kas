@@ -20,6 +20,13 @@
   margin-bottom: 24px;
 }
 
+.welcome-topline {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .welcome-section h1 {
   font-size: 20px;
   font-weight: 700;
@@ -27,10 +34,21 @@
   margin: 0 0 4px 0;
 }
 
+.welcome-clock {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1f2937;
+  font-variant-numeric: tabular-nums;
+}
+
 .welcome-section p {
   font-size: 13px;
   color: #6b7280;
   margin: 0;
+}
+
+.welcome-weather {
+  white-space: nowrap;
 }
 
 /* Wallet Tabs */
