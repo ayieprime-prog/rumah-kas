@@ -21,6 +21,7 @@ import JournalPage from './pages/JournalPage'
 import MaintenancePage from './pages/MaintenancePage'
 import LinksPage from './pages/LinksPage'
 import WalletPage from './pages/WalletPage'
+import AssetPage from './pages/AssetPage'
 
 // Components
 import Layout from './components/Layout'
@@ -115,6 +116,7 @@ function App() {
                       <Route path="/maintenance" element={<MaintenancePage />} />
                       <Route path="/links" element={<LinksPage />} />
                       <Route path="/wallets" element={<WalletPage />} />
+                      <Route path="/assets" element={<AssetPage />} />
                       <Route path="/settings" element={<SettingsPage onLogout={handleLogout} />} />
                       <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>

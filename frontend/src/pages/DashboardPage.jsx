@@ -14,6 +14,7 @@ const WALLET_ICONS = {
 const DashboardPage = () => {
   const navigate = useNavigate()
   const [dashboard, setDashboard] = useState(null)
+  const [portfolio, setPortfolio] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showBalance, setShowBalance] = useState(true)
@@ -21,6 +22,7 @@ const DashboardPage = () => {
 
   useEffect(() => {
     fetchDashboard()
+    fetchPortfolio()
   }, [])
 
   const fetchDashboard = async () => {
@@ -34,6 +36,15 @@ const DashboardPage = () => {
       setError('Gagal mengambil data dashboard')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchPortfolio = async () => {
+    try {
+      const response = await axios.get('/api/assets')
+      setPortfolio(response.data)
+    } catch (err) {
+      console.error('Gagal mengambil data portfolio aset:', err)
     }
   }
 
@@ -141,6 +152,16 @@ const DashboardPage = () => {
         </div>
       </div>
 
+      {/* Portfolio Value */}
+      {portfolio && portfolio.summary && (
+        <div style={{ marginBottom: 24, marginTop: 16 }}>
+          <div className="card-hero">
+            <div className="hero-label">Total Nilai Aset</div>
+            <div className="hero-value">Rp {portfolio.summary.totalValue.toLocaleString('id-ID')}</div>
+          </div>
+        </div>
+      )}
+
       {/* Pengeluaran per Kategori */}
       <section className="categories-section">
         <div className="section-header">
@@ -181,6 +202,13 @@ const DashboardPage = () => {
           <button className="action-pill goal-pill" onClick={() => navigate('/keuangan')}>
             <TrendingUp size={16} />
             <span>Goal: {goals.length}</span>
+            <ChevronRight size={16} />
+          </button>
+        )}
+        {portfolio && portfolio.assets && portfolio.assets.length > 0 && (
+          <button className="action-pill" style={{ background: '#6C63FF' }} onClick={() => navigate('/assets')}>
+            <BarChart3 size={16} />
+            <span>Aset: {portfolio.assets.length}</span>
             <ChevronRight size={16} />
           </button>
         )}
