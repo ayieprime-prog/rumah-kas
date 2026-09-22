@@ -161,3 +161,17 @@
   font-size: 16px;
   margin-bottom: 6px;
 }
+
+.maint-status {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin-top: 4px;
+}
+
+.maint-status-danger { background: var(--danger-soft); color: #b23a3a; }
+.maint-status-warning { background: var(--warning-soft); color: #8a6d1f; }
+.maint-status-ok { background: var(--secondary-soft); color: #1f7a4d; }
+.maint-status-muted { background: var(--primary-soft); color: var(--text-muted); }

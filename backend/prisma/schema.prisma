@@ -29,6 +29,7 @@ model Household {
   categories     ExpenseCategory[]
   notifications  Notification[]
   importantLinks ImportantLink[]
+  maintenanceItems MaintenanceItem[]
 
   @@index([createdAt])
 }
@@ -222,6 +223,39 @@ model AuditLog {
 
   @@index([createdAt])
   @@index([userId])
+}
+
+model MaintenanceItem {
+  id           String   @id @default(cuid())
+  name         String   // "Mobil Avanza", "AC Ruang Tamu"
+  type         String   // VEHICLE | HOME
+  intervalDays Int?     // e.g. every 90 days for oil change
+  lastServiceDate DateTime?
+  nextDueDate     DateTime?
+  notes        String?
+
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  logs        MaintenanceLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([householdId])
+}
+
+model MaintenanceLog {
+  id          String   @id @default(cuid())
+  serviceDate DateTime
+  cost        Float?
+  notes       String?
+
+  maintenanceItemId String
+  maintenanceItem   MaintenanceItem @relation(fields: [maintenanceItemId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([maintenanceItemId])
 }
 
 // ============= HOUSEHOLD EXTRAS =============
