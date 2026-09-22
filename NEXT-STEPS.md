@@ -1,4 +1,4 @@
-# RumahKas — Next Steps untuk Railway Deployment & Testing
+# Pundi — Next Steps untuk Railway Deployment & Testing
 
 **Status:** ✅ Dokumentasi lengkap sudah siap. Siap untuk fase deployment & testing.
 
@@ -286,4 +286,4 @@ rumah-kas/
 
 **Questions?** Check the detailed guides above. They cover all scenarios.
 
-🏠 **RumahKas — Kelola Keuangan Keluarga dengan Mudah**
+🏠 **Pundi — Kelola Keuangan Keluarga dengan Mudah**

@@ -34,7 +34,7 @@ const LoginPage = ({ onLogin }) => {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h1>🏠 RumahKas</h1>
+          <h1>🏠 Pundi</h1>
           <p>Manajemen Keuangan Keluarga</p>
         </div>
 

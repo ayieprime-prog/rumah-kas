@@ -1,6 +1,6 @@
-# RumahKas — Railway Deployment Guide (Dev & Production)
+# Pundi — Railway Deployment Guide (Dev & Production)
 
-Panduan lengkap untuk deploy aplikasi RumahKas ke dua environment di Railway: Development dan Production.
+Panduan lengkap untuk deploy aplikasi Pundi ke dua environment di Railway: Development dan Production.
 
 ---
 
@@ -35,16 +35,16 @@ Panduan lengkap untuk deploy aplikasi RumahKas ke dua environment di Railway: De
 4. Pilih repo **`ayieprime-prog/rumah-kas`**
 5. Railway akan mulai auto-deploy (tunggu sebentar)
 
-### 1.2 Rename Project ke "RumahKas-Dev"
+### 1.2 Rename Project ke "Pundi-Dev"
 
 1. Di Railway dashboard, klik project yang baru dibuat
 2. Klik ⚙️ **Settings** (di sisi kanan atas)
-3. Di bagian **Project Name**, ubah ke `RumahKas-Dev`
+3. Di bagian **Project Name**, ubah ke `Pundi-Dev`
 4. Klik **Save**
 
 ### 1.3 Tambah PostgreSQL Database
 
-1. Di dalam project RumahKas-Dev, klik **"+ New"** 
+1. Di dalam project Pundi-Dev, klik **"+ New"** 
 2. Pilih **"Database"** → **"Add PostgreSQL"**
 3. Tunggu database terbuat (~1 menit)
 4. Railway otomatis membuat variabel `DATABASE_URL`
@@ -83,7 +83,7 @@ Panduan lengkap untuk deploy aplikasi RumahKas ke dua environment di Railway: De
 Untuk development, frontend bisa dijalankan di local (`npm run dev` di folder `frontend/`). 
 Tapi jika ingin deploy frontend ke Railway juga:
 
-1. Di project RumahKas-Dev, klik **"+ New"**
+1. Di project Pundi-Dev, klik **"+ New"**
 2. Pilih **"GitHub repo"** → pilih repo yang sama
 3. Railway akan detect bahwa ada folder `frontend/`
 4. Konfigurasi:
@@ -120,11 +120,11 @@ Tapi jika ingin deploy frontend ke Railway juga:
 2. Pilih **"Deploy from GitHub repo"**
 3. Pilih repo **`ayieprime-prog/rumah-kas`** (repo yang sama)
 4. Railway akan buat project baru
-5. Rename ke **"RumahKas-Production"**
+5. Rename ke **"Pundi-Production"**
 
 ### 2.2 Tambah PostgreSQL untuk Production
 
-1. Di project RumahKas-Production, klik **"+ New"**
+1. Di project Pundi-Production, klik **"+ New"**
 2. Pilih **"Database"** → **"Add PostgreSQL"**
 3. Database production terpisah dari development — bagus!
 
@@ -378,4 +378,4 @@ VITE_API_URL=https://rumah-kas-prod.up.railway.app  # For prod
 
 **Questions?** 📧 Hubungi atau buat issue di GitHub.
 
-🏠 **RumahKas — Kelola Keuangan Keluarga dengan Mudah**
+🏠 **Pundi — Kelola Keuangan Keluarga dengan Mudah**

@@ -1,4 +1,4 @@
-# RumahKas — User Testing Guide
+# Pundi — User Testing Guide
 
 Panduan lengkap untuk User Acceptance Testing (UAT) sebelum go-live ke production.
 
@@ -231,7 +231,7 @@ Setelah dev testing selesai, libatkan pasangan.
 ```
 Salam! 👋
 
-Kami ingin Anda membantu test aplikasi RumahKas yang sedang development.
+Kami ingin Anda membantu test aplikasi Pundi yang sedang development.
 Aplikasi ini untuk kelola keuangan keluarga bersama-sama.
 
 Tolong:
@@ -416,4 +416,4 @@ Jika ada issue saat testing:
 
 **Happy Testing! 🎉**
 
-🏠 **RumahKas — Kelola Keuangan Keluarga dengan Mudah**
+🏠 **Pundi — Kelola Keuangan Keluarga dengan Mudah**

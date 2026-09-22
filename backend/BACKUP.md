@@ -1,4 +1,4 @@
-# Backup Database RumahKas
+# Backup Database Pundi
 
 Railway hanya menyediakan backup otomatis di paket Pro (berbayar). Selama
 masih di paket gratis, backup dilakukan manual dengan `pg_dump`, dijalankan

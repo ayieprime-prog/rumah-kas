@@ -1,6 +1,6 @@
-# RumahKas — Deploy ke Cloud (Railway)
+# Pundi — Deploy ke Cloud (Railway)
 
-Panduan ini menggantikan pengembangan lokal sebagai cara utama menjalankan aplikasi. Setelah mengikuti langkah-langkah ini, aplikasi RumahKas bisa diakses dari HP/tablet/laptop mana pun dengan internet — tidak perlu komputer menyala, tidak perlu tethered WiFi.
+Panduan ini menggantikan pengembangan lokal sebagai cara utama menjalankan aplikasi. Setelah mengikuti langkah-langkah ini, aplikasi Pundi bisa diakses dari HP/tablet/laptop mana pun dengan internet — tidak perlu komputer menyala, tidak perlu tethered WiFi.
 
 Kode sudah disiapkan sepenuhnya. Bagian di bawah ini murni klik-klik di website Railway, tidak ada yang perlu diketik lewat command line.
 
@@ -45,7 +45,7 @@ Kode sudah disiapkan sepenuhnya. Bagian di bawah ini murni klik-klik di website 
 1. Setelah semua variabel diisi, Railway akan otomatis build ulang karena variabel berubah
 2. Tunggu build selesai (lihat tab "Deployments" → klik yang sedang berjalan → lihat log). Proses pertama biasanya beberapa menit.
 3. Setelah sukses, buka tab **"Settings"** service ini → bagian **"Networking"** → klik **"Generate Domain"**. Railway akan memberi alamat publik seperti `https://rumah-kas-production.up.railway.app`
-4. Buka alamat itu di browser (atau HP) — halaman login RumahKas akan muncul, dengan sertifikat HTTPS resmi.
+4. Buka alamat itu di browser (atau HP) — halaman login Pundi akan muncul, dengan sertifikat HTTPS resmi.
 5. **Daftar akun baru:**
    - Nama Keluarga: Isikan nama keluarga Anda (misal: "Keluarga Budi")
    - Nama Lengkap: Isikan nama Anda
@@ -89,4 +89,4 @@ Kalau ada error di migration, hubungi untuk dibantu debug.
 
 **Butuh bantuan?** Buka issue di GitHub atau hubungi support@rumahkas.id
 
-🏠 **RumahKas — Kelola Keuangan Keluarga dengan Mudah**
+🏠 **Pundi — Kelola Keuangan Keluarga dengan Mudah**

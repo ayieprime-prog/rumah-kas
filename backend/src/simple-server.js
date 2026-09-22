@@ -31,7 +31,7 @@ app.get('/health', (req, res) => {
 
 // Status endpoint
 app.get('/api/status', (req, res) => {
-  res.json({ status: 'RumahKas API running', version: '1.0.0' });
+  res.json({ status: 'Pundi API running', version: '1.0.0' });
 });
 
 // Placeholder routes
@@ -58,7 +58,7 @@ app.use((req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 RumahKas API (minimal mode) running on http://localhost:${PORT}`);
+  console.log(`🚀 Pundi API (minimal mode) running on http://localhost:${PORT}`);
   console.log(`📍 Health: http://localhost:${PORT}/health`);
   console.log(`📍 Status: http://localhost:${PORT}/api/status`);
   console.log(`⚠️  Database-dependent routes not available yet`);

@@ -1,4 +1,4 @@
-# RumahKas Railway Deployment — Quick Checklist
+# Pundi Railway Deployment — Quick Checklist
 
 **Tujuan:** Quick reference untuk deploy dev & prod environments ke Railway.
 
@@ -23,7 +23,7 @@ Railway Dashboard → "New Project" → "Deploy from GitHub repo"
 
 ### 2️⃣ Rename Project
 ```
-Settings → Project Name → "RumahKas-Dev" → Save
+Settings → Project Name → "Pundi-Dev" → Save
 ```
 - [ ] Project renamed
 
@@ -71,7 +71,7 @@ Railway Dashboard → "New Project" → "Deploy from GitHub repo"
 
 ### 2️⃣ Rename Project
 ```
-Settings → Project Name → "RumahKas-Production" → Save
+Settings → Project Name → "Pundi-Production" → Save
 ```
 - [ ] Project renamed
 

@@ -1,6 +1,6 @@
-# 🏠 RumahKas — Manajemen Keuangan Keluarga
+# 🏠 Pundi — Manajemen Keuangan Keluarga
 
-RumahKas adalah platform SaaS untuk manajemen keuangan keluarga yang memungkinkan pasangan suami-istri mengelola keuangan bersama dengan mudah dan aman.
+Pundi adalah platform SaaS untuk manajemen keuangan keluarga yang memungkinkan pasangan suami-istri mengelola keuangan bersama dengan mudah dan aman.
 
 ## ✨ Fitur Utama
 
@@ -212,7 +212,7 @@ Di service aplikasi, buka tab "Variables" dan tambahkan:
 
 ## 📄 License
 
-Proprietary — RumahKas SaaS Platform
+Proprietary — Pundi SaaS Platform
 
 ## 👥 Team
 
@@ -223,4 +223,4 @@ Proprietary — RumahKas SaaS Platform
 
 **Questions?** Buka issue di GitHub atau hubungi support.
 
-🏠 **RumahKas — Kelola Keuangan Keluarga dengan Mudah**
+🏠 **Pundi — Kelola Keuangan Keluarga dengan Mudah**

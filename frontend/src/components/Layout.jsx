@@ -29,7 +29,7 @@ const Layout = ({ user, children }) => {
     <div className="layout">
       <header className="topbar">
         <Link to="/" className="topbar-logo">
-          🏠 RumahKas
+          ❤️ Pundi
         </Link>
         <div className="topbar-user">
           <span>{user?.name}</span>

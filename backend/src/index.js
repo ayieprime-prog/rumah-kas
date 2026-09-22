@@ -117,7 +117,7 @@ app.use(errorHandler);
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 RumahKas API running on http://localhost:${PORT}`);
+  console.log(`🚀 Pundi API running on http://localhost:${PORT}`);
   console.log(`🏠 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`💾 Database: ${process.env.DATABASE_URL ? 'Connected' : 'Not configured'}`);
 });
