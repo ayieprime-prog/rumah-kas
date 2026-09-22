@@ -22,6 +22,7 @@ import MaintenancePage from './pages/MaintenancePage'
 import LinksPage from './pages/LinksPage'
 import WalletPage from './pages/WalletPage'
 import AssetPage from './pages/AssetPage'
+import TransferPage from './pages/TransferPage'
 
 // Components
 import Layout from './components/Layout'
@@ -117,6 +118,7 @@ function App() {
                       <Route path="/links" element={<LinksPage />} />
                       <Route path="/wallets" element={<WalletPage />} />
                       <Route path="/assets" element={<AssetPage />} />
+                      <Route path="/transfers" element={<TransferPage />} />
                       <Route path="/settings" element={<SettingsPage onLogout={handleLogout} />} />
                       <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>

@@ -28,6 +28,7 @@ model Household {
   categories     ExpenseCategory[]
   notifications  Notification[]
   wallets        Wallet[]
+  transfers      Transfer[]
   assets         Asset[]
 
   @@index([createdAt])
@@ -87,6 +88,9 @@ model Expense {
   categoryId  String
   category    ExpenseCategory @relation(fields: [categoryId], references: [id])
 
+  walletId    String?
+  wallet      Wallet? @relation(fields: [walletId], references: [id])
+
   isRecurring Boolean @default(false)
   recurringId String? @unique
 
@@ -95,6 +99,7 @@ model Expense {
 
   @@index([householdId])
   @@index([categoryId])
+  @@index([walletId])
   @@index([date])
 }
 
@@ -107,6 +112,9 @@ model Income {
   householdId String
   household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
 
+  walletId    String?
+  wallet      Wallet? @relation(fields: [walletId], references: [id])
+
   isRecurring Boolean @default(false)
   recurringId String? @unique
 
@@ -114,6 +122,7 @@ model Income {
   updatedAt DateTime @updatedAt
 
   @@index([householdId])
+  @@index([walletId])
   @@index([date])
 }
 
@@ -207,6 +216,67 @@ model Notification {
 
   @@index([householdId])
   @@index([read])
+}
+
+// ============= WALLET MANAGEMENT =============
+model Wallet {
+  id        String   @id @default(cuid())
+  name      String   // e.g., "Tunai", "BCA", "Dompet Digital"
+  type      String   @default("CASH") // CASH, BANK_ACCOUNT, DIGITAL_WALLET
+  balance   Float    @default(0)
+  icon      String   @default("wallet")
+  isActive  Boolean  @default(true)
+
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  expenses      Expense[]
+  incomes       Income[]
+  transfersFrom Transfer[] @relation("fromWallet")
+  transfersTo   Transfer[] @relation("toWallet")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([householdId])
+}
+
+// ============= TRANSFER MANAGEMENT =============
+model Transfer {
+  id        String   @id @default(cuid())
+  amount    Float
+  note      String?
+  status    TransferStatus @default(PENDING) // PENDING, APPROVED, REJECTED, COMPLETED
+
+  fromWalletId String
+  fromWallet   Wallet @relation("fromWallet", fields: [fromWalletId], references: [id], onDelete: Cascade)
+
+  toWalletId   String
+  toWallet     Wallet @relation("toWallet", fields: [toWalletId], references: [id], onDelete: Cascade)
+
+  initiatedById String? // null = auto transfer (same user)
+  recipientId   String? // if transfer to another household member
+
+  approvedBy    String? // who approved the transfer
+  approvedAt    DateTime?
+
+  householdId   String
+  household     Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([householdId])
+  @@index([status])
+  @@index([fromWalletId])
+  @@index([toWalletId])
+}
+
+enum TransferStatus {
+  PENDING    // Waiting for approval (if multi-user)
+  APPROVED   // Approved but not yet executed
+  REJECTED   // Transfer was rejected
+  COMPLETED  // Transfer completed successfully
 }
 
 // ============= ASSET MANAGEMENT =============
