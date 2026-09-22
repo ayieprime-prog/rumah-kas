@@ -1,12 +1,12 @@
 const express = require('express')
 const { PrismaClient } = require('@prisma/client')
-const { authMiddleware } = require('../middleware/auth')
+const { authenticate } = require('../middleware/auth')
 
 const router = express.Router()
 const prisma = new PrismaClient()
 
 // Get all wallets for household
-router.get('/', authMiddleware, async (req, res) => {
+router.get('/', authenticate, async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.userId },
@@ -27,7 +27,7 @@ router.get('/', authMiddleware, async (req, res) => {
 })
 
 // Get wallet summary with balance
-router.get('/summary', authMiddleware, async (req, res) => {
+router.get('/summary', authenticate, async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.userId },
@@ -53,7 +53,7 @@ router.get('/summary', authMiddleware, async (req, res) => {
 })
 
 // Create wallet
-router.post('/', authMiddleware, async (req, res) => {
+router.post('/', authenticate, async (req, res) => {
   try {
     const { name, type, balance, icon } = req.body
 
@@ -85,7 +85,7 @@ router.post('/', authMiddleware, async (req, res) => {
 })
 
 // Update wallet
-router.put('/:id', authMiddleware, async (req, res) => {
+router.put('/:id', authenticate, async (req, res) => {
   try {
     const { name, type, balance, isActive } = req.body
     const walletId = req.params.id
@@ -119,7 +119,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
 })
 
 // Delete wallet
-router.delete('/:id', authMiddleware, async (req, res) => {
+router.delete('/:id', authenticate, async (req, res) => {
   try {
     const walletId = req.params.id
 
