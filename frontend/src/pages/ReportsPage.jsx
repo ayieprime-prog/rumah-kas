@@ -56,46 +56,89 @@ const ReportsPage = () => {
     if (!report) return
     setExporting(true)
     try {
-      const doc = new jsPDF()
-      doc.setFontSize(16)
+      const doc = new jsPDF('p', 'mm', 'a4')
+
+      doc.setFontSize(18)
       doc.text('Laporan Keuangan', 14, 15)
       doc.setFontSize(10)
-      doc.text(`Bulan: ${monthLabel(month)}`, 14, 25)
+      doc.text(`Keluarga Budi - Test`, 14, 22)
+      doc.text(`${monthLabel(month)}`, 14, 28)
+      doc.setTextColor(120)
+      doc.text(`Dibuat: ${new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}`, 14, 34)
+      doc.setTextColor(0)
 
-      doc.setFontSize(11)
-      doc.text('Ringkasan', 14, 40)
-      doc.setFontSize(9)
-      doc.text(`Saldo: Rp ${report.balance.toLocaleString('id-ID')}`, 14, 50)
-      doc.text(`Pemasukan: Rp ${report.income.total.toLocaleString('id-ID')}`, 14, 57)
-      doc.text(`Pengeluaran: Rp ${report.expense.total.toLocaleString('id-ID')}`, 14, 64)
+      let yPos = 42
 
-      if (chartContainerRef.current) {
-        const canvas = await html2canvas(chartContainerRef.current, { scale: 2, useCORS: true })
-        const imgData = canvas.toDataURL('image/png')
-        doc.addImage(imgData, 'PNG', 14, 75, 180, 100)
-      }
+      doc.setFontSize(10)
+      doc.setFillColor(218, 165, 32)
+      doc.rect(14, yPos, 182, 7, 'F')
+      doc.setTextColor(255, 255, 255)
+      doc.setFont(undefined, 'bold')
+      doc.text('Ringkasan', 18, yPos + 5)
+      doc.text('Jumlah', 160, yPos + 5)
+      doc.setTextColor(0)
+      doc.setFont(undefined, 'normal')
 
-      let yPos = 185
-      doc.setFontSize(11)
-      doc.text('Pengeluaran per Kategori', 14, yPos)
       yPos += 10
+      const summaryData = [
+        { label: 'Total Pemasukan', value: `Rp ${report.income.total.toLocaleString('id-ID')}` },
+        { label: 'Total Pengeluaran', value: `Rp ${report.expense.total.toLocaleString('id-ID')}` },
+        { label: 'Sisa (Tabungan)', value: `Rp ${report.balance.toLocaleString('id-ID')}` }
+      ]
 
-      doc.setFontSize(8)
-      doc.setTextColor(100)
-      doc.text('Kategori', 14, yPos)
-      doc.text('Jumlah', 100, yPos)
-      doc.text('Persentase', 150, yPos)
+      summaryData.forEach((row, idx) => {
+        doc.setFontSize(10)
+        doc.text(row.label, 18, yPos)
+        doc.text(row.value, 160, yPos, { align: 'right' })
+        if (idx < summaryData.length - 1) {
+          doc.setDrawColor(229, 231, 235)
+          doc.line(14, yPos + 2, 196, yPos + 2)
+        }
+        yPos += 8
+      })
+
       yPos += 5
 
+      if (chartContainerRef.current) {
+        doc.setFontSize(11)
+        doc.setFont(undefined, 'bold')
+        doc.text('Distribusi Pengeluaran', 14, yPos)
+        yPos += 10
+
+        const canvas = await html2canvas(chartContainerRef.current, { scale: 2, useCORS: true, allowTaint: true })
+        const imgData = canvas.toDataURL('image/png')
+        doc.addImage(imgData, 'PNG', 60, yPos, 90, 70)
+        yPos += 75
+      }
+
+      yPos += 5
+      doc.setFont(undefined, 'bold')
+      doc.setFontSize(10)
+      doc.text('Pengeluaran per Kategori', 14, yPos)
+      yPos += 7
+
+      doc.setFillColor(218, 165, 32)
+      doc.rect(14, yPos - 3, 182, 7, 'F')
+      doc.setTextColor(255, 255, 255)
+      doc.setFontSize(9)
+      doc.text('Kategori', 18, yPos + 2)
+      doc.text('Jumlah', 120, yPos + 2)
+      doc.text('Persentase', 170, yPos + 2)
       doc.setTextColor(0)
+      doc.setFont(undefined, 'normal')
+      yPos += 7
+
       categories.forEach((cat, idx) => {
         if (yPos > 270) {
           doc.addPage()
           yPos = 15
         }
-        doc.text(cat.name.substring(0, 30), 14, yPos)
-        doc.text(`Rp ${cat.amount.toLocaleString('id-ID')}`, 100, yPos)
-        doc.text(`${cat.percentage}%`, 150, yPos)
+        doc.setFontSize(9)
+        doc.text(cat.name.substring(0, 35), 18, yPos)
+        doc.text(`Rp ${cat.amount.toLocaleString('id-ID')}`, 120, yPos)
+        doc.text(`${cat.percentage}%`, 170, yPos)
+        doc.setDrawColor(229, 231, 235)
+        doc.line(14, yPos + 1.5, 196, yPos + 1.5)
         yPos += 6
       })
 
