@@ -20,6 +20,7 @@ import ConversationCardsPage from './pages/ConversationCardsPage'
 import JournalPage from './pages/JournalPage'
 import MaintenancePage from './pages/MaintenancePage'
 import LinksPage from './pages/LinksPage'
+import WalletPage from './pages/WalletPage'
 
 // Components
 import Layout from './components/Layout'
@@ -113,6 +114,7 @@ function App() {
                       <Route path="/journal" element={<JournalPage />} />
                       <Route path="/maintenance" element={<MaintenancePage />} />
                       <Route path="/links" element={<LinksPage />} />
+                      <Route path="/wallets" element={<WalletPage />} />
                       <Route path="/settings" element={<SettingsPage onLogout={handleLogout} />} />
                       <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>

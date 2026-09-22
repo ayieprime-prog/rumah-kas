@@ -8,19 +8,24 @@ const currentMonth = () => new Date().toISOString().slice(0, 7)
 
 const IncomePages = () => {
   const [incomes, setIncomes] = useState([])
+  const [wallets, setWallets] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [form, setForm] = useState({ source: '', amount: '', date: new Date().toISOString().slice(0, 10) })
+  const [form, setForm] = useState({ source: '', amount: '', walletId: '', date: new Date().toISOString().slice(0, 10) })
 
   useEffect(() => { loadData() }, [])
 
   const loadData = async () => {
     setLoading(true)
     try {
-      const res = await axios.get('/api/income', { params: { month: currentMonth() } })
-      setIncomes(res.data.incomes || [])
+      const [incomeRes, walletsRes] = await Promise.all([
+        axios.get('/api/income', { params: { month: currentMonth() } }),
+        axios.get('/api/wallets')
+      ])
+      setIncomes(incomeRes.data.incomes || [])
+      setWallets(walletsRes.data || [])
     } catch (err) {
       setError('Gagal memuat data pemasukan')
     } finally {
@@ -34,9 +39,11 @@ const IncomePages = () => {
     e.preventDefault()
     setSaving(true)
     try {
-      await axios.post('/api/income', form)
+      const submitData = { ...form }
+      if (!submitData.walletId) delete submitData.walletId
+      await axios.post('/api/income', submitData)
       setShowModal(false)
-      setForm({ source: '', amount: '', date: new Date().toISOString().slice(0, 10) })
+      setForm({ source: '', amount: '', walletId: '', date: new Date().toISOString().slice(0, 10) })
       loadData()
     } catch (err) {
       setError('Gagal menyimpan pemasukan')
@@ -123,6 +130,15 @@ const IncomePages = () => {
                 <label>Tanggal</label>
                 <input required type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
               </div>
+              {wallets.length > 0 && (
+                <div className="form-group">
+                  <label>Wallet (Opsional)</label>
+                  <select value={form.walletId} onChange={e => setForm({ ...form, walletId: e.target.value })}>
+                    <option value="">Tidak ada wallet tertentu</option>
+                    {wallets.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+                  </select>
+                </div>
+              )}
               <button type="submit" className="btn-pill" disabled={saving}>
                 {saving ? 'Menyimpan...' : 'Simpan'}
               </button>

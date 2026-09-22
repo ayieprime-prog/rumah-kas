@@ -12,11 +12,12 @@ const currentMonth = () => new Date().toISOString().slice(0, 7)
 const ExpensesPage = () => {
   const [categories, setCategories] = useState([])
   const [expenses, setExpenses] = useState([])
+  const [wallets, setWallets] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [form, setForm] = useState({ description: '', amount: '', categoryId: '', date: new Date().toISOString().slice(0, 10) })
+  const [form, setForm] = useState({ description: '', amount: '', categoryId: '', walletId: '', date: new Date().toISOString().slice(0, 10) })
 
   const month = currentMonth()
 
@@ -27,12 +28,14 @@ const ExpensesPage = () => {
   const loadData = async () => {
     setLoading(true)
     try {
-      const [householdRes, expensesRes] = await Promise.all([
+      const [householdRes, expensesRes, walletsRes] = await Promise.all([
         axios.get('/api/household'),
-        axios.get('/api/expenses', { params: { month } })
+        axios.get('/api/expenses', { params: { month } }),
+        axios.get('/api/wallets')
       ])
       setCategories(householdRes.data.categories || [])
       setExpenses(expensesRes.data.expenses || [])
+      setWallets(walletsRes.data || [])
     } catch (err) {
       setError('Gagal memuat data pengeluaran')
     } finally {
@@ -50,9 +53,11 @@ const ExpensesPage = () => {
     e.preventDefault()
     setSaving(true)
     try {
-      await axios.post('/api/expenses', form)
+      const submitData = { ...form }
+      if (!submitData.walletId) delete submitData.walletId
+      await axios.post('/api/expenses', submitData)
       setShowModal(false)
-      setForm({ description: '', amount: '', categoryId: '', date: new Date().toISOString().slice(0, 10) })
+      setForm({ description: '', amount: '', categoryId: '', walletId: '', date: new Date().toISOString().slice(0, 10) })
       loadData()
     } catch (err) {
       setError(err.response?.data?.error || 'Gagal menyimpan pengeluaran')
@@ -166,6 +171,15 @@ const ExpensesPage = () => {
                 <label>Tanggal</label>
                 <input required type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
               </div>
+              {wallets.length > 0 && (
+                <div className="form-group">
+                  <label>Wallet (Opsional)</label>
+                  <select value={form.walletId} onChange={e => setForm({ ...form, walletId: e.target.value })}>
+                    <option value="">Tidak ada wallet tertentu</option>
+                    {wallets.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+                  </select>
+                </div>
+              )}
               <button type="submit" className="btn-pill" disabled={saving}>
                 {saving ? 'Menyimpan...' : 'Simpan'}
               </button>
