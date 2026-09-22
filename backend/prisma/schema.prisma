@@ -2,8 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -27,13 +26,9 @@ model Household {
   debts          Debt[]
   recurring      RecurringExpense[]
   categories     ExpenseCategory[]
-  wallets        Wallet[]
   notifications  Notification[]
-  importantLinks ImportantLink[]
-  maintenanceItems MaintenanceItem[]
-  events         Event[]
-  journalEntries JournalEntry[]
-  auditLogs      AuditLog[]
+  wallets        Wallet[]
+  assets         Asset[]
 
   @@index([createdAt])
 }
@@ -47,8 +42,6 @@ model User {
 
   householdId String
   household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
-  journalEntries JournalEntry[]
-  auditLogs      AuditLog[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -94,9 +87,6 @@ model Expense {
   categoryId  String
   category    ExpenseCategory @relation(fields: [categoryId], references: [id])
 
-  walletId    String?
-  wallet      Wallet? @relation(fields: [walletId], references: [id], onDelete: SetNull)
-
   isRecurring Boolean @default(false)
   recurringId String? @unique
 
@@ -105,7 +95,6 @@ model Expense {
 
   @@index([householdId])
   @@index([categoryId])
-  @@index([walletId])
   @@index([date])
 }
 
@@ -118,9 +107,6 @@ model Income {
   householdId String
   household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
 
-  walletId    String?
-  wallet      Wallet? @relation(fields: [walletId], references: [id], onDelete: SetNull)
-
   isRecurring Boolean @default(false)
   recurringId String? @unique
 
@@ -128,7 +114,6 @@ model Income {
   updatedAt DateTime @updatedAt
 
   @@index([householdId])
-  @@index([walletId])
   @@index([date])
 }
 
@@ -208,27 +193,6 @@ model Debt {
   @@index([householdId])
 }
 
-// ============= WALLET MANAGEMENT =============
-model Wallet {
-  id        String   @id @default(cuid())
-  name      String   // e.g., "Tunai", "BCA", "Dompet Digital"
-  type      String   @default("CASH") // CASH, BANK_ACCOUNT, DIGITAL_WALLET
-  balance   Float    @default(0)
-  icon      String   @default("wallet")
-  isActive  Boolean  @default(true)
-
-  householdId String
-  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
-
-  expenses    Expense[]
-  incomes     Income[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([householdId])
-}
-
 // ============= NOTIFICATIONS & ALERTS =============
 model Notification {
   id        String   @id @default(cuid())
@@ -245,110 +209,66 @@ model Notification {
   @@index([read])
 }
 
+// ============= ASSET MANAGEMENT =============
+model Asset {
+  id              String   @id @default(cuid())
+  name            String   // e.g., "Rumah di Bekasi", "Toyota Avanza"
+  type            AssetType // REAL_ESTATE, VEHICLE, JEWELRY, ART, CRYPTOCURRENCY, CASH_ALTERNATIVE, OTHER
+  description     String?
+  currentValue    Float    // current valuation in household currency
+  purchasePrice   Float?   // original purchase price
+  purchaseDate    DateTime?
+  currency        String   @default("IDR")
+  location        String?  // for real estate
+  notes           String?
+
+  householdId     String
+  household       Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  valuations      AssetValuation[] // historical valuations for trend tracking
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([householdId])
+  @@index([type])
+}
+
+model AssetValuation {
+  id        String   @id @default(cuid())
+  value     Float    // valuation at this point in time
+  date      DateTime @default(now())
+
+  assetId   String
+  asset     Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([assetId])
+  @@index([date])
+}
+
+enum AssetType {
+  REAL_ESTATE        // Tanah, Rumah, Apartemen
+  VEHICLE           // Mobil, Motor, Sepeda
+  JEWELRY           // Emas, Berlian, Logam Mulia
+  ART               // Lukisan, Barang Antik
+  CRYPTOCURRENCY    // Bitcoin, Ethereum, dll
+  CASH_ALTERNATIVE  // Deposito, Obligasi, Reksa Dana
+  OTHER             // Lainnya
+}
+
 // ============= AUDIT LOG =============
 model AuditLog {
   id        String   @id @default(cuid())
-  action    String   // "CREATE_EXPENSE", "DELETE_BUDGET", etc
+  action    String   // "CREATE_EXPENSE", "UPDATE_BUDGET", etc
   entity    String   // "EXPENSE", "BUDGET", "GOAL"
   entityId  String
-  summary   String   // short human-readable description, e.g. "Belanja bulanan - Rp500.000"
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  householdId String
-  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  changes   String   // JSON stringified
+  userId    String
 
   createdAt DateTime @default(now())
 
   @@index([createdAt])
   @@index([userId])
-  @@index([householdId])
-}
-
-model MaintenanceItem {
-  id           String   @id @default(cuid())
-  name         String   // "Mobil Avanza", "AC Ruang Tamu"
-  type         String   // VEHICLE | HOME
-  intervalDays Int?     // e.g. every 90 days for oil change
-  lastServiceDate DateTime?
-  nextDueDate     DateTime?
-  notes        String?
-
-  householdId String
-  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
-  logs        MaintenanceLog[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([householdId])
-}
-
-model MaintenanceLog {
-  id          String   @id @default(cuid())
-  serviceDate DateTime
-  cost        Float?
-  notes       String?
-
-  maintenanceItemId String
-  maintenanceItem   MaintenanceItem @relation(fields: [maintenanceItemId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-
-  @@index([maintenanceItemId])
-}
-
-model JournalEntry {
-  id        String   @id @default(cuid())
-  content   String
-  mood      String?  // emoji tag, e.g. "😊", "😔", "😴"
-  entryDate DateTime @default(now())
-
-  authorId String
-  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
-
-  householdId String
-  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([householdId])
-  @@index([entryDate])
-}
-
-model Event {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  startDate   DateTime
-  allDay      Boolean  @default(true)
-  category    String?  // "Sekolah", "Dokter", "Acara Keluarga"
-
-  householdId String
-  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([householdId])
-  @@index([startDate])
-}
-
-// ============= HOUSEHOLD EXTRAS =============
-model ImportantLink {
-  id       String  @id @default(cuid())
-  title    String  // "Kartu Keluarga", "Polis Asuransi"
-  url      String
-  category String? // "Dokumen Legal", "Asuransi", "Sertifikat"
-  notes    String?
-
-  householdId String
-  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([householdId])
 }
