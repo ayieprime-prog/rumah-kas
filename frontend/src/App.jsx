@@ -24,6 +24,7 @@ import WalletPage from './pages/WalletPage'
 import AssetPage from './pages/AssetPage'
 import TransferPage from './pages/TransferPage'
 import AllocationPage from './pages/AllocationPage'
+import BudgetAnalyticsPage from './pages/BudgetAnalyticsPage'
 
 // Components
 import Layout from './components/Layout'
@@ -121,6 +122,7 @@ function App() {
                       <Route path="/assets" element={<AssetPage />} />
                       <Route path="/transfers" element={<TransferPage />} />
                       <Route path="/allocation" element={<AllocationPage />} />
+                      <Route path="/budget-analytics" element={<BudgetAnalyticsPage />} />
                       <Route path="/settings" element={<SettingsPage onLogout={handleLogout} />} />
                       <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>

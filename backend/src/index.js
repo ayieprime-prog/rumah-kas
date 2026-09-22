@@ -11,7 +11,7 @@ const { errorHandler, notFound } = require('./middleware/errorHandler');
 const { authenticate } = require('./middleware/auth');
 
 // Import routes with error handling
-let authRoutes, householdRoutes, expenseRoutes, incomeRoutes, budgetRoutes, goalRoutes, debtRoutes, dashboardRoutes, reportsRoutes, notificationRoutes, linkRoutes, maintenanceRoutes, eventRoutes, journalRoutes, auditLogRoutes, walletRoutes, assetRoutes, transferRoutes, allocationRoutes;
+let authRoutes, householdRoutes, expenseRoutes, incomeRoutes, budgetRoutes, goalRoutes, debtRoutes, dashboardRoutes, reportsRoutes, notificationRoutes, linkRoutes, maintenanceRoutes, eventRoutes, journalRoutes, auditLogRoutes, walletRoutes, assetRoutes, transferRoutes, allocationRoutes, budgetAnalyticsRoutes;
 let routeLoadError = null;
 
 try {
@@ -34,6 +34,7 @@ try {
   assetRoutes = require('./routes/assets');
   transferRoutes = require('./routes/transfers');
   allocationRoutes = require('./routes/allocation');
+  budgetAnalyticsRoutes = require('./routes/budgetanalytics');
 } catch (err) {
   routeLoadError = err.message;
   console.error('========================================================');
@@ -110,6 +111,7 @@ if (walletRoutes) app.use('/api/wallets', authenticate, walletRoutes);
 if (assetRoutes) app.use('/api/assets', authenticate, assetRoutes);
 if (transferRoutes) app.use('/api/transfers', authenticate, transferRoutes);
 if (allocationRoutes) app.use('/api/allocation', authenticate, allocationRoutes);
+if (budgetAnalyticsRoutes) app.use('/api/budget-analytics', authenticate, budgetAnalyticsRoutes);
 
 // Serve frontend build (single-service deployment)
 const frontendDist = path.join(__dirname, '../../frontend/dist');
