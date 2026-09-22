@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
-import { Users, Home, UserPlus, X } from 'lucide-react'
+import { Users, Home, UserPlus, X, LogOut } from 'lucide-react'
 import './ListPages.css'
 
-const SettingsPage = () => {
+const SettingsPage = ({ onLogout }) => {
   const token = localStorage.getItem('token')
   const [household, setHousehold] = useState(null)
   const [me, setMe] = useState(null)
@@ -105,6 +105,10 @@ const SettingsPage = () => {
           </div>
         ))}
       </div>
+
+      <button className="btn-pill" style={{ background: 'var(--danger-color)' }} onClick={onLogout}>
+        <LogOut size={18} /> Logout
+      </button>
 
       {showInvite && (
         <div className="modal-overlay" onClick={() => setShowInvite(false)}>

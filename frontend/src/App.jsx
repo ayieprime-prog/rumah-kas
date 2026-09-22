@@ -100,7 +100,7 @@ function App() {
             path="/*"
             element={
               <PrivateRoute user={user}>
-                <Layout user={user} onLogout={handleLogout}>
+                <Layout user={user}>
                   <ErrorBoundary>
                     <Routes>
                       <Route path="/" element={<DashboardPage />} />
@@ -117,7 +117,7 @@ function App() {
                       <Route path="/journal" element={<JournalPage />} />
                       <Route path="/maintenance" element={<MaintenancePage />} />
                       <Route path="/links" element={<LinksPage />} />
-                      <Route path="/settings" element={<SettingsPage />} />
+                      <Route path="/settings" element={<SettingsPage onLogout={handleLogout} />} />
                       <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                   </ErrorBoundary>
