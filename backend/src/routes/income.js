@@ -5,6 +5,11 @@ const { logAudit } = require('../utils/audit');
 const router = express.Router();
 const prisma = new PrismaClient();
 
+async function adjustWalletBalance(tx, walletId, delta) {
+  if (!walletId || !delta) return;
+  await tx.wallet.update({ where: { id: walletId }, data: { balance: { increment: delta } } });
+}
+
 router.post('/', async (req, res) => {
   const { source, amount, date, walletId } = req.body;
   const { householdId, userId } = req;
@@ -23,6 +28,7 @@ router.post('/', async (req, res) => {
         data: { source, amount: parsedAmount, date: new Date(date), householdId, walletId: walletId || null },
         include: { wallet: true }
       });
+      await adjustWalletBalance(tx, walletId, parsedAmount);
       await logAudit(tx, {
         userId, householdId, action: 'CREATE_INCOME', entity: 'INCOME', entityId: created.id,
         summary: `${source} - Rp${parsedAmount.toLocaleString('id-ID')}`
@@ -83,17 +89,23 @@ router.put('/:id', async (req, res) => {
       }
     }
 
+    const newAmount = amount ? parseFloat(amount) : existing.amount;
+    const newWalletId = walletId !== undefined ? (walletId || null) : existing.walletId;
+
     const income = await prisma.$transaction(async (tx) => {
       const updated = await tx.income.update({
         where: { id },
         data: {
           ...(source && { source }),
-          ...(amount && { amount: parseFloat(amount) }),
+          ...(amount && { amount: newAmount }),
           ...(date && { date: new Date(date) }),
-          ...(walletId !== undefined && { walletId: walletId || null })
+          ...(walletId !== undefined && { walletId: newWalletId })
         },
         include: { wallet: true }
       });
+      // Reverse the old wallet impact, apply the new one (handles wallet or amount changes)
+      await adjustWalletBalance(tx, existing.walletId, -existing.amount);
+      await adjustWalletBalance(tx, newWalletId, newAmount);
       await logAudit(tx, {
         userId, householdId, action: 'UPDATE_INCOME', entity: 'INCOME', entityId: id,
         summary: `${updated.source} - Rp${updated.amount.toLocaleString('id-ID')}`
@@ -118,6 +130,7 @@ router.delete('/:id', async (req, res) => {
 
     await prisma.$transaction(async (tx) => {
       await tx.income.delete({ where: { id } });
+      await adjustWalletBalance(tx, existing.walletId, -existing.amount);
       await logAudit(tx, {
         userId, householdId, action: 'DELETE_INCOME', entity: 'INCOME', entityId: id,
         summary: `${existing.source} - Rp${existing.amount.toLocaleString('id-ID')}`

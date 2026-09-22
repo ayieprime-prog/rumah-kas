@@ -7,6 +7,11 @@ const prisma = new PrismaClient();
 
 const monthOf = (date) => new Date(date).toISOString().slice(0, 7);
 
+async function adjustWalletBalance(tx, walletId, delta) {
+  if (!walletId || !delta) return;
+  await tx.wallet.update({ where: { id: walletId }, data: { balance: { increment: delta } } });
+}
+
 async function adjustBudgetSpent(tx, householdId, month, categoryId, delta) {
   if (!delta) return;
   const budget = await tx.budget.findUnique({
@@ -57,6 +62,7 @@ router.post('/', async (req, res) => {
         include: { category: true, wallet: true }
       });
       await adjustBudgetSpent(tx, householdId, monthOf(date), categoryId, parsedAmount);
+      await adjustWalletBalance(tx, walletId, -parsedAmount);
       await logAudit(tx, {
         userId, householdId, action: 'CREATE_EXPENSE', entity: 'EXPENSE', entityId: created.id,
         summary: `${description} - Rp${parsedAmount.toLocaleString('id-ID')}`
@@ -155,6 +161,9 @@ router.put('/:id', async (req, res) => {
       // Reverse the old amount from the old month/category budget, apply the new one
       await adjustBudgetSpent(tx, householdId, monthOf(existing.date), existing.categoryId, -existing.amount);
       await adjustBudgetSpent(tx, householdId, monthOf(newDate), newCategoryId, newAmount);
+      // Reverse the old wallet impact, apply the new one (handles wallet or amount changes)
+      await adjustWalletBalance(tx, existing.walletId, existing.amount);
+      await adjustWalletBalance(tx, newWalletId, -newAmount);
       await logAudit(tx, {
         userId, householdId, action: 'UPDATE_EXPENSE', entity: 'EXPENSE', entityId: id,
         summary: `${updated.description} - Rp${newAmount.toLocaleString('id-ID')}`
@@ -184,6 +193,7 @@ router.delete('/:id', async (req, res) => {
     await prisma.$transaction(async (tx) => {
       await tx.expense.delete({ where: { id } });
       await adjustBudgetSpent(tx, householdId, monthOf(existing.date), existing.categoryId, -existing.amount);
+      await adjustWalletBalance(tx, existing.walletId, existing.amount);
       await logAudit(tx, {
         userId, householdId, action: 'DELETE_EXPENSE', entity: 'EXPENSE', entityId: id,
         summary: `${existing.description} - Rp${existing.amount.toLocaleString('id-ID')}`
