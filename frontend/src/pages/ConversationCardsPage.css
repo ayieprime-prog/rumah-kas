@@ -1,0 +1,78 @@
+.cc-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  background: white;
+  padding: 4px;
+  border-radius: 999px;
+  box-shadow: var(--shadow-sm);
+  width: fit-content;
+}
+
+.cc-tab {
+  background: none;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.cc-tab.active {
+  background: var(--dark-color);
+  color: white;
+}
+
+.cc-card {
+  position: relative;
+  background: linear-gradient(135deg, #2d2a24, var(--dark-color));
+  color: white;
+  border-radius: var(--radius);
+  padding: 40px 28px;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-md);
+}
+
+.cc-card-category {
+  display: inline-block;
+  background: var(--accent-color);
+  color: var(--dark-color);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  margin-bottom: 20px;
+}
+
+.cc-card-text {
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.cc-favorite-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f87171;
+}
+
+.cc-favorite-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}

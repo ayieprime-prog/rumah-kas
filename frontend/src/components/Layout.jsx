@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
-  Home, Wallet, DollarSign, Target, MoreHorizontal, X,
-  TrendingUp, CreditCard, BarChart3, Settings, LogOut
+  Home, Wallet, Calendar, Heart, MoreHorizontal, X,
+  Wrench, Link2, Settings, LogOut
 } from 'lucide-react'
 import './Layout.css'
 
@@ -12,20 +12,25 @@ const Layout = ({ user, onLogout, children }) => {
 
   const tabs = [
     { path: '/', label: 'Beranda', icon: Home },
-    { path: '/expenses', label: 'Pengeluaran', icon: Wallet },
-    { path: '/budget', label: 'Anggaran', icon: DollarSign },
-    { path: '/goals', label: 'Tujuan', icon: Target },
+    { path: '/keuangan', label: 'Keuangan', icon: Wallet, prefix: true },
+    { path: '/kalender', label: 'Kalender', icon: Calendar },
+    { path: '/berdua', label: 'Berdua', icon: Heart, prefix: true },
   ]
 
   const moreItems = [
-    { path: '/income', label: 'Pemasukan', icon: TrendingUp },
-    { path: '/debt', label: 'Hutang', icon: CreditCard },
-    { path: '/reports', label: 'Laporan', icon: BarChart3 },
+    { path: '/maintenance', label: 'Maintenance', icon: Wrench },
+    { path: '/links', label: 'Link Penting', icon: Link2 },
     { path: '/settings', label: 'Pengaturan', icon: Settings },
   ]
 
-  const isActive = (path) => location.pathname === path
-  const isMoreActive = moreItems.some(item => isActive(item.path))
+  const financeSubPaths = ['/expenses', '/income', '/budget', '/goals', '/debt', '/reports']
+
+  const isActive = (item) => {
+    if (item.path === '/keuangan') return location.pathname === '/keuangan' || financeSubPaths.includes(location.pathname)
+    if (item.path === '/berdua') return location.pathname === '/berdua' || location.pathname === '/conversation-cards' || location.pathname === '/journal'
+    return location.pathname === item.path
+  }
+  const isMoreActive = moreItems.some(item => location.pathname === item.path)
 
   return (
     <div className="layout">
@@ -51,7 +56,7 @@ const Layout = ({ user, onLogout, children }) => {
             <Link
               key={item.path}
               to={item.path}
-              className={`bottom-nav-item ${isActive(item.path) ? 'active' : ''}`}
+              className={`bottom-nav-item ${isActive(item) ? 'active' : ''}`}
               onClick={() => setMoreOpen(false)}
             >
               <Icon size={20} />
@@ -84,7 +89,7 @@ const Layout = ({ user, onLogout, children }) => {
                   <Link
                     key={item.path}
                     to={item.path}
-                    className={`more-item ${isActive(item.path) ? 'active' : ''}`}
+                    className={`more-item ${location.pathname === item.path ? 'active' : ''}`}
                     onClick={() => setMoreOpen(false)}
                   >
                     <Icon size={20} />

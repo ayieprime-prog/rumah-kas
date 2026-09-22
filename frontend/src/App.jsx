@@ -6,6 +6,7 @@ import axios from 'axios'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import DashboardPage from './pages/DashboardPage'
+import KeuanganHubPage from './pages/KeuanganHubPage'
 import ExpensesPage from './pages/ExpensesPage'
 import IncomePages from './pages/IncomePages'
 import BudgetPage from './pages/BudgetPage'
@@ -13,6 +14,12 @@ import GoalsPage from './pages/GoalsPage'
 import DebtPage from './pages/DebtPage'
 import ReportsPage from './pages/ReportsPage'
 import SettingsPage from './pages/SettingsPage'
+import CalendarPage from './pages/CalendarPage'
+import BerduaHubPage from './pages/BerduaHubPage'
+import ConversationCardsPage from './pages/ConversationCardsPage'
+import JournalPage from './pages/JournalPage'
+import MaintenancePage from './pages/MaintenancePage'
+import LinksPage from './pages/LinksPage'
 
 // Components
 import Layout from './components/Layout'
@@ -97,12 +104,19 @@ function App() {
                   <ErrorBoundary>
                     <Routes>
                       <Route path="/" element={<DashboardPage />} />
+                      <Route path="/keuangan" element={<KeuanganHubPage />} />
                       <Route path="/expenses" element={<ExpensesPage />} />
                       <Route path="/income" element={<IncomePages />} />
                       <Route path="/budget" element={<BudgetPage />} />
                       <Route path="/goals" element={<GoalsPage />} />
                       <Route path="/debt" element={<DebtPage />} />
                       <Route path="/reports" element={<ReportsPage />} />
+                      <Route path="/kalender" element={<CalendarPage />} />
+                      <Route path="/berdua" element={<BerduaHubPage />} />
+                      <Route path="/conversation-cards" element={<ConversationCardsPage />} />
+                      <Route path="/journal" element={<JournalPage />} />
+                      <Route path="/maintenance" element={<MaintenancePage />} />
+                      <Route path="/links" element={<LinksPage />} />
                       <Route path="/settings" element={<SettingsPage />} />
                       <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>

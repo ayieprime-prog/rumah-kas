@@ -28,6 +28,7 @@ model Household {
   recurring      RecurringExpense[]
   categories     ExpenseCategory[]
   notifications  Notification[]
+  importantLinks ImportantLink[]
 
   @@index([createdAt])
 }
@@ -221,4 +222,21 @@ model AuditLog {
 
   @@index([createdAt])
   @@index([userId])
+}
+
+// ============= HOUSEHOLD EXTRAS =============
+model ImportantLink {
+  id       String  @id @default(cuid())
+  title    String  // "Kartu Keluarga", "Polis Asuransi"
+  url      String
+  category String? // "Dokumen Legal", "Asuransi", "Sertifikat"
+  notes    String?
+
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([householdId])
 }
