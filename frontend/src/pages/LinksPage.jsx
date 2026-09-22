@@ -7,7 +7,6 @@ const CATEGORIES = ['Dokumen Legal', 'Asuransi', 'Sertifikat', 'Lainnya']
 const SWATCHES = ['sw-1', 'sw-2', 'sw-3', 'sw-4', 'sw-5', 'sw-6']
 
 const LinksPage = () => {
-  const token = localStorage.getItem('token')
   const [links, setLinks] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -20,7 +19,7 @@ const LinksPage = () => {
   const loadData = async () => {
     setLoading(true)
     try {
-      const res = await axios.get('/api/links', { headers: { Authorization: `Bearer ${token}` } })
+      const res = await axios.get('/api/links')
       setLinks(res.data || [])
     } catch (err) {
       setError('Gagal memuat link penting')
@@ -33,7 +32,7 @@ const LinksPage = () => {
     e.preventDefault()
     setSaving(true)
     try {
-      await axios.post('/api/links', form, { headers: { Authorization: `Bearer ${token}` } })
+      await axios.post('/api/links', form)
       setShowModal(false)
       setForm({ title: '', url: '', category: CATEGORIES[0], notes: '' })
       loadData()
@@ -46,7 +45,7 @@ const LinksPage = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`/api/links/${id}`, { headers: { Authorization: `Bearer ${token}` } })
+      await axios.delete(`/api/links/${id}`)
       loadData()
     } catch (err) {
       setError('Gagal menghapus link')

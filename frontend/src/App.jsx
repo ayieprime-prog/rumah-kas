@@ -29,18 +29,18 @@ import ErrorBoundary from './components/ErrorBoundary'
 // Styles
 import './App.css'
 
+axios.defaults.withCredentials = true
+
 function App() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [token, setToken] = useState(localStorage.getItem('token'))
 
+  // The auth token lives in an httpOnly cookie set by the server, so the
+  // browser attaches it automatically (withCredentials above) - we just
+  // ask the server who we are on load rather than checking localStorage
   useEffect(() => {
-    if (token) {
-      checkAuth()
-    } else {
-      setLoading(false)
-    }
-  }, [token])
+    checkAuth()
+  }, [])
 
   // Force logout on any expired/invalid token response, instead of leaving
   // the user stuck on a page with generic "gagal memuat data" errors
@@ -49,8 +49,6 @@ function App() {
       (response) => response,
       (error) => {
         if (error.response?.status === 401) {
-          localStorage.removeItem('token')
-          setToken(null)
           setUser(null)
         }
         return Promise.reject(error)
@@ -61,27 +59,25 @@ function App() {
 
   const checkAuth = async () => {
     try {
-      const response = await axios.get('/api/auth/me', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      const response = await axios.get('/api/auth/me')
       setUser(response.data.user)
     } catch (error) {
-      localStorage.removeItem('token')
-      setToken(null)
+      setUser(null)
     } finally {
       setLoading(false)
     }
   }
 
-  const handleLogin = (newToken, userData) => {
-    localStorage.setItem('token', newToken)
-    setToken(newToken)
+  const handleLogin = (userData) => {
     setUser(userData)
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem('token')
-    setToken(null)
+  const handleLogout = async () => {
+    try {
+      await axios.post('/api/auth/logout')
+    } catch (error) {
+      // clear client state regardless of whether the request succeeded
+    }
     setUser(null)
   }
 

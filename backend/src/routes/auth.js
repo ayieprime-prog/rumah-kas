@@ -8,6 +8,17 @@ const prisma = new PrismaClient();
 
 const { authenticate } = require('../middleware/auth');
 
+// Keep in sync with JWT_EXPIRES_IN's default ('12h') below - the cookie's
+// own expiry is separate from the JWT's, so both need to agree
+const COOKIE_MAX_AGE_MS = 12 * 60 * 60 * 1000;
+
+const cookieOptions = () => ({
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict',
+  maxAge: COOKIE_MAX_AGE_MS
+});
+
 // Register - Create household & admin user
 router.post('/register', async (req, res) => {
   const { householdName, email, password, name } = req.body;
@@ -70,9 +81,9 @@ router.post('/register', async (req, res) => {
       { expiresIn: process.env.JWT_EXPIRES_IN || '12h' }
     );
 
+    res.cookie('token', token, cookieOptions());
     res.status(201).json({
       message: 'Account created successfully',
-      token,
       user: { id: user.id, email: user.email, name: user.name, role: user.role },
       household: { id: household.id, name: household.name }
     });
@@ -111,9 +122,9 @@ router.post('/login', async (req, res) => {
       where: { id: user.householdId }
     });
 
+    res.cookie('token', token, cookieOptions());
     res.json({
       message: 'Login successful',
-      token,
       user: { id: user.id, email: user.email, name: user.name, role: user.role },
       household: { id: household.id, name: household.name }
     });
@@ -121,6 +132,16 @@ router.post('/login', async (req, res) => {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Login failed' });
   }
+});
+
+// Logout - clear the auth cookie
+router.post('/logout', (req, res) => {
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict'
+  });
+  res.json({ message: 'Logged out' });
 });
 
 // Get current user

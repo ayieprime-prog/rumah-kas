@@ -24,7 +24,6 @@ const shiftMonth = (month, delta) => {
 const dateLabel = (dateStr) => new Date(dateStr).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })
 
 const CalendarPage = () => {
-  const token = localStorage.getItem('token')
   const [month, setMonth] = useState(new Date().toISOString().slice(0, 7))
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
@@ -38,7 +37,7 @@ const CalendarPage = () => {
   const loadData = async () => {
     setLoading(true)
     try {
-      const res = await axios.get('/api/events', { params: { month }, headers: { Authorization: `Bearer ${token}` } })
+      const res = await axios.get('/api/events', { params: { month } })
       setEvents(res.data || [])
     } catch (err) {
       setError('Gagal memuat kalender')
@@ -51,7 +50,7 @@ const CalendarPage = () => {
     e.preventDefault()
     setSaving(true)
     try {
-      await axios.post('/api/events', form, { headers: { Authorization: `Bearer ${token}` } })
+      await axios.post('/api/events', form)
       setShowModal(false)
       setForm({ title: '', startDate: new Date().toISOString().slice(0, 10), category: 'Acara Keluarga', description: '' })
       loadData()
@@ -64,7 +63,7 @@ const CalendarPage = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`/api/events/${id}`, { headers: { Authorization: `Bearer ${token}` } })
+      await axios.delete(`/api/events/${id}`)
       loadData()
     } catch (err) {
       setError('Gagal menghapus acara')

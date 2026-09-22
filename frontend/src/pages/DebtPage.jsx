@@ -4,7 +4,6 @@ import { Plus, X, Trash2, CreditCard, CheckCircle2 } from 'lucide-react'
 import './ListPages.css'
 
 const DebtPage = () => {
-  const token = localStorage.getItem('token')
   const [debts, setDebts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -17,7 +16,7 @@ const DebtPage = () => {
   const loadData = async () => {
     setLoading(true)
     try {
-      const res = await axios.get('/api/debt', { headers: { Authorization: `Bearer ${token}` } })
+      const res = await axios.get('/api/debt')
       setDebts(res.data || [])
     } catch (err) {
       setError('Gagal memuat data hutang')
@@ -33,7 +32,7 @@ const DebtPage = () => {
     e.preventDefault()
     setSaving(true)
     try {
-      await axios.post('/api/debt', form, { headers: { Authorization: `Bearer ${token}` } })
+      await axios.post('/api/debt', form)
       setShowModal(false)
       setForm({ name: '', totalAmount: '', monthlyPayment: '', startDate: new Date().toISOString().slice(0, 10), creditor: '' })
       loadData()
@@ -47,7 +46,7 @@ const DebtPage = () => {
   const handlePayInstallment = async (debt) => {
     const newPaid = Math.min(debt.paidAmount + debt.monthlyPayment, debt.totalAmount)
     try {
-      await axios.put(`/api/debt/${debt.id}`, { paidAmount: newPaid }, { headers: { Authorization: `Bearer ${token}` } })
+      await axios.put(`/api/debt/${debt.id}`, { paidAmount: newPaid })
       loadData()
     } catch (err) {
       setError('Gagal mencatat pembayaran')
@@ -56,7 +55,7 @@ const DebtPage = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`/api/debt/${id}`, { headers: { Authorization: `Bearer ${token}` } })
+      await axios.delete(`/api/debt/${id}`)
       loadData()
     } catch (err) {
       setError('Gagal menghapus hutang')

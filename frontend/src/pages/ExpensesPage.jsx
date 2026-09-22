@@ -9,7 +9,6 @@ const ICON_MAP = { Groceries: '🛒', Utilities: '💡', Transportation: '🚗',
 const currentMonth = () => new Date().toISOString().slice(0, 7)
 
 const ExpensesPage = () => {
-  const token = localStorage.getItem('token')
   const [categories, setCategories] = useState([])
   const [expenses, setExpenses] = useState([])
   const [loading, setLoading] = useState(true)
@@ -28,8 +27,8 @@ const ExpensesPage = () => {
     setLoading(true)
     try {
       const [householdRes, expensesRes] = await Promise.all([
-        axios.get('/api/household', { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get('/api/expenses', { params: { month }, headers: { Authorization: `Bearer ${token}` } })
+        axios.get('/api/household'),
+        axios.get('/api/expenses', { params: { month } })
       ])
       setCategories(householdRes.data.categories || [])
       setExpenses(expensesRes.data.expenses || [])
@@ -50,7 +49,7 @@ const ExpensesPage = () => {
     e.preventDefault()
     setSaving(true)
     try {
-      await axios.post('/api/expenses', form, { headers: { Authorization: `Bearer ${token}` } })
+      await axios.post('/api/expenses', form)
       setShowModal(false)
       setForm({ description: '', amount: '', categoryId: '', date: new Date().toISOString().slice(0, 10) })
       loadData()
@@ -63,7 +62,7 @@ const ExpensesPage = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`/api/expenses/${id}`, { headers: { Authorization: `Bearer ${token}` } })
+      await axios.delete(`/api/expenses/${id}`)
       loadData()
     } catch (err) {
       setError('Gagal menghapus pengeluaran')

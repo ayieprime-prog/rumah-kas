@@ -38,8 +38,7 @@ const RegisterPage = ({ onRegister }) => {
         email: formData.email,
         password: formData.password
       })
-      const { token, user } = response.data
-      onRegister(token, user)
+      onRegister(response.data.user)
       navigate('/')
     } catch (err) {
       setError(err.response?.data?.error || 'Pendaftaran gagal')

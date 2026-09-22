@@ -6,7 +6,6 @@ import './ListPages.css'
 const currentMonth = () => new Date().toISOString().slice(0, 7)
 
 const IncomePages = () => {
-  const token = localStorage.getItem('token')
   const [incomes, setIncomes] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -19,7 +18,7 @@ const IncomePages = () => {
   const loadData = async () => {
     setLoading(true)
     try {
-      const res = await axios.get('/api/income', { params: { month: currentMonth() }, headers: { Authorization: `Bearer ${token}` } })
+      const res = await axios.get('/api/income', { params: { month: currentMonth() } })
       setIncomes(res.data.incomes || [])
     } catch (err) {
       setError('Gagal memuat data pemasukan')
@@ -34,7 +33,7 @@ const IncomePages = () => {
     e.preventDefault()
     setSaving(true)
     try {
-      await axios.post('/api/income', form, { headers: { Authorization: `Bearer ${token}` } })
+      await axios.post('/api/income', form)
       setShowModal(false)
       setForm({ source: '', amount: '', date: new Date().toISOString().slice(0, 10) })
       loadData()
@@ -47,7 +46,7 @@ const IncomePages = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`/api/income/${id}`, { headers: { Authorization: `Bearer ${token}` } })
+      await axios.delete(`/api/income/${id}`)
       loadData()
     } catch (err) {
       setError('Gagal menghapus pemasukan')

@@ -23,7 +23,6 @@ const statusOf = (item) => {
 }
 
 const MaintenancePage = () => {
-  const token = localStorage.getItem('token')
   const [items, setItems] = useState([])
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
@@ -41,8 +40,8 @@ const MaintenancePage = () => {
     setLoading(true)
     try {
       const [itemsRes, householdRes] = await Promise.all([
-        axios.get('/api/maintenance', { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get('/api/household', { headers: { Authorization: `Bearer ${token}` } })
+        axios.get('/api/maintenance'),
+        axios.get('/api/household')
       ])
       setItems(itemsRes.data || [])
       setCategories(householdRes.data.categories || [])
@@ -57,7 +56,7 @@ const MaintenancePage = () => {
     e.preventDefault()
     setSaving(true)
     try {
-      await axios.post('/api/maintenance', form, { headers: { Authorization: `Bearer ${token}` } })
+      await axios.post('/api/maintenance', form)
       setShowAddModal(false)
       setForm({ name: '', type: 'VEHICLE', intervalDays: '', notes: '' })
       loadData()
@@ -72,7 +71,7 @@ const MaintenancePage = () => {
     e.preventDefault()
     setSaving(true)
     try {
-      await axios.post(`/api/maintenance/${logFor.id}/log`, logForm, { headers: { Authorization: `Bearer ${token}` } })
+      await axios.post(`/api/maintenance/${logFor.id}/log`, logForm)
       setLogFor(null)
       setLogForm({ serviceDate: new Date().toISOString().slice(0, 10), cost: '', notes: '', recordAsExpense: false, categoryId: '' })
       loadData()
@@ -85,7 +84,7 @@ const MaintenancePage = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`/api/maintenance/${id}`, { headers: { Authorization: `Bearer ${token}` } })
+      await axios.delete(`/api/maintenance/${id}`)
       loadData()
     } catch (err) {
       setError('Gagal menghapus item')

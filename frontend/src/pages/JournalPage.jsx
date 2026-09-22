@@ -6,7 +6,6 @@ import './ListPages.css'
 const MOODS = ['😊', '😄', '😌', '😴', '😔', '😤', '🥰', '😅']
 
 const JournalPage = () => {
-  const token = localStorage.getItem('token')
   const [entries, setEntries] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -19,7 +18,7 @@ const JournalPage = () => {
   const loadData = async () => {
     setLoading(true)
     try {
-      const res = await axios.get('/api/journal', { headers: { Authorization: `Bearer ${token}` } })
+      const res = await axios.get('/api/journal')
       setEntries(res.data.entries || [])
     } catch (err) {
       setError('Gagal memuat jurnal keluarga')
@@ -32,7 +31,7 @@ const JournalPage = () => {
     e.preventDefault()
     setSaving(true)
     try {
-      await axios.post('/api/journal', form, { headers: { Authorization: `Bearer ${token}` } })
+      await axios.post('/api/journal', form)
       setShowModal(false)
       setForm({ content: '', mood: MOODS[0], entryDate: new Date().toISOString().slice(0, 10) })
       loadData()
@@ -45,7 +44,7 @@ const JournalPage = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`/api/journal/${id}`, { headers: { Authorization: `Bearer ${token}` } })
+      await axios.delete(`/api/journal/${id}`)
       loadData()
     } catch (err) {
       setError('Gagal menghapus catatan')

@@ -4,7 +4,6 @@ import { Plus, X, Trash2, Target, PiggyBank } from 'lucide-react'
 import './ListPages.css'
 
 const GoalsPage = () => {
-  const token = localStorage.getItem('token')
   const [goals, setGoals] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -19,7 +18,7 @@ const GoalsPage = () => {
   const loadData = async () => {
     setLoading(true)
     try {
-      const res = await axios.get('/api/goals', { headers: { Authorization: `Bearer ${token}` } })
+      const res = await axios.get('/api/goals')
       setGoals(res.data || [])
     } catch (err) {
       setError('Gagal memuat data target tabungan')
@@ -32,7 +31,7 @@ const GoalsPage = () => {
     e.preventDefault()
     setSaving(true)
     try {
-      await axios.post('/api/goals', form, { headers: { Authorization: `Bearer ${token}` } })
+      await axios.post('/api/goals', form)
       setShowModal(false)
       setForm({ name: '', targetAmount: '', targetDate: '' })
       loadData()
@@ -47,7 +46,7 @@ const GoalsPage = () => {
     const amount = parseFloat(addAmount)
     if (!amount || amount <= 0) return
     try {
-      await axios.put(`/api/goals/${goal.id}`, { currentAmount: goal.currentAmount + amount }, { headers: { Authorization: `Bearer ${token}` } })
+      await axios.put(`/api/goals/${goal.id}`, { currentAmount: goal.currentAmount + amount })
       setAddFundsFor(null)
       setAddAmount('')
       loadData()
@@ -58,7 +57,7 @@ const GoalsPage = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`/api/goals/${id}`, { headers: { Authorization: `Bearer ${token}` } })
+      await axios.delete(`/api/goals/${id}`)
       loadData()
     } catch (err) {
       setError('Gagal menghapus target')

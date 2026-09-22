@@ -21,8 +21,7 @@ const LoginPage = ({ onLogin }) => {
 
     try {
       const response = await axios.post('/api/auth/login', formData)
-      const { token, user } = response.data
-      onLogin(token, user)
+      onLogin(response.data.user)
       navigate('/')
     } catch (err) {
       setError(err.response?.data?.error || 'Login gagal. Cek email dan password.')

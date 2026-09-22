@@ -4,7 +4,6 @@ import { Users, Home, UserPlus, X, LogOut } from 'lucide-react'
 import './ListPages.css'
 
 const SettingsPage = ({ onLogout }) => {
-  const token = localStorage.getItem('token')
   const [household, setHousehold] = useState(null)
   const [me, setMe] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -21,8 +20,8 @@ const SettingsPage = ({ onLogout }) => {
     setLoading(true)
     try {
       const [householdRes, meRes] = await Promise.all([
-        axios.get('/api/household', { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
+        axios.get('/api/household'),
+        axios.get('/api/auth/me')
       ])
       setHousehold(householdRes.data)
       setHouseholdName(householdRes.data.name)
@@ -36,7 +35,7 @@ const SettingsPage = ({ onLogout }) => {
 
   const handleSaveName = async () => {
     try {
-      await axios.put('/api/household/settings', { name: householdName }, { headers: { Authorization: `Bearer ${token}` } })
+      await axios.put('/api/household/settings', { name: householdName })
       setSuccess('Nama keluarga tersimpan')
       setTimeout(() => setSuccess(''), 2000)
     } catch (err) {
@@ -49,7 +48,7 @@ const SettingsPage = ({ onLogout }) => {
     setInviting(true)
     setError('')
     try {
-      const res = await axios.post('/api/household/invite-member', inviteForm, { headers: { Authorization: `Bearer ${token}` } })
+      const res = await axios.post('/api/household/invite-member', inviteForm)
       setSuccess(`Anggota ditambahkan. Password sementara: ${res.data.temporaryPassword}`)
       setShowInvite(false)
       setInviteForm({ name: '', email: '' })

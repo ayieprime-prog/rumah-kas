@@ -8,7 +8,6 @@ const DashboardPage = () => {
   const [dashboard, setDashboard] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const token = localStorage.getItem('token')
 
   useEffect(() => {
     fetchDashboard()
@@ -16,9 +15,7 @@ const DashboardPage = () => {
 
   const fetchDashboard = async () => {
     try {
-      const response = await axios.get('/api/dashboard', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      const response = await axios.get('/api/dashboard')
       setDashboard(response.data)
     } catch (err) {
       setError('Gagal mengambil data dashboard')

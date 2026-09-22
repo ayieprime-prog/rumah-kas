@@ -17,7 +17,6 @@ const shiftMonth = (month, delta) => {
 }
 
 const ReportsPage = () => {
-  const token = localStorage.getItem('token')
   const [month, setMonth] = useState(new Date().toISOString().slice(0, 7))
   const [report, setReport] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -28,7 +27,7 @@ const ReportsPage = () => {
   const loadData = async () => {
     setLoading(true)
     try {
-      const res = await axios.get(`/api/reports/monthly/${month}`, { headers: { Authorization: `Bearer ${token}` } })
+      const res = await axios.get(`/api/reports/monthly/${month}`)
       setReport(res.data)
     } catch (err) {
       setError('Gagal memuat laporan')

@@ -6,7 +6,6 @@ import './ListPages.css'
 const currentMonth = () => new Date().toISOString().slice(0, 7)
 
 const BudgetPage = () => {
-  const token = localStorage.getItem('token')
   const [categories, setCategories] = useState([])
   const [budgets, setBudgets] = useState([])
   const [loading, setLoading] = useState(true)
@@ -23,8 +22,8 @@ const BudgetPage = () => {
     setLoading(true)
     try {
       const [householdRes, budgetsRes] = await Promise.all([
-        axios.get('/api/household', { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get('/api/budget', { params: { month }, headers: { Authorization: `Bearer ${token}` } })
+        axios.get('/api/household'),
+        axios.get('/api/budget', { params: { month } })
       ])
       setCategories(householdRes.data.categories || [])
       setBudgets(budgetsRes.data || [])
@@ -39,7 +38,7 @@ const BudgetPage = () => {
     e.preventDefault()
     setSaving(true)
     try {
-      await axios.post('/api/budget', { ...form, month }, { headers: { Authorization: `Bearer ${token}` } })
+      await axios.post('/api/budget', { ...form, month })
       setShowModal(false)
       setForm({ categoryId: '', limit: '' })
       loadData()
@@ -52,7 +51,7 @@ const BudgetPage = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`/api/budget/${id}`, { headers: { Authorization: `Bearer ${token}` } })
+      await axios.delete(`/api/budget/${id}`)
       loadData()
     } catch (err) {
       setError('Gagal menghapus anggaran')
