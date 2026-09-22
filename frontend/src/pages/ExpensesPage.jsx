@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { Plus, X, Trash2, Sparkles } from 'lucide-react'
+import BackButton from '../components/BackButton'
 import './ListPages.css'
 
 const SWATCHES = ['sw-1', 'sw-2', 'sw-3', 'sw-4', 'sw-5', 'sw-6']
@@ -73,6 +74,8 @@ const ExpensesPage = () => {
 
   return (
     <div className="list-page">
+      <BackButton to="/keuangan" label="Keuangan" />
+
       <div className="page-header">
         <h1>Pengeluaran</h1>
       </div>

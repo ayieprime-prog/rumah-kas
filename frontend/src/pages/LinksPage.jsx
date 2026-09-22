@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { Plus, X, Trash2, Link2, ExternalLink } from 'lucide-react'
+import BackButton from '../components/BackButton'
 import './ListPages.css'
 
 const CATEGORIES = ['Dokumen Legal', 'Asuransi', 'Sertifikat', 'Lainnya']
@@ -61,6 +62,8 @@ const LinksPage = () => {
 
   return (
     <div className="list-page">
+      <BackButton to="/" label="Beranda" />
+
       <div className="page-header">
         <h1>Link Penting</h1>
       </div>

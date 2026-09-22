@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { Plus, X, Trash2, ChevronLeft, ChevronRight, CalendarDays, School, Stethoscope, PartyPopper, Sparkles } from 'lucide-react'
+import BackButton from '../components/BackButton'
 import './ListPages.css'
 
 const CATEGORIES = [
@@ -81,6 +82,8 @@ const CalendarPage = () => {
 
   return (
     <div className="list-page">
+      <BackButton to="/" label="Beranda" />
+
       <div className="page-header">
         <h1>Kalender</h1>
       </div>

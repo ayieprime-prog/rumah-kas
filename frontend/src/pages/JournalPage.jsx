@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { Plus, X, Trash2, BookHeart } from 'lucide-react'
+import BackButton from '../components/BackButton'
 import './ListPages.css'
 
 const MOODS = ['😊', '😄', '😌', '😴', '😔', '😤', '🥰', '😅']
@@ -55,6 +56,8 @@ const JournalPage = () => {
 
   return (
     <div className="list-page">
+      <BackButton to="/berdua" label="Berdua" />
+
       <div className="page-header">
         <h1>Jurnal Keluarga</h1>
       </div>

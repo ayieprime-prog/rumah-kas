@@ -1,0 +1,35 @@
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: #d4a574;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px 12px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.back-button:active {
+  background: rgba(212, 165, 116, 0.1);
+  transform: translateX(-4px);
+}
+
+.back-button span {
+  line-height: 1;
+}
+
+@media (max-width: 480px) {
+  .back-button {
+    padding: 8px 8px;
+    font-size: 13px;
+  }
+
+  .back-button span {
+    display: none;
+  }
+}

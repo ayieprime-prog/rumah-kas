@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { Plus, X, Trash2, Wallet } from 'lucide-react'
+import BackButton from '../components/BackButton'
 import './ListPages.css'
 
 const currentMonth = () => new Date().toISOString().slice(0, 7)
@@ -64,6 +65,8 @@ const BudgetPage = () => {
 
   return (
     <div className="list-page">
+      <BackButton to="/keuangan" label="Keuangan" />
+
       <div className="page-header">
         <h1>Anggaran</h1>
       </div>

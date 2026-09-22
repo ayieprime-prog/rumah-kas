@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Shuffle, Heart, Star } from 'lucide-react'
+import BackButton from '../components/BackButton'
 import conversationCards from '../data/conversationCards'
 import './ListPages.css'
 import './ConversationCardsPage.css'
@@ -38,6 +39,8 @@ const ConversationCardsPage = () => {
 
   return (
     <div className="list-page">
+      <BackButton to="/berdua" label="Berdua" />
+
       <div className="page-header">
         <h1>Conversation Cards</h1>
       </div>
