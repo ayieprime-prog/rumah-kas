@@ -175,3 +175,58 @@
 .maint-status-warning { background: var(--warning-soft); color: #8a6d1f; }
 .maint-status-ok { background: var(--secondary-soft); color: #1f7a4d; }
 .maint-status-muted { background: var(--primary-soft); color: var(--text-muted); }
+
+.journal-entry-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.journal-entry-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.journal-entry-author {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--dark-color);
+}
+
+.journal-entry-date {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.journal-entry-content {
+  font-size: 14px;
+  color: var(--text-color);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.mood-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mood-option {
+  font-size: 22px;
+  background: var(--primary-soft);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.mood-option.active {
+  border-color: var(--accent-color);
+  background: var(--accent-soft);
+}

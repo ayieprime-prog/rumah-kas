@@ -31,6 +31,7 @@ model Household {
   importantLinks ImportantLink[]
   maintenanceItems MaintenanceItem[]
   events         Event[]
+  journalEntries JournalEntry[]
 
   @@index([createdAt])
 }
@@ -44,6 +45,7 @@ model User {
 
   householdId String
   household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  journalEntries JournalEntry[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -257,6 +259,25 @@ model MaintenanceLog {
   createdAt DateTime @default(now())
 
   @@index([maintenanceItemId])
+}
+
+model JournalEntry {
+  id        String   @id @default(cuid())
+  content   String
+  mood      String?  // emoji tag, e.g. "😊", "😔", "😴"
+  entryDate DateTime @default(now())
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([householdId])
+  @@index([entryDate])
 }
 
 model Event {

@@ -10,7 +10,7 @@ const { errorHandler, notFound } = require('./middleware/errorHandler');
 const { authenticate } = require('./middleware/auth');
 
 // Import routes with error handling
-let authRoutes, householdRoutes, expenseRoutes, incomeRoutes, budgetRoutes, goalRoutes, debtRoutes, dashboardRoutes, reportsRoutes, notificationRoutes, linkRoutes, maintenanceRoutes, eventRoutes;
+let authRoutes, householdRoutes, expenseRoutes, incomeRoutes, budgetRoutes, goalRoutes, debtRoutes, dashboardRoutes, reportsRoutes, notificationRoutes, linkRoutes, maintenanceRoutes, eventRoutes, journalRoutes;
 let routeLoadError = null;
 
 try {
@@ -27,6 +27,7 @@ try {
   linkRoutes = require('./routes/links');
   maintenanceRoutes = require('./routes/maintenance');
   eventRoutes = require('./routes/events');
+  journalRoutes = require('./routes/journal');
 } catch (err) {
   routeLoadError = err.message;
   console.error('========================================================');
@@ -96,6 +97,7 @@ if (notificationRoutes) app.use('/api/notifications', authenticate, notification
 if (linkRoutes) app.use('/api/links', authenticate, linkRoutes);
 if (maintenanceRoutes) app.use('/api/maintenance', authenticate, maintenanceRoutes);
 if (eventRoutes) app.use('/api/events', authenticate, eventRoutes);
+if (journalRoutes) app.use('/api/journal', authenticate, journalRoutes);
 
 // Serve frontend build (single-service deployment)
 const frontendDist = path.join(__dirname, '../../frontend/dist');
