@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
-import { Plus, X, Trash2, ChevronLeft, ChevronRight, CalendarDays, School, Stethoscope, PartyPopper, Sparkles } from 'lucide-react'
+import { Plus, X, Trash2, ChevronLeft, ChevronRight, CalendarDays, School, Stethoscope, PartyPopper, Sparkles, Receipt, Wrench, TrendingUp } from 'lucide-react'
 import BackButton from '../components/BackButton'
 import './ListPages.css'
 
@@ -10,6 +10,14 @@ const CATEGORIES = [
   { value: 'Acara Keluarga', icon: PartyPopper, sw: 'sw-3' },
   { value: 'Lainnya', icon: Sparkles, sw: 'sw-6' },
 ]
+
+const REMINDER_INFO = {
+  DEBT: { label: 'Tagihan', icon: Receipt, sw: 'sw-2' },
+  MAINTENANCE: { label: 'Maintenance', icon: Wrench, sw: 'sw-3' },
+  INCOME: { label: 'Perkiraan Pemasukan', icon: TrendingUp, sw: 'sw-4' },
+}
+
+const rupiah = (n) => `Rp${(n || 0).toLocaleString('id-ID')}`
 
 const monthLabel = (month) => {
   const [y, m] = month.split('-')
@@ -27,6 +35,8 @@ const dateLabel = (dateStr) => new Date(dateStr).toLocaleDateString('id-ID', { w
 const CalendarPage = () => {
   const [month, setMonth] = useState(new Date().toISOString().slice(0, 7))
   const [events, setEvents] = useState([])
+  const [transactionDates, setTransactionDates] = useState({})
+  const [reminders, setReminders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showModal, setShowModal] = useState(false)
@@ -39,7 +49,9 @@ const CalendarPage = () => {
     setLoading(true)
     try {
       const res = await axios.get('/api/events', { params: { month } })
-      setEvents(res.data || [])
+      setEvents(res.data.events || [])
+      setTransactionDates(res.data.transactionDates || {})
+      setReminders(res.data.reminders || [])
     } catch (err) {
       setError('Gagal memuat kalender')
     } finally {
@@ -71,14 +83,15 @@ const CalendarPage = () => {
     }
   }
 
-  // Group events by date
+  // Group manual events by date, then fold in any date that only has a
+  // transaction (no manual event) so the day-by-day list below covers both.
   const grouped = events.reduce((acc, ev) => {
     const key = ev.startDate.slice(0, 10)
     if (!acc[key]) acc[key] = []
     acc[key].push(ev)
     return acc
   }, {})
-  const dateKeys = Object.keys(grouped).sort()
+  const dateKeys = Array.from(new Set([...Object.keys(grouped), ...Object.keys(transactionDates)])).sort()
 
   return (
     <div className="list-page">
@@ -100,32 +113,72 @@ const CalendarPage = () => {
         <Plus size={18} /> Tambah Acara
       </button>
 
+      {!loading && reminders.length > 0 && (
+        <div className="card" style={{ marginBottom: 20 }}>
+          <h2 className="section-title">Pengingat Bulan Ini</h2>
+          {reminders.map((r, idx) => {
+            const info = REMINDER_INFO[r.type]
+            const Icon = info.icon
+            return (
+              <div key={idx} className="list-row">
+                <div className={`icon-square ${info.sw}`} style={{ width: 36, height: 36 }}>
+                  <Icon size={16} />
+                </div>
+                <div className="list-row-body" style={{ flex: 1 }}>
+                  <div className="list-row-title">{r.title}</div>
+                  <div className="list-row-subtitle">{info.label} · {dateLabel(r.date)}</div>
+                </div>
+                {r.amount != null && (
+                  <div className={`list-row-amount ${r.type === 'INCOME' ? 'positive' : 'negative'}`}>
+                    {r.type === 'INCOME' ? '+' : '-'}{rupiah(r.amount)}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+
       {loading ? (
         <div className="loading">Memuat acara...</div>
       ) : dateKeys.length > 0 ? (
-        dateKeys.map(dateKey => (
-          <div key={dateKey} className="card">
-            <h2 className="section-title">{dateLabel(dateKey)}</h2>
-            {grouped[dateKey].map(ev => {
-              const catInfo = CATEGORIES.find(c => c.value === ev.category) || CATEGORIES[3]
-              const CatIcon = catInfo.icon
-              return (
-                <div key={ev.id} className="list-row">
-                  <div className={`icon-square ${catInfo.sw}`} style={{ width: 36, height: 36 }}>
-                    <CatIcon size={16} />
+        dateKeys.map(dateKey => {
+          const tx = transactionDates[dateKey]
+          return (
+            <div key={dateKey} className="card">
+              <h2 className="section-title">{dateLabel(dateKey)}</h2>
+              {(grouped[dateKey] || []).map(ev => {
+                const catInfo = CATEGORIES.find(c => c.value === ev.category) || CATEGORIES[3]
+                const CatIcon = catInfo.icon
+                return (
+                  <div key={ev.id} className="list-row">
+                    <div className={`icon-square ${catInfo.sw}`} style={{ width: 36, height: 36 }}>
+                      <CatIcon size={16} />
+                    </div>
+                    <div className="list-row-body">
+                      <div className="list-row-title">{ev.title}</div>
+                      <div className="list-row-subtitle">{ev.category}{ev.description ? ` · ${ev.description}` : ''}</div>
+                    </div>
+                    <button className="icon-btn" onClick={() => handleDelete(ev.id)}>
+                      <Trash2 size={16} />
+                    </button>
                   </div>
-                  <div className="list-row-body">
-                    <div className="list-row-title">{ev.title}</div>
-                    <div className="list-row-subtitle">{ev.category}{ev.description ? ` · ${ev.description}` : ''}</div>
+                )
+              })}
+              {tx && (tx.income > 0 || tx.expense > 0) && (
+                <div className="list-row" style={{ opacity: 0.85 }}>
+                  <div className="list-row-body" style={{ flex: 1 }}>
+                    <div className="list-row-title">Transaksi tercatat</div>
                   </div>
-                  <button className="icon-btn" onClick={() => handleDelete(ev.id)}>
-                    <Trash2 size={16} />
-                  </button>
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    {tx.income > 0 && <span className="list-row-amount positive">+{rupiah(tx.income)}</span>}
+                    {tx.expense > 0 && <span className="list-row-amount negative">-{rupiah(tx.expense)}</span>}
+                  </div>
                 </div>
-              )
-            })}
-          </div>
-        ))
+              )}
+            </div>
+          )
+        })
       ) : (
         <div className="empty-state">
           <CalendarDays size={28} className="empty-state-icon" />
