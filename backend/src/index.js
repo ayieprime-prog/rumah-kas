@@ -141,11 +141,24 @@ if (transferRoutes) app.use('/api/transfers', authenticate, transferRoutes);
 if (allocationRoutes) app.use('/api/allocation', authenticate, allocationRoutes);
 if (budgetAnalyticsRoutes) app.use('/api/budget-analytics', authenticate, budgetAnalyticsRoutes);
 
-// Serve frontend build (single-service deployment)
+// Serve frontend build (single-service deployment). Vite fingerprints every
+// file under assets/ with a content hash, so those are safe to cache forever
+// -- a new build always gets new filenames. index.html is NOT hashed and is
+// what tells the browser which hashed files to load, so it must never be
+// cached, or the browser can keep showing an old build indefinitely after a
+// deploy (this bit us: users needed a manual "?v=2" cache-bust to see updates).
 const frontendDist = path.join(__dirname, '../../frontend/dist');
-app.use(express.static(frontendDist));
+app.use(express.static(frontendDist, {
+  index: false,
+  setHeaders: (res, filePath) => {
+    res.setHeader('Cache-Control', filePath.includes(`${path.sep}assets${path.sep}`)
+      ? 'public, max-age=31536000, immutable'
+      : 'no-cache');
+  }
+}));
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api')) return next();
+  res.setHeader('Cache-Control', 'no-cache');
   res.sendFile(path.join(frontendDist, 'index.html'));
 });
 
