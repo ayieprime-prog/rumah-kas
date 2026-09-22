@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-import { TrendingUp, TrendingDown, Wallet, CreditCard, Target, Sparkles } from 'lucide-react'
+import { Wallet, Calendar, Wrench, Heart, BookOpen, Link2, BarChart3, MoreHorizontal, TrendingUp, TrendingDown, Eye, EyeOff, Plus } from 'lucide-react'
 import './DashboardPage.css'
 
 const DashboardPage = () => {
+  const navigate = useNavigate()
   const [dashboard, setDashboard] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [showNetWorth, setShowNetWorth] = useState(true)
+  const [showBalance, setShowBalance] = useState(true)
+  const [activeTab, setActiveTab] = useState('ringkasan')
 
   useEffect(() => {
     fetchDashboard()
@@ -24,175 +28,212 @@ const DashboardPage = () => {
     }
   }
 
+  const quickActions = [
+    { path: '/expenses', label: 'Keuangan', icon: Wallet, color: '#b8860b' },
+    { path: '/kalender', label: 'Kalender', icon: Calendar, color: '#2b7fa3' },
+    { path: '/maintenance', label: 'Maintenance', icon: Wrench, color: '#d17a3f' },
+    { path: '/berdua', label: 'Conversation Cards', icon: Heart, color: '#c55a82' },
+    { path: '/journal', label: 'Jurnal Keluarga', icon: BookOpen, color: '#c55a82' },
+    { path: '/links', label: 'Link Penting', icon: Link2, color: '#2b7fa3' },
+    { path: '/reports', label: 'Laporan Keuangan', icon: BarChart3, color: '#5a6fcf' },
+    { path: '/', label: 'Lainnya', icon: MoreHorizontal, color: '#3a8a4d' },
+  ]
+
   if (loading) {
     return (
       <div className="dashboard-page">
-        <div className="skeleton skeleton-title"></div>
-        <div className="stats-grid">
-          {[0, 1, 2, 3].map(i => <div key={i} className="skeleton skeleton-card"></div>)}
-        </div>
-        <div className="charts-section">
-          <div className="skeleton skeleton-chart"></div>
-          <div className="skeleton skeleton-chart"></div>
-        </div>
+        <div className="skeleton skeleton-header"></div>
+        <div className="skeleton skeleton-chart"></div>
       </div>
     )
   }
+
   if (error) return <div className="alert alert-error">{error}</div>
   if (!dashboard) return <div className="alert alert-error">Data tidak tersedia</div>
 
   const { overview, expensesByCategory, budgets, goals, debtSummary } = dashboard
-
-  // Prepare chart data
-  const categoryData = Object.entries(expensesByCategory).map(([name, amount]) => ({
-    name,
-    value: Math.round(amount)
-  }))
-  const totalExpenseInChart = categoryData.reduce((sum, c) => sum + c.value, 0)
-
-  const COLORS = ['#b8860b', '#2b7fa3', '#b06a2e', '#3a8a4d', '#b23a63', '#6b4fbb']
+  const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+  const netWorth = overview.balance + (debtSummary?.totalDebt || 0)
 
   return (
     <div className="dashboard-page">
-      <h1>Dashboard Keuangan Keluarga</h1>
-
-      {/* Overview Cards */}
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon positive"><TrendingUp size={20} /></div>
-          <div className="stat-label">Pemasukan Bulan Ini</div>
-          <div className="stat-value positive">Rp {overview.totalIncome.toLocaleString('id-ID')}</div>
+      {/* Welcome Header */}
+      <div className="dashboard-header">
+        <div className="welcome-section">
+          <h1>Selamat pagi, Keluarga Demo</h1>
+          <p>{today}</p>
         </div>
+      </div>
 
-        <div className="stat-card">
-          <div className="stat-icon negative"><TrendingDown size={20} /></div>
-          <div className="stat-label">Pengeluaran Bulan Ini</div>
-          <div className="stat-value negative">Rp {overview.totalExpense.toLocaleString('id-ID')}</div>
+      {/* Quick Action Buttons */}
+      <div className="quick-actions">
+        {quickActions.map((action, idx) => {
+          const Icon = action.icon
+          return (
+            <button
+              key={idx}
+              className="action-button"
+              onClick={() => navigate(action.path)}
+              style={{ '--btn-color': action.color }}
+              title={action.label}
+            >
+              <Icon size={24} />
+              <span>{action.label}</span>
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Agenda Section */}
+      <section className="agenda-section">
+        <div className="section-header">
+          <h2>Agenda Hari ini</h2>
+          <span className="badge">0/1 selesai</span>
         </div>
+        <div className="agenda-empty">
+          <p>Belum ada agenda untuk hari ini</p>
+        </div>
+      </section>
 
-        <div className="stat-card">
-          <div className={`stat-icon ${overview.balance >= 0 ? 'positive' : 'negative'}`}><Wallet size={20} /></div>
-          <div className="stat-label">Saldo Akhir</div>
-          <div className={`stat-value ${overview.balance >= 0 ? 'positive' : 'negative'}`}>
-            Rp {overview.balance.toLocaleString('id-ID')}
+      {/* Financial Summary Tabs */}
+      <div className="summary-tabs">
+        <button
+          className={`tab-btn ${activeTab === 'ringkasan' ? 'active' : ''}`}
+          onClick={() => setActiveTab('ringkasan')}
+        >
+          Ringkasan Keuangan
+        </button>
+        <button
+          className={`tab-btn ${activeTab === 'wallet' ? 'active' : ''}`}
+          onClick={() => setActiveTab('wallet')}
+        >
+          Semua Wallet
+        </button>
+        <button
+          className={`tab-btn ${activeTab === 'pos' ? 'active' : ''}`}
+          onClick={() => setActiveTab('pos')}
+        >
+          Semua Pos
+        </button>
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === 'ringkasan' && (
+        <div className="summary-content">
+          {/* Net Worth Card */}
+          <div className="large-card net-worth-card">
+            <div className="card-header">
+              <span className="card-label">Kekayaan Bersih Keluarga</span>
+              <button
+                className="eye-btn"
+                onClick={() => setShowNetWorth(!showNetWorth)}
+              >
+                {showNetWorth ? <Eye size={16} /> : <EyeOff size={16} />}
+              </button>
+            </div>
+            <div className="card-value">
+              {showNetWorth ? `Rp ${netWorth.toLocaleString('id-ID')}` : '••••••••'}
+            </div>
+            <div className="card-info">
+              Harta {showNetWorth ? `Rp ${overview.balance.toLocaleString('id-ID')}` : '••••••••'} – Utang Rp {debtSummary?.totalDebt?.toLocaleString('id-ID') || '0'}
+            </div>
+            <button className="card-action">Lihat rincian →</button>
+          </div>
+
+          {/* Income & Expenses Summary */}
+          <div className="summary-grid">
+            <div className="summary-card income">
+              <div className="summary-label">Pemasukan</div>
+              <div className="summary-value">Rp {overview.totalIncome.toLocaleString('id-ID')}</div>
+            </div>
+            <div className="summary-card expense">
+              <div className="summary-label">Belanja</div>
+              <div className="summary-value">Rp {overview.totalExpense.toLocaleString('id-ID')}</div>
+            </div>
+          </div>
+
+          {/* Active Balance Card */}
+          <div className="large-card active-balance">
+            <div className="card-header">
+              <span className="card-label">Saldo Aktif</span>
+              <Eye size={16} />
+            </div>
+            <div className="card-value">
+              Rp {overview.balance.toLocaleString('id-ID')}
+            </div>
+            <div className="card-info">
+              Akumulasi dari awal, gak reset tiap bulan • di luar dana Tabungan/Goal
+            </div>
           </div>
         </div>
+      )}
 
-        <div className="stat-card">
-          <div className="stat-icon warning"><CreditCard size={20} /></div>
-          <div className="stat-label">Total Hutang</div>
-          <div className="stat-value warning">Rp {debtSummary.totalDebt.toLocaleString('id-ID')}</div>
-        </div>
-      </div>
-
-      {/* Charts Section */}
-      <div className="charts-section">
-        <div className="chart-card">
-          <h2>Pengeluaran Berdasarkan Kategori</h2>
-          {categoryData.length > 0 ? (
-            <div className="donut-wrapper">
-              <ResponsiveContainer width="100%" height={280}>
-                <PieChart>
-                  <Pie
-                    data={categoryData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={70}
-                    outerRadius={100}
-                    paddingAngle={2}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {categoryData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value) => `Rp ${value.toLocaleString('id-ID')}`} />
-                  <Legend
-                    verticalAlign="bottom"
-                    iconType="circle"
-                    formatter={(value) => <span className="legend-label">{value}</span>}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="donut-center">
-                <span className="donut-center-label">Total</span>
-                <span className="donut-center-value">Rp {totalExpenseInChart.toLocaleString('id-ID')}</span>
+      {activeTab === 'wallet' && (
+        <div className="summary-content">
+          <div className="wallet-section">
+            <div className="wallet-item">
+              <span className="wallet-label">Semua Wallet</span>
+            </div>
+            <div className="wallet-list">
+              <div className="wallet-card">
+                <span>💳 Tunai</span>
+              </div>
+              <div className="wallet-card">
+                <span>🏦 BCA</span>
+              </div>
+              <div className="wallet-card">
+                <span>📱 Dompet Digital</span>
               </div>
             </div>
-          ) : (
-            <div className="no-data">
-              <Sparkles size={28} className="no-data-icon" />
-              <p>Belum ada pengeluaran bulan ini</p>
-              <span>Catat pengeluaran pertama untuk melihat grafiknya di sini</span>
-            </div>
-          )}
+          </div>
         </div>
+      )}
 
-        <div className="chart-card">
-          <h2>Anggaran vs Pengeluaran</h2>
-          {budgets.length > 0 ? (
-            <div className="budget-list">
-              {budgets.map(budget => (
-                <div key={budget.id} className="budget-item">
-                  <div className="budget-name">{budget.category.name}</div>
-                  <div className="budget-bar">
-                    <div
-                      className="budget-spent"
-                      style={{
-                        width: `${Math.min((budget.spent / budget.limit) * 100, 100)}%`,
-                        backgroundColor: budget.spent > budget.limit ? '#ef4444' : '#10b981'
-                      }}
-                    ></div>
-                  </div>
-                  <div className="budget-info">
-                    <span>Rp {budget.spent.toLocaleString('id-ID')}</span>
-                    <span>/ Rp {budget.limit.toLocaleString('id-ID')}</span>
-                  </div>
-                </div>
-              ))}
+      {activeTab === 'pos' && (
+        <div className="summary-content">
+          <div className="pos-section">
+            <div className="pos-item">
+              <span className="pos-label">Semua Pos</span>
             </div>
-          ) : (
-            <div className="no-data">
-              <Wallet size={28} className="no-data-icon" />
-              <p>Belum ada anggaran</p>
-              <span>Buat anggaran per kategori supaya pengeluaran lebih terkontrol</span>
+            <div className="pos-list">
+              <div className="pos-card">
+                <span>📁 Keluarga</span>
+              </div>
+              <div className="pos-card">
+                <span>👤 Pribadi Andri</span>
+              </div>
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Goals Section */}
-      {goals.length > 0 && (
-        <div className="goals-section">
-          <h2>Target Tabungan</h2>
-          <div className="goals-grid">
-            {goals.map(goal => (
-              <div key={goal.id} className="goal-card">
-                <div className="goal-card-header">
-                  <div className="goal-icon"><Target size={16} /></div>
-                  <h3>{goal.name}</h3>
+      {/* Recent Transactions */}
+      <section className="transactions-section">
+        <div className="section-header">
+          <h2>Transaksi Terbaru</h2>
+          <button className="view-all">Lihat semua transaksi →</button>
+        </div>
+        {budgets && budgets.length > 0 ? (
+          <div className="transaction-list">
+            {budgets.slice(0, 3).map((budget, idx) => (
+              <div key={idx} className="transaction-item">
+                <div className="tx-icon">
+                  <Wallet size={16} />
                 </div>
-                <div className="goal-progress">
-                  <div className="progress-bar">
-                    <div
-                      className="progress-fill"
-                      style={{ width: `${Math.min(goal.progress, 100)}%` }}
-                    ></div>
-                  </div>
-                  <div className="progress-text">
-                    {Math.round(goal.progress)}% ({new Date(goal.targetDate).toLocaleDateString('id-ID')})
-                  </div>
+                <div className="tx-details">
+                  <div className="tx-name">{budget.category.name}</div>
+                  <div className="tx-category">Belanja</div>
                 </div>
-                <div className="goal-amounts">
-                  <span>Rp {goal.currentAmount.toLocaleString('id-ID')}</span>
-                  <span>/ Rp {goal.targetAmount.toLocaleString('id-ID')}</span>
+                <div className="tx-amount negative">
+                  -Rp {budget.spent.toLocaleString('id-ID')}
                 </div>
               </div>
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="no-transactions">Belum ada transaksi</div>
+        )}
+      </section>
     </div>
   )
 }
