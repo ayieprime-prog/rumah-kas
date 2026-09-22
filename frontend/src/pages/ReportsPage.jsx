@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
 import { ChevronLeft, ChevronRight, BarChart3, Download } from 'lucide-react'
-import { PieChart, Pie, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts'
-import html2canvas from 'html2canvas'
+import { PieChart, Pie, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts'
 import jsPDF from 'jspdf'
 import BackButton from '../components/BackButton'
 import './ListPages.css'
+import './ReportsPage.css'
 
 const SWATCHES = ['sw-1', 'sw-2', 'sw-3', 'sw-4', 'sw-5', 'sw-6']
 
@@ -52,94 +52,83 @@ const ReportsPage = () => {
     percentage: cat.percentage
   }))
 
-  const exportPDF = async () => {
+  const exportPDF = () => {
     if (!report) return
     setExporting(true)
     try {
       const doc = new jsPDF('p', 'mm', 'a4')
+      const margin = 14
+      const contentWidth = 182
+      let yPos = 15
 
       doc.setFontSize(18)
-      doc.text('Laporan Keuangan', 14, 15)
-      doc.setFontSize(10)
-      doc.text(`Keluarga Budi - Test`, 14, 22)
-      doc.text(`${monthLabel(month)}`, 14, 28)
-      doc.setTextColor(120)
-      doc.text(`Dibuat: ${new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}`, 14, 34)
-      doc.setTextColor(0)
-
-      let yPos = 42
-
-      doc.setFontSize(10)
-      doc.setFillColor(218, 165, 32)
-      doc.rect(14, yPos, 182, 7, 'F')
-      doc.setTextColor(255, 255, 255)
       doc.setFont(undefined, 'bold')
-      doc.text('Ringkasan', 18, yPos + 5)
-      doc.text('Jumlah', 160, yPos + 5)
+      doc.text('Laporan Keuangan', margin, yPos)
+      yPos += 8
+
+      doc.setFontSize(10)
+      doc.setFont(undefined, 'normal')
+      doc.setTextColor(100)
+      doc.text('Keluarga Budi - Test', margin, yPos)
+      doc.text(monthLabel(month), margin, yPos + 5)
+      doc.text(`Dibuat: ${new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}`, margin, yPos + 10)
+      doc.setTextColor(0)
+      yPos += 22
+
+      doc.setFillColor(218, 165, 32)
+      doc.rect(margin, yPos, contentWidth, 6, 'F')
+      doc.setTextColor(255)
+      doc.setFont(undefined, 'bold')
+      doc.setFontSize(9)
+      doc.text('Ringkasan', margin + 3, yPos + 4)
+      doc.text('Jumlah', margin + contentWidth - 3, yPos + 4, { align: 'right' })
+
+      yPos += 8
       doc.setTextColor(0)
       doc.setFont(undefined, 'normal')
+      doc.setFontSize(9)
 
-      yPos += 10
-      const summaryData = [
+      const summaryRows = [
         { label: 'Total Pemasukan', value: `Rp ${report.income.total.toLocaleString('id-ID')}` },
         { label: 'Total Pengeluaran', value: `Rp ${report.expense.total.toLocaleString('id-ID')}` },
         { label: 'Sisa (Tabungan)', value: `Rp ${report.balance.toLocaleString('id-ID')}` }
       ]
 
-      summaryData.forEach((row, idx) => {
-        doc.setFontSize(10)
-        doc.text(row.label, 18, yPos)
-        doc.text(row.value, 160, yPos, { align: 'right' })
-        if (idx < summaryData.length - 1) {
-          doc.setDrawColor(229, 231, 235)
-          doc.line(14, yPos + 2, 196, yPos + 2)
-        }
-        yPos += 8
+      summaryRows.forEach((row) => {
+        doc.text(row.label, margin + 3, yPos)
+        doc.text(row.value, margin + contentWidth - 3, yPos, { align: 'right' })
+        yPos += 6
       })
 
-      yPos += 5
-
-      if (chartContainerRef.current) {
-        doc.setFontSize(11)
-        doc.setFont(undefined, 'bold')
-        doc.text('Distribusi Pengeluaran', 14, yPos)
-        yPos += 10
-
-        const canvas = await html2canvas(chartContainerRef.current, { scale: 2, useCORS: true, allowTaint: true })
-        const imgData = canvas.toDataURL('image/png')
-        doc.addImage(imgData, 'PNG', 60, yPos, 90, 70)
-        yPos += 75
-      }
-
-      yPos += 5
+      yPos += 10
       doc.setFont(undefined, 'bold')
       doc.setFontSize(10)
-      doc.text('Pengeluaran per Kategori', 14, yPos)
-      yPos += 7
+      doc.text('Pengeluaran per Kategori', margin, yPos)
+      yPos += 8
 
       doc.setFillColor(218, 165, 32)
-      doc.rect(14, yPos - 3, 182, 7, 'F')
-      doc.setTextColor(255, 255, 255)
+      doc.rect(margin, yPos, contentWidth, 6, 'F')
+      doc.setTextColor(255)
+      doc.setFont(undefined, 'bold')
       doc.setFontSize(9)
-      doc.text('Kategori', 18, yPos + 2)
-      doc.text('Jumlah', 120, yPos + 2)
-      doc.text('Persentase', 170, yPos + 2)
+      doc.text('Kategori', margin + 3, yPos + 4)
+      doc.text('Jumlah', margin + contentWidth * 0.6, yPos + 4)
+      doc.text('Persentase', margin + contentWidth - 3, yPos + 4, { align: 'right' })
+
+      yPos += 8
       doc.setTextColor(0)
       doc.setFont(undefined, 'normal')
-      yPos += 7
+      doc.setFontSize(8)
 
-      categories.forEach((cat, idx) => {
-        if (yPos > 270) {
+      categories.forEach((cat) => {
+        if (yPos > 275) {
           doc.addPage()
           yPos = 15
         }
-        doc.setFontSize(9)
-        doc.text(cat.name.substring(0, 35), 18, yPos)
-        doc.text(`Rp ${cat.amount.toLocaleString('id-ID')}`, 120, yPos)
-        doc.text(`${cat.percentage}%`, 170, yPos)
-        doc.setDrawColor(229, 231, 235)
-        doc.line(14, yPos + 1.5, 196, yPos + 1.5)
-        yPos += 6
+        doc.text(cat.name.substring(0, 45), margin + 3, yPos)
+        doc.text(`Rp ${cat.amount.toLocaleString('id-ID')}`, margin + contentWidth * 0.6, yPos)
+        doc.text(`${cat.percentage}%`, margin + contentWidth - 3, yPos, { align: 'right' })
+        yPos += 5
       })
 
       doc.save(`Laporan-${month}.pdf`)
@@ -177,30 +166,30 @@ const ReportsPage = () => {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 16, marginBottom: 16, flexWrap: 'nowrap' }}>
-            <div style={{ flex: '0 0 35%', backgroundColor: 'white', borderRadius: 8, padding: 12, boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-              <h2 style={{ marginTop: 0, fontSize: '13px', fontWeight: 700, marginBottom: 12, color: '#1f2937' }}>Ringkasan</h2>
-              <table style={{ width: '100%', fontSize: '12px', borderCollapse: 'collapse' }}>
+          <div className="reports-summary-chart">
+            <div className="reports-summary-table">
+              <h2>Ringkasan</h2>
+              <table>
                 <tbody>
-                  <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
-                    <td style={{ padding: '5px 0', fontWeight: 500, color: '#4b5563' }}>Pemasukan</td>
-                    <td style={{ padding: '5px 0', textAlign: 'right', fontWeight: 600, color: '#1f2937' }}>Rp {report.income.total.toLocaleString('id-ID')}</td>
-                  </tr>
-                  <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
-                    <td style={{ padding: '5px 0', fontWeight: 500, color: '#4b5563' }}>Pengeluaran</td>
-                    <td style={{ padding: '5px 0', textAlign: 'right', fontWeight: 600, color: '#1f2937' }}>Rp {report.expense.total.toLocaleString('id-ID')}</td>
+                  <tr>
+                    <td>Pemasukan</td>
+                    <td>Rp {report.income.total.toLocaleString('id-ID')}</td>
                   </tr>
                   <tr>
-                    <td style={{ padding: '5px 0', fontWeight: 600, color: '#4b5563' }}>Sisa</td>
-                    <td style={{ padding: '5px 0', textAlign: 'right', fontWeight: 700, color: report.balance >= 0 ? '#059669' : '#dc2626', fontSize: '12px' }}>Rp {report.balance.toLocaleString('id-ID')}</td>
+                    <td>Pengeluaran</td>
+                    <td>Rp {report.expense.total.toLocaleString('id-ID')}</td>
+                  </tr>
+                  <tr>
+                    <td>Sisa</td>
+                    <td style={{ color: report.balance >= 0 ? '#059669' : '#dc2626' }}>Rp {report.balance.toLocaleString('id-ID')}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
 
-            <div style={{ flex: '0 0 65%', backgroundColor: 'white', borderRadius: 8, padding: 12, boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-              <h2 style={{ marginTop: 0, fontSize: '13px', fontWeight: 700, marginBottom: 8, color: '#1f2937' }}>Distribusi Pengeluaran</h2>
-              <div ref={chartContainerRef} style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+            <div className="reports-chart-section">
+              <h2>Distribusi Pengeluaran</h2>
+              <div className="reports-chart-wrapper" ref={chartContainerRef}>
                 {categories.length > 0 ? (
                   <ResponsiveContainer width="100%" height={160}>
                     <PieChart>
@@ -217,7 +206,7 @@ const ReportsPage = () => {
                     </PieChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="empty-state" style={{ width: '100%' }}>
+                  <div className="empty-state">
                     <BarChart3 size={28} className="empty-state-icon" />
                     <p>Belum ada pengeluaran</p>
                   </div>
