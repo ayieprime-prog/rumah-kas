@@ -1,17 +1,23 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
-import { Wallet, Calendar, Wrench, Heart, BookOpen, Link2, BarChart3, MoreHorizontal, TrendingUp, TrendingDown, Eye, EyeOff, Plus } from 'lucide-react'
+import { Wallet, Calendar, Wrench, Heart, BookOpen, Link2, BarChart3, MoreHorizontal, TrendingUp, TrendingDown, Eye, EyeOff, Plus, ChevronRight, CreditCard, Banknote, Smartphone } from 'lucide-react'
 import './DashboardPage.css'
+
+const WALLET_ICONS = {
+  Banknote: Banknote,
+  CreditCard: CreditCard,
+  Smartphone: Smartphone,
+  wallet: Wallet
+}
 
 const DashboardPage = () => {
   const navigate = useNavigate()
   const [dashboard, setDashboard] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [showNetWorth, setShowNetWorth] = useState(true)
   const [showBalance, setShowBalance] = useState(true)
-  const [activeTab, setActiveTab] = useState('ringkasan')
+  const [selectedWalletId, setSelectedWalletId] = useState(null)
 
   useEffect(() => {
     fetchDashboard()
@@ -21,6 +27,9 @@ const DashboardPage = () => {
     try {
       const response = await axios.get('/api/dashboard')
       setDashboard(response.data)
+      if (response.data.wallets && response.data.wallets.length > 0) {
+        setSelectedWalletId(response.data.wallets[0].id)
+      }
     } catch (err) {
       setError('Gagal mengambil data dashboard')
     } finally {
@@ -29,14 +38,8 @@ const DashboardPage = () => {
   }
 
   const quickActions = [
-    { path: '/expenses', label: 'Keuangan', icon: Wallet, color: '#b8860b' },
-    { path: '/kalender', label: 'Kalender', icon: Calendar, color: '#2b7fa3' },
-    { path: '/maintenance', label: 'Maintenance', icon: Wrench, color: '#d17a3f' },
-    { path: '/berdua', label: 'Conversation Cards', icon: Heart, color: '#c55a82' },
-    { path: '/journal', label: 'Jurnal Keluarga', icon: BookOpen, color: '#c55a82' },
-    { path: '/links', label: 'Link Penting', icon: Link2, color: '#2b7fa3' },
-    { path: '/reports', label: 'Laporan Keuangan', icon: BarChart3, color: '#5a6fcf' },
-    { path: '/', label: 'Lainnya', icon: MoreHorizontal, color: '#3a8a4d' },
+    { path: '/keuangan', label: 'Utang', icon: TrendingDown, color: '#ef4444' },
+    { path: '/keuangan', label: 'Goal', icon: TrendingUp, color: '#10b981' },
   ]
 
   if (loading) {
@@ -51,189 +54,160 @@ const DashboardPage = () => {
   if (error) return <div className="alert alert-error">{error}</div>
   if (!dashboard) return <div className="alert alert-error">Data tidak tersedia</div>
 
-  const { overview, expensesByCategory, budgets, goals, debtSummary } = dashboard
+  const { overview, expensesByCategory, wallets = [], walletSummary = {}, budgets, goals, debtSummary } = dashboard
   const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
-  const netWorth = overview.balance + (debtSummary?.totalDebt || 0)
+
+  // Calculate "uang bebas" (free money) = Saldo Aktif - Tabungan Goals
+  const totalGoals = goals.reduce((sum, g) => sum + g.currentAmount, 0)
+  const uangBebas = overview.balance - totalGoals
+
+  // Get category spending details
+  const categoryDetails = budgets.map(budget => ({
+    name: budget.category.name,
+    spent: budget.spent,
+    limit: budget.limit,
+    percentage: budget.limit > 0 ? Math.round((budget.spent / budget.limit) * 100) : 0,
+    color: budget.category.color
+  })).sort((a, b) => b.spent - a.spent)
 
   return (
     <div className="dashboard-page">
       {/* Welcome Header */}
       <div className="dashboard-header">
         <div className="welcome-section">
-          <h1>Selamat pagi, Keluarga Demo</h1>
+          <h1>Selamat pagi, Keluarga</h1>
           <p>{today}</p>
         </div>
       </div>
 
-      {/* Quick Action Buttons */}
-      <div className="quick-actions">
-        {quickActions.map((action, idx) => {
-          const Icon = action.icon
-          return (
-            <button
-              key={idx}
-              className="action-button"
-              onClick={() => navigate(action.path)}
-              style={{ '--btn-color': action.color }}
-              title={action.label}
-            >
-              <Icon size={24} />
-              <span>{action.label}</span>
-            </button>
-          )
-        })}
-      </div>
-
-      {/* Agenda Section */}
-      <section className="agenda-section">
-        <div className="section-header">
-          <h2>Agenda Hari ini</h2>
-          <span className="badge">0/1 selesai</span>
-        </div>
-        <div className="agenda-empty">
-          <p>Belum ada agenda untuk hari ini</p>
-        </div>
-      </section>
-
-      {/* Financial Summary Tabs */}
-      <div className="summary-tabs">
-        <button
-          className={`tab-btn ${activeTab === 'ringkasan' ? 'active' : ''}`}
-          onClick={() => setActiveTab('ringkasan')}
-        >
-          Ringkasan Keuangan
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'wallet' ? 'active' : ''}`}
-          onClick={() => setActiveTab('wallet')}
-        >
-          Semua Wallet
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'pos' ? 'active' : ''}`}
-          onClick={() => setActiveTab('pos')}
-        >
-          Semua Pos
-        </button>
-      </div>
-
-      {/* Tab Content */}
-      {activeTab === 'ringkasan' && (
-        <div className="summary-content">
-          {/* Net Worth Card */}
-          <div className="large-card net-worth-card">
-            <div className="card-header">
-              <span className="card-label">Kekayaan Bersih Keluarga</span>
+      {/* Wallet Tabs */}
+      {wallets.length > 0 && (
+        <div className="wallet-tabs">
+          {wallets.map(wallet => {
+            const IconComp = WALLET_ICONS[wallet.icon] || Wallet
+            return (
               <button
-                className="eye-btn"
-                onClick={() => setShowNetWorth(!showNetWorth)}
+                key={wallet.id}
+                className={`wallet-tab ${selectedWalletId === wallet.id ? 'active' : ''}`}
+                onClick={() => setSelectedWalletId(wallet.id)}
               >
-                {showNetWorth ? <Eye size={16} /> : <EyeOff size={16} />}
+                <IconComp size={16} />
+                <div className="wallet-info">
+                  <div className="wallet-name">{wallet.name}</div>
+                  <div className="wallet-balance">Rp {wallet.balance.toLocaleString('id-ID')}</div>
+                </div>
               </button>
-            </div>
-            <div className="card-value">
-              {showNetWorth ? `Rp ${netWorth.toLocaleString('id-ID')}` : '••••••••'}
-            </div>
-            <div className="card-info">
-              Harta {showNetWorth ? `Rp ${overview.balance.toLocaleString('id-ID')}` : '••••••••'} – Utang Rp {debtSummary?.totalDebt?.toLocaleString('id-ID') || '0'}
-            </div>
-            <button className="card-action">Lihat rincian →</button>
-          </div>
-
-          {/* Income & Expenses Summary */}
-          <div className="summary-grid">
-            <div className="summary-card income">
-              <div className="summary-label">Pemasukan</div>
-              <div className="summary-value">Rp {overview.totalIncome.toLocaleString('id-ID')}</div>
-            </div>
-            <div className="summary-card expense">
-              <div className="summary-label">Belanja</div>
-              <div className="summary-value">Rp {overview.totalExpense.toLocaleString('id-ID')}</div>
-            </div>
-          </div>
-
-          {/* Active Balance Card */}
-          <div className="large-card active-balance">
-            <div className="card-header">
-              <span className="card-label">Saldo Aktif</span>
-              <Eye size={16} />
-            </div>
-            <div className="card-value">
-              Rp {overview.balance.toLocaleString('id-ID')}
-            </div>
-            <div className="card-info">
-              Akumulasi dari awal, gak reset tiap bulan • di luar dana Tabungan/Goal
-            </div>
-          </div>
+            )
+          })}
         </div>
       )}
 
-      {activeTab === 'wallet' && (
-        <div className="summary-content">
-          <div className="wallet-section">
-            <div className="wallet-item">
-              <span className="wallet-label">Semua Wallet</span>
-            </div>
-            <div className="wallet-list">
-              <div className="wallet-card">
-                <span>💳 Tunai</span>
-              </div>
-              <div className="wallet-card">
-                <span>🏦 BCA</span>
-              </div>
-              <div className="wallet-card">
-                <span>📱 Dompet Digital</span>
-              </div>
-            </div>
+      {/* Saldo Aktif & Uang Bebas Cards */}
+      <div className="balance-cards">
+        <div className="balance-card saldo-aktif">
+          <div className="card-header">
+            <span className="card-label">Saldo Aktif</span>
+            <button className="eye-btn" onClick={() => setShowBalance(!showBalance)}>
+              {showBalance ? <Eye size={16} /> : <EyeOff size={16} />}
+            </button>
+          </div>
+          <div className="card-value">
+            {showBalance ? `Rp ${overview.balance.toLocaleString('id-ID')}` : '••••••••'}
           </div>
         </div>
-      )}
 
-      {activeTab === 'pos' && (
-        <div className="summary-content">
-          <div className="pos-section">
-            <div className="pos-item">
-              <span className="pos-label">Semua Pos</span>
-            </div>
-            <div className="pos-list">
-              <div className="pos-card">
-                <span>📁 Keluarga</span>
-              </div>
-              <div className="pos-card">
-                <span>👤 Pribadi Andri</span>
-              </div>
-            </div>
+        <div className="balance-card uang-bebas">
+          <div className="card-header">
+            <span className="card-label">Uang Bebas</span>
+            <button className="eye-btn" onClick={() => setShowBalance(!showBalance)}>
+              {showBalance ? <Eye size={16} /> : <EyeOff size={16} />}
+            </button>
+          </div>
+          <div className="card-value">
+            {showBalance ? `Rp ${Math.max(0, uangBebas).toLocaleString('id-ID')}` : '••••••••'}
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Recent Transactions */}
-      <section className="transactions-section">
+      {/* Income & Expenses Summary */}
+      <div className="summary-grid">
+        <div className="summary-card income">
+          <div className="summary-label">Pemasukan Bulan Ini</div>
+          <div className="summary-value">Rp {overview.totalIncome.toLocaleString('id-ID')}</div>
+        </div>
+        <div className="summary-card expense">
+          <div className="summary-label">Pengeluaran Bulan Ini</div>
+          <div className="summary-value">Rp {overview.totalExpense.toLocaleString('id-ID')}</div>
+        </div>
+      </div>
+
+      {/* Pengeluaran per Kategori */}
+      <section className="categories-section">
         <div className="section-header">
-          <h2>Transaksi Terbaru</h2>
-          <button className="view-all">Lihat semua transaksi →</button>
+          <h2>Pengeluaran per Kategori</h2>
+          <button className="view-all" onClick={() => navigate('/reports')}>Laporan →</button>
         </div>
-        {budgets && budgets.length > 0 ? (
-          <div className="transaction-list">
-            {budgets.slice(0, 3).map((budget, idx) => (
-              <div key={idx} className="transaction-item">
-                <div className="tx-icon">
-                  <Wallet size={16} />
+        {categoryDetails.length > 0 ? (
+          <div className="category-cards">
+            {categoryDetails.map((cat, idx) => (
+              <div key={cat.name} className="category-card">
+                <div className="category-header">
+                  <div className="category-name">{cat.name}</div>
+                  <div className="category-percent">{cat.percentage}%</div>
                 </div>
-                <div className="tx-details">
-                  <div className="tx-name">{budget.category.name}</div>
-                  <div className="tx-category">Belanja</div>
-                </div>
-                <div className="tx-amount negative">
-                  -Rp {budget.spent.toLocaleString('id-ID')}
+                <div className="category-amount">Rp {cat.spent.toLocaleString('id-ID')}</div>
+                <div className="category-limit">Anggaran: Rp {cat.limit.toLocaleString('id-ID')}</div>
+                <div className="progress-bar">
+                  <div className="progress-fill" style={{ width: `${Math.min(100, cat.percentage)}%`, background: cat.color }}></div>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="no-transactions">Belum ada transaksi</div>
+          <div className="empty-state">Belum ada pengeluaran bulan ini</div>
         )}
       </section>
+
+      {/* Quick Action Pills */}
+      <div className="action-pills">
+        {debtSummary.debtCount > 0 && (
+          <button className="action-pill debt-pill" onClick={() => navigate('/keuangan')}>
+            <TrendingDown size={16} />
+            <span>Utang: {debtSummary.debtCount} • Rp {debtSummary.totalDebt.toLocaleString('id-ID')}</span>
+            <ChevronRight size={16} />
+          </button>
+        )}
+        {goals.length > 0 && (
+          <button className="action-pill goal-pill" onClick={() => navigate('/keuangan')}>
+            <TrendingUp size={16} />
+            <span>Goal: {goals.length}</span>
+            <ChevronRight size={16} />
+          </button>
+        )}
+      </div>
+
+      {/* Quick Actions Menu */}
+      <div className="menu-section">
+        <div className="menu-header">Menu Cepat</div>
+        <div className="menu-grid">
+          <button className="menu-item" onClick={() => navigate('/keuangan')} title="Keuangan">
+            <Wallet size={24} style={{ color: '#d4a574' }} />
+            <span>Keuangan</span>
+          </button>
+          <button className="menu-item" onClick={() => navigate('/kalender')} title="Kalender">
+            <Calendar size={24} style={{ color: '#2b7fa3' }} />
+            <span>Kalender</span>
+          </button>
+          <button className="menu-item" onClick={() => navigate('/reports')} title="Laporan">
+            <BarChart3 size={24} style={{ color: '#5a6fcf' }} />
+            <span>Laporan</span>
+          </button>
+          <button className="menu-item" onClick={() => navigate('/berdua')} title="Berdua">
+            <Heart size={24} style={{ color: '#c55a82' }} />
+            <span>Berdua</span>
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

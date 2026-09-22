@@ -11,7 +11,7 @@ router.get('/', async (req, res) => {
   const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
   try {
-    const [expenses, incomes, budgets, goals, debts] = await Promise.all([
+    const [expenses, incomes, budgets, goals, debts, wallets] = await Promise.all([
       prisma.expense.findMany({
         where: {
           householdId,
@@ -40,6 +40,10 @@ router.get('/', async (req, res) => {
       }),
       prisma.debt.findMany({
         where: { householdId }
+      }),
+      prisma.wallet.findMany({
+        where: { householdId, isActive: true },
+        orderBy: { createdAt: 'asc' }
       })
     ]);
 
@@ -60,6 +64,9 @@ router.get('/', async (req, res) => {
     // Calculate debt summary
     const totalDebt = debts.reduce((sum, d) => sum + (d.totalAmount - d.paidAmount), 0);
 
+    // Calculate wallet summary
+    const totalBalance = wallets.reduce((sum, w) => sum + w.balance, 0);
+
     res.json({
       overview: {
         currentMonth,
@@ -76,6 +83,17 @@ router.get('/', async (req, res) => {
       debtSummary: {
         totalDebt,
         debtCount: debts.length
+      },
+      wallets: wallets.map(w => ({
+        id: w.id,
+        name: w.name,
+        type: w.type,
+        balance: w.balance,
+        icon: w.icon
+      })),
+      walletSummary: {
+        totalBalance,
+        walletCount: wallets.length
       }
     });
   } catch (error) {
