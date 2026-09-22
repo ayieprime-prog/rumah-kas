@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import html2canvas from 'html2canvas'
+import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { ChevronLeft, ChevronRight, BarChart3, Download } from 'lucide-react'
 import BackButton from '../components/BackButton'
 import './ListPages.css'
 
 const SWATCHES = ['sw-1', 'sw-2', 'sw-3', 'sw-4', 'sw-5', 'sw-6']
+const COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#82CA9D', '#D4A843', '#8884D8']
 const MONTH_NAMES_ID = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
 const rupiah = (n) => `Rp ${(n || 0).toLocaleString('id-ID')}`
 
@@ -31,6 +34,9 @@ const ReportsPage = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [exporting, setExporting] = useState(false)
+
+  const pieChartRef = useRef(null)
+  const trendChartRef = useRef(null)
 
   useEffect(() => { loadHousehold() }, [])
   useEffect(() => { if (viewMode === 'monthly') loadMonthly() }, [month, viewMode])
@@ -70,6 +76,7 @@ const ReportsPage = () => {
   }
 
   const categories = report ? Object.values(report.expense.byCategory) : []
+
   // Build Jan-Dec explicitly rather than trusting Object.entries() order --
   // keys "01".."09" sort after "10".."12" in JS objects (bare numeric-looking
   // string keys without a leading zero are enumerated first, in ascending
@@ -83,11 +90,22 @@ const ReportsPage = () => {
       })
     : []
 
-  const handleExportPdf = () => {
+  // Renders whichever chart is on screen for the current view into a PNG so
+  // it can be embedded in the PDF alongside the tables -- captures the same
+  // <div> the user already sees, so the exported report matches the page.
+  const captureChart = async (ref) => {
+    if (!ref.current) return null
+    const canvas = await html2canvas(ref.current, { scale: 2, backgroundColor: '#ffffff' })
+    return { dataUrl: canvas.toDataURL('image/png'), width: canvas.width, height: canvas.height }
+  }
+
+  const handleExportPdf = async () => {
     setExporting(true)
+    setError('')
     try {
       const doc = new jsPDF()
       const periodLabel = viewMode === 'monthly' ? monthLabel(month) : `Tahun ${year}`
+      const pageWidth = doc.internal.pageSize.getWidth()
 
       doc.setFontSize(16)
       doc.text('Laporan Keuangan', 14, 18)
@@ -113,7 +131,19 @@ const ReportsPage = () => {
         headStyles: { fillColor: [212, 168, 67] }
       })
 
-      const nextY = doc.lastAutoTable.finalY + 10
+      let nextY = doc.lastAutoTable.finalY + 8
+
+      // Embed the chart currently on screen (pie for monthly, trend line for
+      // yearly) as an image, scaled to fit the page width at its own aspect
+      // ratio, so the exported report visually matches the page.
+      const chartRef = viewMode === 'monthly' ? pieChartRef : trendChartRef
+      const chart = await captureChart(chartRef)
+      if (chart) {
+        const imgWidth = pageWidth - 28
+        const imgHeight = (chart.height / chart.width) * imgWidth
+        doc.addImage(chart.dataUrl, 'PNG', 14, nextY, imgWidth, imgHeight)
+        nextY += imgHeight + 8
+      }
 
       if (viewMode === 'monthly') {
         autoTable(doc, {
@@ -207,6 +237,32 @@ const ReportsPage = () => {
             </div>
           </div>
 
+          {categories.length > 0 && (
+            <div className="card" style={{ marginBottom: 20 }}>
+              <h2 className="section-title">Distribusi Pengeluaran</h2>
+              <div ref={pieChartRef} style={{ height: 280, background: '#fff' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={categories}
+                      dataKey="amount"
+                      nameKey="name"
+                      cx="50%"
+                      cy="45%"
+                      outerRadius={80}
+                    >
+                      {categories.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => rupiah(value)} />
+                    <Legend formatter={(value, entry) => `${value} (${entry.payload.percentage}%)`} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+
           <div className="card">
             <h2 className="section-title">Pengeluaran per Kategori</h2>
             {categories.length > 0 ? (
@@ -251,6 +307,23 @@ const ReportsPage = () => {
             <div className="summary-tile tile-danger">
               <div className="tile-label">Total Pengeluaran</div>
               <div className="tile-value">{rupiah(yearlyReport.totalExpense)}</div>
+            </div>
+          </div>
+
+          <div className="card" style={{ marginBottom: 20 }}>
+            <h2 className="section-title">Tren Pemasukan vs Pengeluaran</h2>
+            <div ref={trendChartRef} style={{ height: 280, background: '#fff' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={monthlyRows}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis tickFormatter={(v) => `${(v / 1000000).toFixed(0)}jt`} />
+                  <Tooltip formatter={(value) => rupiah(value)} />
+                  <Legend />
+                  <Line type="monotone" dataKey="income" name="Pemasukan" stroke="#2f9e6e" strokeWidth={2} />
+                  <Line type="monotone" dataKey="expense" name="Pengeluaran" stroke="#e15c5c" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
           </div>
 
