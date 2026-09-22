@@ -47,6 +47,11 @@ try {
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Railway (dan proxy cloud lain) meneruskan permintaan lewat reverse proxy --
+// tanpa ini, express-rate-limit menolak header X-Forwarded-For dan setiap
+// request ke /api/* gagal dengan ERR_ERL_UNEXPECTED_X_FORWARDED_FOR.
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet());
 app.use(cors({
