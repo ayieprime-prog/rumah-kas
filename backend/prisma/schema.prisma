@@ -30,6 +30,7 @@ model Household {
   notifications  Notification[]
   importantLinks ImportantLink[]
   maintenanceItems MaintenanceItem[]
+  events         Event[]
 
   @@index([createdAt])
 }
@@ -256,6 +257,24 @@ model MaintenanceLog {
   createdAt DateTime @default(now())
 
   @@index([maintenanceItemId])
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  startDate   DateTime
+  allDay      Boolean  @default(true)
+  category    String?  // "Sekolah", "Dokter", "Acara Keluarga"
+
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([householdId])
+  @@index([startDate])
 }
 
 // ============= HOUSEHOLD EXTRAS =============
