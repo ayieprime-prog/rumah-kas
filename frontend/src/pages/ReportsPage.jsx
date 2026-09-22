@@ -134,32 +134,40 @@ const ReportsPage = () => {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-            <div className="card">
-              <h2 className="section-title" style={{ marginTop: 0 }}>Ringkasan</h2>
-              <div className="summary-tile tile-secondary" style={{ marginBottom: 8 }}>
-                <div className="tile-label">Pemasukan</div>
-                <div className="tile-value" style={{ fontSize: 18 }}>Rp {report.income.total.toLocaleString('id-ID')}</div>
-              </div>
-              <div className="summary-tile tile-danger">
-                <div className="tile-label">Pengeluaran</div>
-                <div className="tile-value" style={{ fontSize: 18 }}>Rp {report.expense.total.toLocaleString('id-ID')}</div>
-              </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '0.8fr 1.2fr', gap: 16, marginBottom: 16, alignItems: 'start' }}>
+            <div className="card" style={{ padding: '12px' }}>
+              <h2 className="section-title" style={{ marginTop: 0, fontSize: '14px', marginBottom: '8px' }}>Ringkasan</h2>
+              <table style={{ width: '100%', fontSize: '13px', borderCollapse: 'collapse' }}>
+                <tbody>
+                  <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
+                    <td style={{ padding: '6px 0', fontWeight: 500 }}>Pemasukan</td>
+                    <td style={{ padding: '6px 0', textAlign: 'right', fontWeight: 600 }}>Rp {report.income.total.toLocaleString('id-ID')}</td>
+                  </tr>
+                  <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
+                    <td style={{ padding: '6px 0', fontWeight: 500 }}>Pengeluaran</td>
+                    <td style={{ padding: '6px 0', textAlign: 'right', fontWeight: 600 }}>Rp {report.expense.total.toLocaleString('id-ID')}</td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: '6px 0', fontWeight: 500 }}>Sisa</td>
+                    <td style={{ padding: '6px 0', textAlign: 'right', fontWeight: 700, color: report.balance >= 0 ? '#059669' : '#dc2626' }}>Rp {report.balance.toLocaleString('id-ID')}</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
 
-            <div className="card">
-              <h2 className="section-title" style={{ marginTop: 0 }}>Distribusi Pengeluaran</h2>
+            <div className="card" style={{ padding: '12px' }}>
+              <h2 className="section-title" style={{ marginTop: 0, fontSize: '14px', marginBottom: '8px' }}>Distribusi Pengeluaran</h2>
               <div ref={chartContainerRef} style={{ display: 'flex', justifyContent: 'center' }}>
                 {categories.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={250}>
+                  <ResponsiveContainer width="100%" height={180}>
                     <PieChart>
-                      <Pie data={pieChartData} cx="50%" cy="50%" labelLine={false} outerRadius={80} fill="#8884d8" dataKey="value">
+                      <Pie data={pieChartData} cx="50%" cy="50%" labelLine={false} outerRadius={60} fill="#8884d8" dataKey="value">
                         {categories.map((_, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value) => `Rp ${value.toLocaleString('id-ID')}`} />
-                      <Legend formatter={(value, entry) => {
+                      <Tooltip formatter={(value) => `Rp ${value.toLocaleString('id-ID')}`} contentStyle={{ fontSize: '12px' }} />
+                      <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} formatter={(value, entry) => {
                         const data = entry.payload
                         return `${data.name} (${data.percentage}%)`
                       }} />
