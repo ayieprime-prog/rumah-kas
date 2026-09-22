@@ -32,6 +32,7 @@ model Household {
   maintenanceItems MaintenanceItem[]
   events         Event[]
   journalEntries JournalEntry[]
+  auditLogs      AuditLog[]
 
   @@index([createdAt])
 }
@@ -46,6 +47,7 @@ model User {
   householdId String
   household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
   journalEntries JournalEntry[]
+  auditLogs      AuditLog[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -216,16 +218,22 @@ model Notification {
 // ============= AUDIT LOG =============
 model AuditLog {
   id        String   @id @default(cuid())
-  action    String   // "CREATE_EXPENSE", "UPDATE_BUDGET", etc
+  action    String   // "CREATE_EXPENSE", "DELETE_BUDGET", etc
   entity    String   // "EXPENSE", "BUDGET", "GOAL"
   entityId  String
-  changes   String   // JSON stringified
-  userId    String
+  summary   String   // short human-readable description, e.g. "Belanja bulanan - Rp500.000"
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 
   @@index([createdAt])
   @@index([userId])
+  @@index([householdId])
 }
 
 model MaintenanceItem {

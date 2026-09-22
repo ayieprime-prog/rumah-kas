@@ -1,11 +1,29 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
-import { Users, Home, UserPlus, X, LogOut } from 'lucide-react'
+import { Users, Home, UserPlus, X, LogOut, History } from 'lucide-react'
 import './ListPages.css'
+
+const ACTION_LABELS = {
+  CREATE_EXPENSE: 'menambah pengeluaran',
+  UPDATE_EXPENSE: 'mengubah pengeluaran',
+  DELETE_EXPENSE: 'menghapus pengeluaran',
+  CREATE_INCOME: 'menambah pemasukan',
+  UPDATE_INCOME: 'mengubah pemasukan',
+  DELETE_INCOME: 'menghapus pemasukan',
+  CREATE_DEBT: 'menambah hutang',
+  UPDATE_DEBT: 'mengubah hutang',
+  PAY_DEBT_INSTALLMENT: 'membayar cicilan',
+  DELETE_DEBT: 'menghapus hutang',
+  CREATE_GOAL: 'membuat target tabungan',
+  UPDATE_GOAL: 'mengubah target tabungan',
+  ADD_GOAL_FUNDS: 'menambah dana tabungan',
+  DELETE_GOAL: 'menghapus target tabungan'
+}
 
 const SettingsPage = ({ onLogout }) => {
   const [household, setHousehold] = useState(null)
   const [me, setMe] = useState(null)
+  const [activity, setActivity] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -19,13 +37,15 @@ const SettingsPage = ({ onLogout }) => {
   const loadData = async () => {
     setLoading(true)
     try {
-      const [householdRes, meRes] = await Promise.all([
+      const [householdRes, meRes, activityRes] = await Promise.all([
         axios.get('/api/household'),
-        axios.get('/api/auth/me')
+        axios.get('/api/auth/me'),
+        axios.get('/api/activity')
       ])
       setHousehold(householdRes.data)
       setHouseholdName(householdRes.data.name)
       setMe(meRes.data.user)
+      setActivity(activityRes.data || [])
     } catch (err) {
       setError('Gagal memuat pengaturan')
     } finally {
@@ -103,6 +123,33 @@ const SettingsPage = ({ onLogout }) => {
             <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)' }}>{u.role}</span>
           </div>
         ))}
+      </div>
+
+      <div className="card">
+        <h2 className="section-title"><History size={16} style={{ verticalAlign: 'middle', marginRight: 6 }} />Aktivitas Terbaru</h2>
+        {activity.length > 0 ? (
+          activity.map(log => (
+            <div key={log.id} className="list-row">
+              <div className="icon-square sw-6" style={{ width: 32, height: 32 }}>
+                {log.user?.name?.charAt(0).toUpperCase()}
+              </div>
+              <div className="list-row-body">
+                <div className="list-row-title">
+                  {log.user?.name} {ACTION_LABELS[log.action] || log.action.toLowerCase()}
+                </div>
+                <div className="list-row-subtitle">{log.summary}</div>
+              </div>
+              <span style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                {new Date(log.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+              </span>
+            </div>
+          ))
+        ) : (
+          <div className="empty-state">
+            <History size={28} className="empty-state-icon" />
+            <p>Belum ada aktivitas tercatat</p>
+          </div>
+        )}
       </div>
 
       <button className="btn-pill" style={{ background: 'var(--danger-color)' }} onClick={onLogout}>

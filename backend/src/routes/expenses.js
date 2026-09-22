@@ -1,5 +1,6 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
+const { logAudit } = require('../utils/audit');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -30,7 +31,7 @@ async function adjustBudgetSpent(tx, householdId, month, categoryId, delta) {
 // Create expense
 router.post('/', async (req, res) => {
   const { description, amount, categoryId, date } = req.body;
-  const { householdId } = req;
+  const { householdId, userId } = req;
 
   if (!description || !amount || !categoryId || !date) {
     return res.status(400).json({ error: 'Missing required fields' });
@@ -49,6 +50,10 @@ router.post('/', async (req, res) => {
         include: { category: true }
       });
       await adjustBudgetSpent(tx, householdId, monthOf(date), categoryId, parsedAmount);
+      await logAudit(tx, {
+        userId, householdId, action: 'CREATE_EXPENSE', entity: 'EXPENSE', entityId: created.id,
+        summary: `${description} - Rp${parsedAmount.toLocaleString('id-ID')}`
+      });
       return created;
     });
 
@@ -100,7 +105,7 @@ router.get('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
   const { description, amount, categoryId, date } = req.body;
-  const { householdId } = req;
+  const { householdId, userId } = req;
 
   try {
     const existing = await prisma.expense.findFirst({ where: { id, householdId } });
@@ -129,6 +134,10 @@ router.put('/:id', async (req, res) => {
       // Reverse the old amount from the old month/category budget, apply the new one
       await adjustBudgetSpent(tx, householdId, monthOf(existing.date), existing.categoryId, -existing.amount);
       await adjustBudgetSpent(tx, householdId, monthOf(newDate), newCategoryId, newAmount);
+      await logAudit(tx, {
+        userId, householdId, action: 'UPDATE_EXPENSE', entity: 'EXPENSE', entityId: id,
+        summary: `${updated.description} - Rp${newAmount.toLocaleString('id-ID')}`
+      });
 
       return updated;
     });
@@ -143,7 +152,7 @@ router.put('/:id', async (req, res) => {
 // Delete expense
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
-  const { householdId } = req;
+  const { householdId, userId } = req;
 
   try {
     const existing = await prisma.expense.findFirst({ where: { id, householdId } });
@@ -154,6 +163,10 @@ router.delete('/:id', async (req, res) => {
     await prisma.$transaction(async (tx) => {
       await tx.expense.delete({ where: { id } });
       await adjustBudgetSpent(tx, householdId, monthOf(existing.date), existing.categoryId, -existing.amount);
+      await logAudit(tx, {
+        userId, householdId, action: 'DELETE_EXPENSE', entity: 'EXPENSE', entityId: id,
+        summary: `${existing.description} - Rp${existing.amount.toLocaleString('id-ID')}`
+      });
     });
 
     res.json({ message: 'Expense deleted' });

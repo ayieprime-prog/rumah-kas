@@ -1,16 +1,25 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
+const { logAudit } = require('../utils/audit');
 
 const router = express.Router();
 const prisma = new PrismaClient();
 
 router.post('/', async (req, res) => {
   const { source, amount, date } = req.body;
-  const { householdId } = req;
+  const { householdId, userId } = req;
 
   try {
-    const income = await prisma.income.create({
-      data: { source, amount: parseFloat(amount), date: new Date(date), householdId }
+    const parsedAmount = parseFloat(amount);
+    const income = await prisma.$transaction(async (tx) => {
+      const created = await tx.income.create({
+        data: { source, amount: parsedAmount, date: new Date(date), householdId }
+      });
+      await logAudit(tx, {
+        userId, householdId, action: 'CREATE_INCOME', entity: 'INCOME', entityId: created.id,
+        summary: `${source} - Rp${parsedAmount.toLocaleString('id-ID')}`
+      });
+      return created;
     });
     res.status(201).json(income);
   } catch (error) {
@@ -50,7 +59,7 @@ router.get('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
   const { source, amount, date } = req.body;
-  const { householdId } = req;
+  const { householdId, userId } = req;
 
   try {
     const existing = await prisma.income.findFirst({ where: { id, householdId } });
@@ -58,9 +67,16 @@ router.put('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Income not found' });
     }
 
-    const income = await prisma.income.update({
-      where: { id },
-      data: { source, amount: amount ? parseFloat(amount) : undefined, date: date ? new Date(date) : undefined }
+    const income = await prisma.$transaction(async (tx) => {
+      const updated = await tx.income.update({
+        where: { id },
+        data: { source, amount: amount ? parseFloat(amount) : undefined, date: date ? new Date(date) : undefined }
+      });
+      await logAudit(tx, {
+        userId, householdId, action: 'UPDATE_INCOME', entity: 'INCOME', entityId: id,
+        summary: `${updated.source} - Rp${updated.amount.toLocaleString('id-ID')}`
+      });
+      return updated;
     });
     res.json(income);
   } catch (error) {
@@ -70,7 +86,7 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
-  const { householdId } = req;
+  const { householdId, userId } = req;
 
   try {
     const existing = await prisma.income.findFirst({ where: { id, householdId } });
@@ -78,7 +94,13 @@ router.delete('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Income not found' });
     }
 
-    await prisma.income.delete({ where: { id } });
+    await prisma.$transaction(async (tx) => {
+      await tx.income.delete({ where: { id } });
+      await logAudit(tx, {
+        userId, householdId, action: 'DELETE_INCOME', entity: 'INCOME', entityId: id,
+        summary: `${existing.source} - Rp${existing.amount.toLocaleString('id-ID')}`
+      });
+    });
     res.json({ message: 'Income deleted' });
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete income' });
