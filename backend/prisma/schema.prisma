@@ -46,6 +46,9 @@ model User {
   name      String
   role      UserRole @default(MEMBER) // ADMIN (creator), MEMBER (spouse)
   wallpaper String?  // data URI (base64) untuk background dashboard pribadi
+  city       String?  // nama kota untuk widget cuaca (diisi via deteksi otomatis atau cari manual)
+  weatherLat Float?   // koordinat tersimpan supaya dashboard tidak perlu minta izin GPS tiap kali
+  weatherLon Float?
 
   householdId String
   household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)

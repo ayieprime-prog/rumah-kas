@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import axios from 'axios'
-import { Users, Home, UserPlus, X, LogOut, History } from 'lucide-react'
+import { Users, Home, UserPlus, X, LogOut, History, UserCircle, ChevronRight } from 'lucide-react'
 import './ListPages.css'
 
 const ACTION_LABELS = {
@@ -90,6 +91,17 @@ const SettingsPage = ({ onLogout }) => {
 
       {error && <div className="alert alert-error">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
+
+      <Link to="/profile" className="card" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}>
+        <div className="icon-square sw-6" style={{ width: 36, height: 36, marginRight: 12 }}>
+          <UserCircle size={18} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div className="list-row-title">Profil Saya</div>
+          <div className="list-row-subtitle">Wallpaper, lokasi &amp; cuaca dashboard</div>
+        </div>
+        <ChevronRight size={18} className="hub-item-chevron" />
+      </Link>
 
       <div className="card">
         <h2 className="section-title"><Home size={16} style={{ verticalAlign: 'middle', marginRight: 6 }} />Keluarga</h2>

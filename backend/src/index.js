@@ -54,13 +54,19 @@ app.set('trust proxy', 1);
 
 // Security middleware. helmet()'s default CSP leaves connect-src unset,
 // which falls back to default-src 'self' -- that silently blocks the
-// browser-side fetch() calls this app makes to external APIs (weather).
-// img-src already allows data: by default, which is what wallpaper needs.
+// browser-side fetch() calls this app makes to external APIs (weather,
+// geocoding). img-src already allows data: by default, which is what
+// wallpaper needs.
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-      'connect-src': ["'self'", 'https://api.open-meteo.com']
+      'connect-src': [
+        "'self'",
+        'https://api.open-meteo.com',
+        'https://geocoding-api.open-meteo.com',
+        'https://api.bigdatacloud.net'
+      ]
     }
   }
 }));

@@ -144,12 +144,14 @@ router.post('/logout', (req, res) => {
   res.json({ message: 'Logged out' });
 });
 
+const PROFILE_FIELDS = { id: true, email: true, name: true, role: true, householdId: true, wallpaper: true, city: true, weatherLat: true, weatherLon: true };
+
 // Get current user
 router.get('/me', authenticate, async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.userId },
-      select: { id: true, email: true, name: true, role: true, householdId: true, wallpaper: true }
+      select: PROFILE_FIELDS
     });
 
     const household = await prisma.household.findUnique({
@@ -166,19 +168,33 @@ router.get('/me', authenticate, async (req, res) => {
 // actual images, same guard style used elsewhere in the app for photo uploads.
 const isValidImageDataUri = (value) => /^data:image\/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+/]+=*$/.test(value);
 
-// Update own profile (currently just the personal dashboard wallpaper)
+// Update own profile: wallpaper and/or weather location. Each field is only
+// touched when the caller actually sends it (checked via undefined, not
+// falsy) so the Profile page's separate "save wallpaper" / "save location"
+// actions never wipe each other out.
 router.put('/me', authenticate, async (req, res) => {
-  const { wallpaper } = req.body;
+  const { wallpaper, city, weatherLat, weatherLon } = req.body;
 
   if (wallpaper !== undefined && wallpaper !== null && !isValidImageDataUri(wallpaper)) {
     return res.status(400).json({ error: 'Wallpaper harus berupa gambar (PNG/JPG/WEBP/GIF)' });
+  }
+  if (weatherLat !== undefined && weatherLat !== null && (typeof weatherLat !== 'number' || weatherLat < -90 || weatherLat > 90)) {
+    return res.status(400).json({ error: 'Latitude tidak valid' });
+  }
+  if (weatherLon !== undefined && weatherLon !== null && (typeof weatherLon !== 'number' || weatherLon < -180 || weatherLon > 180)) {
+    return res.status(400).json({ error: 'Longitude tidak valid' });
   }
 
   try {
     const user = await prisma.user.update({
       where: { id: req.userId },
-      data: { wallpaper: wallpaper ?? null },
-      select: { id: true, email: true, name: true, role: true, householdId: true, wallpaper: true }
+      data: {
+        ...(wallpaper !== undefined && { wallpaper }),
+        ...(city !== undefined && { city }),
+        ...(weatherLat !== undefined && { weatherLat }),
+        ...(weatherLon !== undefined && { weatherLon })
+      },
+      select: PROFILE_FIELDS
     });
     res.json({ user });
   } catch (error) {

@@ -20,6 +20,16 @@
   margin-bottom: 24px;
 }
 
+/* When a personal wallpaper is set, give it room to actually read as a
+   photo instead of a thin strip. min-height (not height) so it only ever
+   grows the card -- never clips content or locks page scroll. */
+.dashboard-header.has-wallpaper {
+  min-height: 180px;
+  display: flex;
+  align-items: flex-end;
+  padding: 24px 16px;
+}
+
 .welcome-topline {
   display: flex;
   align-items: baseline;

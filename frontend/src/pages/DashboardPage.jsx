@@ -54,27 +54,35 @@ const DashboardPage = ({ user }) => {
   }, [])
 
   const fetchWeather = async () => {
-    const loadFor = async ({ latitude, longitude }) => {
+    const loadFor = async ({ latitude, longitude, cityName }) => {
       try {
         const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`)
         const data = await res.json()
         if (data?.current_weather) {
           const [label, icon] = WEATHER_CODES[data.current_weather.weathercode] || ['Cerah', '☀️']
-          setWeather({ temp: Math.round(data.current_weather.temperature), label, icon })
+          setWeather({ temp: Math.round(data.current_weather.temperature), label, icon, city: cityName || null })
         }
       } catch (err) {
         // Weather is a nice-to-have -- fail silently, dashboard works without it
       }
     }
 
+    // Prefer the location saved in Profile: skips asking for GPS permission
+    // on every visit, and gives us a city name the live-geolocation path
+    // doesn't have (that would need its own reverse-geocode call).
+    if (user?.weatherLat != null && user?.weatherLon != null) {
+      loadFor({ latitude: user.weatherLat, longitude: user.weatherLon, cityName: user.city })
+      return
+    }
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => loadFor({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
-        () => loadFor(FALLBACK_COORDS),
+        (pos) => loadFor({ latitude: pos.coords.latitude, longitude: pos.coords.longitude, cityName: null }),
+        () => loadFor({ ...FALLBACK_COORDS, cityName: 'Jakarta' }),
         { timeout: 5000 }
       )
     } else {
-      loadFor(FALLBACK_COORDS)
+      loadFor({ ...FALLBACK_COORDS, cityName: 'Jakarta' })
     }
   }
 
@@ -143,7 +151,7 @@ const DashboardPage = ({ user }) => {
   return (
     <div className="dashboard-page">
       {/* Welcome Header */}
-      <div className="dashboard-header" style={headerStyle}>
+      <div className={`dashboard-header ${user?.wallpaper ? 'has-wallpaper' : ''}`} style={headerStyle}>
         <div className="welcome-section">
           <div className="welcome-topline">
             <h1>{greetingForHour(now.getHours())}, Keluarga</h1>
@@ -151,7 +159,11 @@ const DashboardPage = ({ user }) => {
           </div>
           <p>
             {today}
-            {weather && <span className="welcome-weather"> · {weather.icon} {weather.temp}°C {weather.label}</span>}
+            {weather && (
+              <span className="welcome-weather">
+                {' '}· {weather.icon} {weather.temp}°C {weather.label}{weather.city ? `, ${weather.city}` : ''}
+              </span>
+            )}
           </p>
         </div>
       </div>
