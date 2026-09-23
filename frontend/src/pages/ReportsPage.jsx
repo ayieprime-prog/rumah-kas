@@ -3,6 +3,7 @@ import axios from 'axios'
 import { ChevronLeft, ChevronRight, BarChart3, Download } from 'lucide-react'
 import { PieChart, Pie, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts'
 import jsPDF from 'jspdf'
+import html2canvas from 'html2canvas'
 import BackButton from '../components/BackButton'
 import './ListPages.css'
 import './ReportsPage.css'
@@ -52,10 +53,16 @@ const ReportsPage = () => {
     percentage: cat.percentage
   }))
 
-  const exportPDF = () => {
+  const exportPDF = async () => {
     if (!report) return
     setExporting(true)
     try {
+      let chartImage = null
+      if (categories.length > 0 && chartContainerRef.current) {
+        const canvas = await html2canvas(chartContainerRef.current, { scale: 2, backgroundColor: '#ffffff' })
+        chartImage = canvas.toDataURL('image/png')
+      }
+
       const doc = new jsPDF('p', 'mm', 'a4')
       const margin = 14
       const contentWidth = 182
@@ -130,6 +137,26 @@ const ReportsPage = () => {
         doc.text(`${cat.percentage}%`, margin + contentWidth - 3, yPos, { align: 'right' })
         yPos += 5
       })
+
+      if (chartImage) {
+        const imgProps = doc.getImageProperties(chartImage)
+        const imgWidth = contentWidth * 0.75
+        const imgHeight = (imgProps.height * imgWidth) / imgProps.width
+
+        yPos += 10
+        if (yPos + imgHeight + 10 > 290) {
+          doc.addPage()
+          yPos = 15
+        }
+
+        doc.setFont(undefined, 'bold')
+        doc.setFontSize(10)
+        doc.text('Distribusi Pengeluaran', margin, yPos)
+        yPos += 6
+
+        const imgX = margin + (contentWidth - imgWidth) / 2
+        doc.addImage(chartImage, 'PNG', imgX, yPos, imgWidth, imgHeight)
+      }
 
       doc.save(`Laporan-${month}.pdf`)
     } catch (err) {
