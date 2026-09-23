@@ -53,6 +53,19 @@ const ReportsPage = () => {
     percentage: cat.percentage
   }))
 
+  const loadImageAsDataUrl = (src, size = 800) => new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      canvas.width = size
+      canvas.height = size
+      canvas.getContext('2d').drawImage(img, 0, 0, size, size)
+      resolve(canvas.toDataURL('image/png'))
+    }
+    img.onerror = reject
+    img.src = src
+  })
+
   const exportPDF = async () => {
     if (!report) return
     setExporting(true)
@@ -62,10 +75,22 @@ const ReportsPage = () => {
         const canvas = await html2canvas(chartContainerRef.current, { scale: 2, backgroundColor: '#ffffff' })
         chartImage = canvas.toDataURL('image/png')
       }
+      const watermarkImage = await loadImageAsDataUrl('/pundi-icon.svg').catch(() => null)
 
       const doc = new jsPDF('p', 'mm', 'a4')
       const margin = 14
       const contentWidth = 182
+      const pageWidth = 210
+      const pageHeight = 297
+
+      if (watermarkImage) {
+        const wmSize = 130
+        doc.saveGraphicsState()
+        doc.setGState(new doc.GState({ opacity: 0.06 }))
+        doc.addImage(watermarkImage, 'PNG', (pageWidth - wmSize) / 2, (pageHeight - wmSize) / 2, wmSize, wmSize)
+        doc.restoreGraphicsState()
+      }
+
       let yPos = 15
 
       doc.setFontSize(18)
@@ -82,18 +107,24 @@ const ReportsPage = () => {
       doc.setTextColor(0)
       yPos += 22
 
+      // Ringkasan (kiri) & Distribusi Pengeluaran (kanan), sejajar berdampingan
+      const colGap = 12
+      const leftColWidth = 85
+      const rightColX = margin + leftColWidth + colGap
+      const rightColWidth = contentWidth - leftColWidth - colGap
+      const colStartY = yPos
+
+      let sYPos = colStartY
       doc.setFillColor(218, 165, 32)
-      doc.rect(margin, yPos, contentWidth, 6, 'F')
+      doc.rect(margin, sYPos, leftColWidth, 6, 'F')
       doc.setTextColor(255)
       doc.setFont(undefined, 'bold')
       doc.setFontSize(9)
-      doc.text('Ringkasan', margin + 3, yPos + 4)
-      doc.text('Jumlah', margin + contentWidth - 3, yPos + 4, { align: 'right' })
-
-      yPos += 8
+      doc.text('Ringkasan', margin + 3, sYPos + 4)
+      sYPos += 8
       doc.setTextColor(0)
       doc.setFont(undefined, 'normal')
-      doc.setFontSize(9)
+      doc.setFontSize(8)
 
       const summaryRows = [
         { label: 'Total Pemasukan', value: `Rp ${report.income.total.toLocaleString('id-ID')}` },
@@ -102,12 +133,37 @@ const ReportsPage = () => {
       ]
 
       summaryRows.forEach((row) => {
-        doc.text(row.label, margin + 3, yPos)
-        doc.text(row.value, margin + contentWidth - 3, yPos, { align: 'right' })
-        yPos += 6
+        doc.text(row.label, margin + 3, sYPos)
+        sYPos += 4.5
+        doc.setFont(undefined, 'bold')
+        doc.text(row.value, margin + 3, sYPos)
+        doc.setFont(undefined, 'normal')
+        sYPos += 6.5
       })
 
-      yPos += 10
+      let chartEndY = colStartY
+      doc.setFont(undefined, 'bold')
+      doc.setFontSize(10)
+      doc.text('Distribusi Pengeluaran', rightColX, colStartY + 4)
+      chartEndY = colStartY + 8
+
+      if (chartImage) {
+        const imgProps = doc.getImageProperties(chartImage)
+        const imgWidth = rightColWidth
+        const imgHeight = (imgProps.height * imgWidth) / imgProps.width
+        doc.addImage(chartImage, 'PNG', rightColX, chartEndY, imgWidth, imgHeight)
+        chartEndY += imgHeight
+      } else {
+        doc.setFont(undefined, 'normal')
+        doc.setFontSize(8)
+        doc.setTextColor(150)
+        doc.text('Belum ada pengeluaran', rightColX, chartEndY + 6)
+        doc.setTextColor(0)
+        chartEndY += 10
+      }
+
+      yPos = Math.max(sYPos, chartEndY) + 10
+
       doc.setFont(undefined, 'bold')
       doc.setFontSize(10)
       doc.text('Pengeluaran per Kategori', margin, yPos)
@@ -130,6 +186,13 @@ const ReportsPage = () => {
       categories.forEach((cat) => {
         if (yPos > 275) {
           doc.addPage()
+          if (watermarkImage) {
+            const wmSize = 130
+            doc.saveGraphicsState()
+            doc.setGState(new doc.GState({ opacity: 0.06 }))
+            doc.addImage(watermarkImage, 'PNG', (pageWidth - wmSize) / 2, (pageHeight - wmSize) / 2, wmSize, wmSize)
+            doc.restoreGraphicsState()
+          }
           yPos = 15
         }
         doc.text(cat.name.substring(0, 45), margin + 3, yPos)
@@ -137,26 +200,6 @@ const ReportsPage = () => {
         doc.text(`${cat.percentage}%`, margin + contentWidth - 3, yPos, { align: 'right' })
         yPos += 5
       })
-
-      if (chartImage) {
-        const imgProps = doc.getImageProperties(chartImage)
-        const imgWidth = contentWidth * 0.75
-        const imgHeight = (imgProps.height * imgWidth) / imgProps.width
-
-        yPos += 10
-        if (yPos + imgHeight + 10 > 290) {
-          doc.addPage()
-          yPos = 15
-        }
-
-        doc.setFont(undefined, 'bold')
-        doc.setFontSize(10)
-        doc.text('Distribusi Pengeluaran', margin, yPos)
-        yPos += 6
-
-        const imgX = margin + (contentWidth - imgWidth) / 2
-        doc.addImage(chartImage, 'PNG', imgX, yPos, imgWidth, imgHeight)
-      }
 
       doc.save(`Laporan-${month}.pdf`)
     } catch (err) {
