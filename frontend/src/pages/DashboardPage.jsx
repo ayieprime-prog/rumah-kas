@@ -152,6 +152,10 @@ const DashboardPage = ({ user }) => {
     <div className="dashboard-page">
       {/* Welcome Header */}
       <div className={`dashboard-header ${user?.wallpaper ? 'has-wallpaper' : ''}`} style={headerStyle}>
+        <div className="dashboard-header-brand">
+          <img src="/pundi-icon.svg" alt="Pundi" className="dashboard-header-brand-icon" />
+          <span>Pundi</span>
+        </div>
         <div className="welcome-section">
           <div className="welcome-topline">
             <h1>{greetingForHour(now.getHours())}, Keluarga</h1>

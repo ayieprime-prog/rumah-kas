@@ -14,10 +14,32 @@
 
 /* Header Section */
 .dashboard-header {
+  position: relative;
   background: linear-gradient(135deg, #f5f7fa 0%, #f9fafb 100%);
   padding: 20px 16px;
   border-radius: 12px;
   margin-bottom: 24px;
+}
+
+.dashboard-header-brand {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px 5px 5px;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.dashboard-header-brand-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
 }
 
 /* When a personal wallpaper is set, give it room to actually read as a
