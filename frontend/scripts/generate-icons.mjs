@@ -24,7 +24,7 @@ for (const { size, name } of sizes) {
 }
 
 // Maskable version needs safe-zone padding (icon content within inner 80%)
-// so Android/iOS don't crop the house+heart when applying a mask shape.
+// so Android/iOS don't crop the pouch when applying a mask shape.
 const maskableSize = 512;
 const pad = Math.round(maskableSize * 0.1);
 const inner = maskableSize - pad * 2;
@@ -34,7 +34,7 @@ await sharp({
     width: maskableSize,
     height: maskableSize,
     channels: 4,
-    background: "#fbbf24",
+    background: "#16233b",
   },
 })
   .composite([{ input: innerPng, top: pad, left: pad }])

@@ -1,13 +1,16 @@
 <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background -->
-  <rect width="200" height="200" fill="#fbbf24" rx="40"/>
+  <rect width="200" height="200" fill="#16233b" rx="44"/>
 
-  <!-- P Letter -->
-  <text x="100" y="130" font-size="120" font-weight="900" font-family="Montserrat, sans-serif" text-anchor="middle" fill="#000">P</text>
-
-  <!-- House Icon Micro -->
-  <g transform="translate(140, 140)">
-    <path d="M 0 15 L 0 5 L 8 0 L 16 5 L 16 15 Z" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-    <line x1="6" y1="8" x2="6" y2="15" stroke="#000" stroke-width="1" stroke-linecap="round"/>
-  </g>
+  <!-- Pundi-pundi (drawstring coin pouch) -->
+  <rect x="88" y="48" width="24" height="18" rx="6" fill="#d4af37"/>
+  <path d="M 60 70
+           Q 60 62 70 62
+           L 130 62
+           Q 140 62 140 70
+           L 146 128
+           Q 148 158 100 158
+           Q 52 158 54 128
+           Z" fill="#d4af37"/>
+  <circle cx="100" cy="108" r="14" fill="#16233b"/>
+  <rect x="94" y="100" width="12" height="16" fill="#16233b"/>
 </svg>
