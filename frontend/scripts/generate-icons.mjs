@@ -34,7 +34,7 @@ await sharp({
     width: maskableSize,
     height: maskableSize,
     channels: 4,
-    background: "#1a1f2e",
+    background: "#fbbf24",
   },
 })
   .composite([{ input: innerPng, top: pad, left: pad }])

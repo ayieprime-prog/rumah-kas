@@ -1,23 +1,13 @@
 <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background circle -->
-  <circle cx="100" cy="100" r="95" fill="#1a1f2e" stroke="#d4a574" stroke-width="3"/>
+  <!-- Background -->
+  <rect width="200" height="200" fill="#fbbf24" rx="40"/>
 
-  <!-- Rumah (house) shape dengan hati di bawah -->
-  <!-- Atap rumah -->
-  <path d="M 50 120 L 100 60 L 150 120" fill="none" stroke="#d4a574" stroke-width="6" stroke-linejoin="round"/>
+  <!-- P Letter -->
+  <text x="100" y="130" font-size="120" font-weight="900" font-family="Montserrat, sans-serif" text-anchor="middle" fill="#000">P</text>
 
-  <!-- Dinding rumah -->
-  <rect x="60" y="120" width="80" height="50" fill="none" stroke="#d4a574" stroke-width="6" stroke-linejoin="round"/>
-
-  <!-- Pintu rumah -->
-  <rect x="85" y="130" width="30" height="40" fill="none" stroke="#d4a574" stroke-width="3"/>
-  <circle cx="112" cy="150" r="2" fill="#d4a574"/>
-
-  <!-- Hati (heart) di dalam rumah, overlap dengan pintu -->
-  <path d="M 100 145
-           C 95 140, 88 140, 85 145
-           C 82 148, 82 152, 100 165
-           C 118 152, 118 148, 115 145
-           C 112 140, 105 140, 100 145 Z"
-        fill="#d4a574" opacity="0.9"/>
+  <!-- House Icon Micro -->
+  <g transform="translate(140, 140)">
+    <path d="M 0 15 L 0 5 L 8 0 L 16 5 L 16 15 Z" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <line x1="6" y1="8" x2="6" y2="15" stroke="#000" stroke-width="1" stroke-linecap="round"/>
+  </g>
 </svg>
