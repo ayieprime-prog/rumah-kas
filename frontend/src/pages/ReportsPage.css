@@ -4,6 +4,34 @@
   gap: 16px;
 }
 
+.period-tabs {
+  display: flex;
+  gap: 6px;
+  background: #f1f2f4;
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 12px;
+}
+
+.period-tab-btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 8px 4px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.period-tab-btn.active {
+  background: white;
+  color: #1f2937;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
 .reports-summary-chart {
   display: flex;
   gap: 16px;

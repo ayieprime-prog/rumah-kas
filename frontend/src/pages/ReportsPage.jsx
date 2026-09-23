@@ -10,33 +10,84 @@ import './ReportsPage.css'
 
 const SWATCHES = ['sw-1', 'sw-2', 'sw-3', 'sw-4', 'sw-5', 'sw-6']
 
-const monthLabel = (month) => {
-  const [y, m] = month.split('-')
-  return new Date(Number(y), Number(m) - 1, 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })
+const PERIODS = [
+  { key: 'daily', label: 'Harian' },
+  { key: 'weekly', label: 'Mingguan' },
+  { key: 'monthly', label: 'Bulanan' },
+  { key: 'yearly', label: 'Tahunan' }
+]
+
+const HERO_LABEL = {
+  daily: 'Saldo Hari Ini',
+  weekly: 'Saldo Minggu Ini',
+  monthly: 'Saldo Bulan Ini',
+  yearly: 'Saldo Tahun Ini'
 }
 
-const shiftMonth = (month, delta) => {
-  const [y, m] = month.split('-').map(Number)
-  const d = new Date(y, m - 1 + delta, 1)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+const toISODate = (d) => d.toISOString().slice(0, 10)
+
+const getWeekRange = (dateStr) => {
+  const d = new Date(`${dateStr}T00:00:00`)
+  const day = d.getDay()
+  const diffToMonday = day === 0 ? -6 : 1 - day
+  const monday = new Date(d)
+  monday.setDate(d.getDate() + diffToMonday)
+  const sunday = new Date(monday)
+  sunday.setDate(monday.getDate() + 6)
+  return { monday, sunday }
+}
+
+const shiftAnchor = (anchor, period, delta) => {
+  const d = new Date(`${anchor}T00:00:00`)
+  if (period === 'daily') d.setDate(d.getDate() + delta)
+  else if (period === 'weekly') d.setDate(d.getDate() + delta * 7)
+  else if (period === 'monthly') d.setMonth(d.getMonth() + delta, 1)
+  else if (period === 'yearly') d.setFullYear(d.getFullYear() + delta)
+  return toISODate(d)
+}
+
+const getApiPath = (period, anchor) => {
+  if (period === 'daily') return `/api/reports/daily/${anchor}`
+  if (period === 'weekly') return `/api/reports/weekly/${anchor}`
+  if (period === 'monthly') return `/api/reports/monthly/${anchor.slice(0, 7)}`
+  return `/api/reports/yearly/${anchor.slice(0, 4)}`
+}
+
+const getPeriodLabel = (period, anchor) => {
+  const d = new Date(`${anchor}T00:00:00`)
+  if (period === 'daily') {
+    return d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+  }
+  if (period === 'weekly') {
+    const { monday, sunday } = getWeekRange(anchor)
+    const sameMonth = monday.getMonth() === sunday.getMonth()
+    const startLabel = monday.toLocaleDateString('id-ID', { day: 'numeric', month: sameMonth ? undefined : 'short' })
+    const endLabel = sunday.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+    return `${startLabel} - ${endLabel}`
+  }
+  if (period === 'monthly') {
+    return d.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })
+  }
+  return anchor.slice(0, 4)
 }
 
 const COLORS = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#FF6B9D', '#95E1D3', '#A8E6CF', '#FFB6B9', '#FEC8D8', '#C7CEEA', '#B0E0E6']
 
 const ReportsPage = () => {
-  const [month, setMonth] = useState(new Date().toISOString().slice(0, 7))
+  const [period, setPeriod] = useState('monthly')
+  const [anchor, setAnchor] = useState(toISODate(new Date()))
   const [report, setReport] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [exporting, setExporting] = useState(false)
   const chartContainerRef = useRef(null)
 
-  useEffect(() => { loadData() }, [month])
+  useEffect(() => { loadData() }, [period, anchor])
 
   const loadData = async () => {
     setLoading(true)
     try {
-      const res = await axios.get(`/api/reports/monthly/${month}`)
+      const res = await axios.get(getApiPath(period, anchor))
       setReport(res.data)
     } catch (err) {
       setError('Gagal memuat laporan')
@@ -45,7 +96,12 @@ const ReportsPage = () => {
     }
   }
 
+  const changePeriod = (newPeriod) => {
+    setPeriod(newPeriod)
+  }
+
   const categories = report ? Object.values(report.expense.byCategory) : []
+  const periodLabel = getPeriodLabel(period, anchor)
 
   const pieChartData = categories.map(cat => ({
     name: cat.name,
@@ -83,13 +139,16 @@ const ReportsPage = () => {
       const pageWidth = 210
       const pageHeight = 297
 
-      if (watermarkImage) {
+      const drawWatermark = () => {
+        if (!watermarkImage) return
         const wmSize = 130
         doc.saveGraphicsState()
         doc.setGState(new doc.GState({ opacity: 0.06 }))
         doc.addImage(watermarkImage, 'PNG', (pageWidth - wmSize) / 2, (pageHeight - wmSize) / 2, wmSize, wmSize)
         doc.restoreGraphicsState()
       }
+
+      drawWatermark()
 
       let yPos = 15
 
@@ -102,7 +161,7 @@ const ReportsPage = () => {
       doc.setFont(undefined, 'normal')
       doc.setTextColor(100)
       doc.text('Keluarga Budi - Test', margin, yPos)
-      doc.text(monthLabel(month), margin, yPos + 5)
+      doc.text(`${PERIODS.find(p => p.key === period).label} - ${periodLabel}`, margin, yPos + 5)
       doc.text(`Dibuat: ${new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}`, margin, yPos + 10)
       doc.setTextColor(0)
       yPos += 22
@@ -186,13 +245,7 @@ const ReportsPage = () => {
       categories.forEach((cat) => {
         if (yPos > 275) {
           doc.addPage()
-          if (watermarkImage) {
-            const wmSize = 130
-            doc.saveGraphicsState()
-            doc.setGState(new doc.GState({ opacity: 0.06 }))
-            doc.addImage(watermarkImage, 'PNG', (pageWidth - wmSize) / 2, (pageHeight - wmSize) / 2, wmSize, wmSize)
-            doc.restoreGraphicsState()
-          }
+          drawWatermark()
           yPos = 15
         }
         doc.text(cat.name.substring(0, 45), margin + 3, yPos)
@@ -201,7 +254,7 @@ const ReportsPage = () => {
         yPos += 5
       })
 
-      doc.save(`Laporan-${month}.pdf`)
+      doc.save(`Laporan-${period}-${anchor}.pdf`)
     } catch (err) {
       setError('Gagal mengekspor PDF')
     } finally {
@@ -217,10 +270,22 @@ const ReportsPage = () => {
         <h1>Laporan</h1>
       </div>
 
+      <div className="period-tabs">
+        {PERIODS.map((p) => (
+          <button
+            key={p.key}
+            className={`period-tab-btn ${period === p.key ? 'active' : ''}`}
+            onClick={() => changePeriod(p.key)}
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
+
       <div className="month-nav">
-        <button onClick={() => setMonth(shiftMonth(month, -1))}><ChevronLeft size={18} /></button>
-        <span className="month-label">{monthLabel(month)}</span>
-        <button onClick={() => setMonth(shiftMonth(month, 1))}><ChevronRight size={18} /></button>
+        <button onClick={() => setAnchor(shiftAnchor(anchor, period, -1))}><ChevronLeft size={18} /></button>
+        <span className="month-label">{periodLabel}</span>
+        <button onClick={() => setAnchor(shiftAnchor(anchor, period, 1))}><ChevronRight size={18} /></button>
       </div>
 
       {error && <div className="alert alert-error">{error}</div>}
@@ -229,7 +294,7 @@ const ReportsPage = () => {
       {!loading && report && (
         <>
           <div className="card-hero" style={{ marginBottom: 16 }}>
-            <div className="hero-label">Saldo Bulan Ini</div>
+            <div className="hero-label">{HERO_LABEL[period]}</div>
             <div className="hero-value">Rp {report.balance.toLocaleString('id-ID')}</div>
             <div className={`pill-badge ${report.balance >= 0 ? 'positive' : 'negative'}`}>
               Tingkat Menabung {report.savingsRate}%
@@ -311,7 +376,7 @@ const ReportsPage = () => {
             ) : (
               <div className="empty-state">
                 <BarChart3 size={28} className="empty-state-icon" />
-                <p>Belum ada pengeluaran di bulan ini</p>
+                <p>Belum ada pengeluaran pada periode ini</p>
               </div>
             )}
           </div>
