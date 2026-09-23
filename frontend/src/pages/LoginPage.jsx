@@ -34,7 +34,8 @@ const LoginPage = ({ onLogin }) => {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h1>🏠 Pundi</h1>
+          <img src="/pundi-icon.svg" alt="Pundi" className="auth-logo" />
+          <h1>Pundi</h1>
           <p>Manajemen Keuangan Keluarga</p>
         </div>
 

@@ -88,7 +88,7 @@ function App() {
   }
 
   if (loading) {
-    return <div className="loading-screen">🏠 Pundi sedang dimulai...</div>
+    return <div className="loading-screen">Pundi sedang dimulai...</div>
   }
 
   return (
