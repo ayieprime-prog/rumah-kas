@@ -122,8 +122,12 @@
 
 .balance-card {
   background: white;
-  border-radius: 16px;
-  padding: 16px;
+  border-radius: 18px;
+  padding: 24px 20px;
+  min-height: 130px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
@@ -162,7 +166,7 @@
 }
 
 .card-value {
-  font-size: 22px;
+  font-size: 30px;
   font-weight: 800;
   color: #1f2937;
   word-break: break-word;
@@ -177,8 +181,12 @@
 }
 
 .summary-card {
-  padding: 16px;
-  border-radius: 12px;
+  padding: 22px 20px;
+  min-height: 110px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-radius: 16px;
   background: white;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
@@ -201,7 +209,7 @@
 }
 
 .summary-value {
-  font-size: 18px;
+  font-size: 24px;
   font-weight: 800;
   color: #1f2937;
 }
@@ -452,15 +460,17 @@
   }
 
   .card-value {
-    font-size: 18px;
+    font-size: 24px;
   }
 
   .summary-card {
-    padding: 14px;
+    padding: 18px 16px;
+    min-height: 96px;
   }
 
   .balance-card {
-    padding: 14px;
+    padding: 20px 16px;
+    min-height: 112px;
   }
 
   .summary-label {
@@ -468,7 +478,7 @@
   }
 
   .summary-value {
-    font-size: 16px;
+    font-size: 20px;
   }
 
   .section-header h2 {

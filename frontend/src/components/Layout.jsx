@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Home, Wallet, Calendar, Heart, Wrench, Link2, Settings } from 'lucide-react'
+import { Home, Wallet, Calendar, Heart, MoreHorizontal } from 'lucide-react'
 import './Layout.css'
 
 const Layout = ({ user, children }) => {
@@ -11,17 +11,17 @@ const Layout = ({ user, children }) => {
     { path: '/keuangan', label: 'Keuangan', icon: Wallet },
     { path: '/kalender', label: 'Kalender', icon: Calendar },
     { path: '/berdua', label: 'Berdua', icon: Heart },
-    { path: '/maintenance', label: 'Maintenance', icon: Wrench },
-    { path: '/links', label: 'Link Penting', icon: Link2 },
-    { path: '/settings', label: 'Pengaturan', icon: Settings },
+    { path: '/lainnya', label: 'Lainnya', icon: MoreHorizontal },
   ]
 
   const financeSubPaths = ['/expenses', '/income', '/budget', '/goals', '/debt', '/reports']
   const berduaSubPaths = ['/conversation-cards', '/journal']
+  const lainnyaSubPaths = ['/maintenance', '/links', '/settings']
 
   const isActive = (item) => {
     if (item.path === '/keuangan') return location.pathname === '/keuangan' || financeSubPaths.includes(location.pathname)
     if (item.path === '/berdua') return location.pathname === '/berdua' || berduaSubPaths.includes(location.pathname)
+    if (item.path === '/lainnya') return location.pathname === '/lainnya' || lainnyaSubPaths.includes(location.pathname)
     return location.pathname === item.path
   }
 
@@ -29,7 +29,8 @@ const Layout = ({ user, children }) => {
     <div className="layout">
       <header className="topbar">
         <Link to="/" className="topbar-logo">
-          ❤️ Pundi
+          <img src="/pundi-icon.svg" alt="Pundi" className="topbar-logo-icon" />
+          Pundi
         </Link>
         <Link to="/profile" className="topbar-user">
           <span>{user?.name}</span>

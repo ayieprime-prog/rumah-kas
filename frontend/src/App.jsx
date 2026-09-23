@@ -16,6 +16,7 @@ import ReportsPage from './pages/ReportsPage'
 import SettingsPage from './pages/SettingsPage'
 import CalendarPage from './pages/CalendarPage'
 import BerduaHubPage from './pages/BerduaHubPage'
+import LainnyaHubPage from './pages/LainnyaHubPage'
 import ConversationCardsPage from './pages/ConversationCardsPage'
 import JournalPage from './pages/JournalPage'
 import MaintenancePage from './pages/MaintenancePage'
@@ -115,6 +116,7 @@ function App() {
                       <Route path="/debt" element={<DebtPage />} />
                       <Route path="/reports" element={<ReportsPage />} />
                       <Route path="/kalender" element={<CalendarPage />} />
+                      <Route path="/lainnya" element={<LainnyaHubPage />} />
                       <Route path="/berdua" element={<BerduaHubPage />} />
                       <Route path="/conversation-cards" element={<ConversationCardsPage />} />
                       <Route path="/journal" element={<JournalPage />} />
