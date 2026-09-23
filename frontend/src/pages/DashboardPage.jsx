@@ -130,7 +130,7 @@ const DashboardPage = ({ user }) => {
   const today = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
   const timeLabel = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
   const headerStyle = user?.wallpaper ? {
-    backgroundImage: `linear-gradient(135deg, rgba(255,255,255,0.85), rgba(255,255,255,0.75)), url(${user.wallpaper})`,
+    backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.15) 55%, rgba(0,0,0,0.6) 100%), url(${user.wallpaper})`,
     backgroundSize: 'cover',
     backgroundPosition: 'center'
   } : undefined

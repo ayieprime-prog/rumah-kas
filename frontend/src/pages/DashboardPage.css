@@ -61,6 +61,19 @@
   white-space: nowrap;
 }
 
+/* On a photo wallpaper, dark text would disappear -- switch to white
+   with a soft shadow so it stays legible over any part of the photo. */
+.dashboard-header.has-wallpaper .welcome-section h1,
+.dashboard-header.has-wallpaper .welcome-clock {
+  color: #ffffff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.dashboard-header.has-wallpaper .welcome-section p {
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
 /* Wallet Tabs */
 .wallet-tabs {
   display: flex;
