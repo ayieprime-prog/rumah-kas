@@ -39,6 +39,15 @@ const greetingForHour = (hour) => {
   return 'Selamat malam'
 }
 
+// Mock transaction history data
+const MOCK_TRANSACTIONS = [
+  { id: 1, date: '24 Sep 2026', category: 'Makanan & Minuman', amount: 150000, type: 'expense', icon: '🍔' },
+  { id: 2, date: '24 Sep 2026', category: 'Gaji', amount: 5000000, type: 'income', icon: '💰' },
+  { id: 3, date: '23 Sep 2026', category: 'Transportasi', amount: 75000, type: 'expense', icon: '🚗' },
+  { id: 4, date: '23 Sep 2026', category: 'Utilitas', amount: 250000, type: 'expense', icon: '💡' },
+  { id: 5, date: '22 Sep 2026', category: 'Kesehatan', amount: 500000, type: 'expense', icon: '⚕️' },
+]
+
 const DashboardPage = ({ user }) => {
   const navigate = useNavigate()
   const [dashboard, setDashboard] = useState(null)
@@ -279,66 +288,26 @@ const DashboardPage = ({ user }) => {
         </div>
       </div>
 
-      {/* Portfolio Value */}
-      {portfolio && portfolio.summary && (
-        <div style={{ marginBottom: 24, marginTop: 16 }}>
-          <div className="card-hero">
-            <div className="hero-label">Total Nilai Aset</div>
-            <div className="hero-value">Rp {portfolio.summary.totalValue.toLocaleString('id-ID')}</div>
-          </div>
-        </div>
-      )}
-
-      {/* Pengeluaran per Kategori */}
-      <section className="categories-section">
+      {/* Transaction History */}
+      <div className="transaction-history">
         <div className="section-header">
-          <h2>Pengeluaran per Kategori</h2>
-          <button className="view-all" onClick={() => navigate('/reports')}>Laporan →</button>
+          <h2>Riwayat Transaksi</h2>
+          <button className="view-all" onClick={() => navigate('/expenses')}>Lihat semua →</button>
         </div>
-        {filteredCategoryDetails.length > 0 ? (
-          <div className="category-cards">
-            {filteredCategoryDetails.map((cat, idx) => (
-              <div key={cat.name} className="category-card">
-                <div className="category-header">
-                  <div className="category-name">{cat.name}</div>
-                  <div className="category-percent">{cat.percentage}%</div>
-                </div>
-                <div className="category-amount">Rp {cat.spent.toLocaleString('id-ID')}</div>
-                <div className="category-limit">Anggaran: Rp {cat.limit.toLocaleString('id-ID')}</div>
-                <div className="progress-bar">
-                  <div className="progress-fill" style={{ width: `${Math.min(100, cat.percentage)}%`, background: cat.color }}></div>
-                </div>
+        <div className="transaction-list">
+          {MOCK_TRANSACTIONS.map(tx => (
+            <div key={tx.id} className="transaction-item">
+              <div className="tx-icon">{tx.icon}</div>
+              <div className="tx-content">
+                <div className="tx-category">{tx.category}</div>
+                <div className="tx-date">{tx.date}</div>
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="empty-state">Belum ada pengeluaran bulan ini</div>
-        )}
-      </section>
-
-      {/* Quick Action Pills */}
-      <div className="action-pills">
-        {debtSummary.debtCount > 0 && (
-          <button className="action-pill debt-pill" onClick={() => navigate('/keuangan')}>
-            <TrendingDown size={16} />
-            <span>Utang: {debtSummary.debtCount} • Rp {debtSummary.totalDebt.toLocaleString('id-ID')}</span>
-            <ChevronRight size={16} />
-          </button>
-        )}
-        {goals.length > 0 && (
-          <button className="action-pill goal-pill" onClick={() => navigate('/keuangan')}>
-            <TrendingUp size={16} />
-            <span>Goal: {goals.length}</span>
-            <ChevronRight size={16} />
-          </button>
-        )}
-        {portfolio && portfolio.assets && portfolio.assets.length > 0 && (
-          <button className="action-pill" style={{ background: '#6C63FF' }} onClick={() => navigate('/assets')}>
-            <BarChart3 size={16} />
-            <span>Aset: {portfolio.assets.length}</span>
-            <ChevronRight size={16} />
-          </button>
-        )}
+              <div className={`tx-amount ${tx.type}`}>
+                {tx.type === 'income' ? '+' : '-'} Rp {tx.amount.toLocaleString('id-ID')}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Quick Actions Menu */}
