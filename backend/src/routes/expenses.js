@@ -1,6 +1,7 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const { logAudit } = require('../utils/audit');
+const { checkLockExceeded } = require('../utils/incomeLock');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -74,6 +75,7 @@ router.post('/', async (req, res) => {
           householdId
         }
       });
+      await checkLockExceeded(tx, householdId, categoryId, monthOf(date));
       return created;
     });
 
@@ -175,6 +177,11 @@ router.put('/:id', async (req, res) => {
         userId, householdId, action: 'UPDATE_EXPENSE', entity: 'EXPENSE', entityId: id,
         summary: `${updated.description} - Rp${newAmount.toLocaleString('id-ID')}`
       });
+
+      await checkLockExceeded(tx, householdId, newCategoryId, monthOf(newDate));
+      if (newCategoryId !== existing.categoryId || monthOf(newDate) !== monthOf(existing.date)) {
+        await checkLockExceeded(tx, householdId, existing.categoryId, monthOf(existing.date));
+      }
 
       return updated;
     });

@@ -80,6 +80,7 @@ model ExpenseCategory {
 
   expenses  Expense[]
   budgets   Budget[]
+  lockedIncomes Income[] @relation("IncomeLock")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -127,6 +128,13 @@ model Income {
   walletId    String?
   wallet      Wallet? @relation(fields: [walletId], references: [id])
 
+  // Kalau diisi, pendapatan ini "dikunci" untuk kategori pengeluaran
+  // tertentu (mis. gaji dikunci untuk "Rumah Tangga") -- dipakai untuk
+  // menghitung sisa alokasi terkunci per kategori per bulan, terpisah
+  // dari Uang Bebas. Lihat utils/incomeLock.js.
+  lockedCategoryId String?
+  lockedCategory   ExpenseCategory? @relation("IncomeLock", fields: [lockedCategoryId], references: [id])
+
   isRecurring Boolean @default(false)
   recurringId String? @unique
 
@@ -136,6 +144,7 @@ model Income {
   @@index([householdId])
   @@index([walletId])
   @@index([date])
+  @@index([lockedCategoryId])
 }
 
 model RecurringExpense {

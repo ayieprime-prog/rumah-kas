@@ -126,7 +126,7 @@ const DashboardPage = ({ user }) => {
   if (error) return <div className="alert alert-error">{error}</div>
   if (!dashboard) return <div className="alert alert-error">Data tidak tersedia</div>
 
-  const { overview, expensesByCategory, wallets = [], walletSummary = {}, budgets, goals, debtSummary } = dashboard
+  const { overview, expensesByCategory, wallets = [], walletSummary = {}, budgets, goals, debtSummary, incomeLocks } = dashboard
   const today = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
   const timeLabel = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
   const headerStyle = user?.wallpaper ? {
@@ -135,9 +135,10 @@ const DashboardPage = ({ user }) => {
     backgroundPosition: 'center'
   } : undefined
 
-  // Calculate "uang bebas" (free money) = Saldo Aktif - Tabungan Goals
+  // Calculate "uang bebas" (free money) = Saldo Aktif - Tabungan Goals - Pendapatan Terkunci
   const totalGoals = goals.reduce((sum, g) => sum + g.currentAmount, 0)
-  const uangBebas = overview.balance - totalGoals
+  const totalLocked = incomeLocks?.totalRemaining || 0
+  const uangBebas = overview.balance - totalGoals - totalLocked
 
   // Get category spending details
   const categoryDetails = budgets.map(budget => ({

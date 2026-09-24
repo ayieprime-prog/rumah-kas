@@ -1,6 +1,7 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const { checkDebtPaymentDue } = require('../utils/notificationTriggers');
+const { getAllLockedAllocations } = require('../utils/incomeLock');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -19,7 +20,7 @@ router.get('/', async (req, res) => {
       console.error('checkDebtPaymentDue error:', err);
     });
 
-    const [expenses, incomes, budgets, goals, debts, wallets] = await Promise.all([
+    const [expenses, incomes, budgets, goals, debts, wallets, incomeLocks] = await Promise.all([
       prisma.expense.findMany({
         where: {
           householdId,
@@ -52,7 +53,8 @@ router.get('/', async (req, res) => {
       prisma.wallet.findMany({
         where: { householdId, isActive: true },
         orderBy: { createdAt: 'asc' }
-      })
+      }),
+      getAllLockedAllocations(prisma, householdId, currentMonth)
     ]);
 
     const totalIncome = incomes.reduce((sum, i) => sum + i.amount, 0);
@@ -102,7 +104,8 @@ router.get('/', async (req, res) => {
       walletSummary: {
         totalBalance,
         walletCount: wallets.length
-      }
+      },
+      incomeLocks
     });
   } catch (error) {
     console.error('Dashboard error:', error);

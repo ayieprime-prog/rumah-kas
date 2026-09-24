@@ -1,6 +1,7 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const { logAudit } = require('../utils/audit');
+const { getAllLockedAllocations } = require('../utils/incomeLock');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -10,8 +11,22 @@ async function adjustWalletBalance(tx, walletId, delta) {
   await tx.wallet.update({ where: { id: walletId }, data: { balance: { increment: delta } } });
 }
 
+// Ringkasan pendapatan yang "dikunci" per kategori untuk sebuah bulan
+router.get('/locks', async (req, res) => {
+  const { householdId } = req;
+  const { month } = req.query;
+  const targetMonth = month || new Date().toISOString().slice(0, 7);
+
+  try {
+    const result = await getAllLockedAllocations(prisma, householdId, targetMonth);
+    res.json({ month: targetMonth, ...result });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch income locks' });
+  }
+});
+
 router.post('/', async (req, res) => {
-  const { source, amount, date, walletId } = req.body;
+  const { source, amount, date, walletId, lockedCategoryId } = req.body;
   const { householdId, userId } = req;
 
   try {
@@ -22,11 +37,25 @@ router.post('/', async (req, res) => {
       }
     }
 
+    if (lockedCategoryId) {
+      const category = await prisma.expenseCategory.findFirst({ where: { id: lockedCategoryId, householdId } });
+      if (!category) {
+        return res.status(404).json({ error: 'Category not found' });
+      }
+    }
+
     const parsedAmount = parseFloat(amount);
     const income = await prisma.$transaction(async (tx) => {
       const created = await tx.income.create({
-        data: { source, amount: parsedAmount, date: new Date(date), householdId, walletId: walletId || null },
-        include: { wallet: true }
+        data: {
+          source,
+          amount: parsedAmount,
+          date: new Date(date),
+          householdId,
+          walletId: walletId || null,
+          lockedCategoryId: lockedCategoryId || null
+        },
+        include: { wallet: true, lockedCategory: true }
       });
       await adjustWalletBalance(tx, walletId, parsedAmount);
       await logAudit(tx, {
@@ -64,7 +93,7 @@ router.get('/', async (req, res) => {
     const [incomes, total] = await Promise.all([
       prisma.income.findMany({
         where,
-        include: { wallet: true },
+        include: { wallet: true, lockedCategory: true },
         orderBy: { date: 'desc' },
         take: parseInt(limit),
         skip: parseInt(offset)
@@ -80,7 +109,7 @@ router.get('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
-  const { source, amount, date, walletId } = req.body;
+  const { source, amount, date, walletId, lockedCategoryId } = req.body;
   const { householdId, userId } = req;
 
   try {
@@ -96,6 +125,13 @@ router.put('/:id', async (req, res) => {
       }
     }
 
+    if (lockedCategoryId) {
+      const category = await prisma.expenseCategory.findFirst({ where: { id: lockedCategoryId, householdId } });
+      if (!category) {
+        return res.status(404).json({ error: 'Category not found' });
+      }
+    }
+
     const newAmount = amount ? parseFloat(amount) : existing.amount;
     const newWalletId = walletId !== undefined ? (walletId || null) : existing.walletId;
 
@@ -106,9 +142,10 @@ router.put('/:id', async (req, res) => {
           ...(source && { source }),
           ...(amount && { amount: newAmount }),
           ...(date && { date: new Date(date) }),
-          ...(walletId !== undefined && { walletId: newWalletId })
+          ...(walletId !== undefined && { walletId: newWalletId }),
+          ...(lockedCategoryId !== undefined && { lockedCategoryId: lockedCategoryId || null })
         },
-        include: { wallet: true }
+        include: { wallet: true, lockedCategory: true }
       });
       // Reverse the old wallet impact, apply the new one (handles wallet or amount changes)
       await adjustWalletBalance(tx, existing.walletId, -existing.amount);
