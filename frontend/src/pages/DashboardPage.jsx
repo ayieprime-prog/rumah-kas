@@ -48,6 +48,24 @@ const MOCK_TRANSACTIONS = [
   { id: 5, date: '22 Sep 2026', category: 'Kesehatan', amount: 500000, type: 'expense', icon: '⚕️' },
 ]
 
+// 8 menu shortcuts with colored backgrounds (Seruma style)
+const MENU_SHORTCUTS = [
+  { label: 'Keuangan', icon: Wallet, path: '/keuangan', bg: '#c9a961', color: '#ffffff' },
+  { label: 'Kalender', icon: Calendar, path: '/kalender', bg: '#4a7c8c', color: '#ffffff' },
+  { label: 'Maintenance', icon: Wrench, path: '/maintenance', bg: '#b8956a', color: '#ffffff' },
+  { label: 'Conversation', icon: BookOpen, path: '/berdua', bg: '#a85a7a', color: '#ffffff' },
+  { label: 'Jurnal Keluarga', icon: BookOpen, path: '/journal', bg: '#a85a7a', color: '#ffffff' },
+  { label: 'Laporan', icon: BarChart3, path: '/reports', bg: '#5b6fa0', color: '#ffffff' },
+  { label: 'Bantuan', icon: Link2, path: '/help', bg: '#4a7c8c', color: '#ffffff' },
+  { label: 'Lainnya', icon: MoreHorizontal, path: '/settings', bg: '#5a9a6a', color: '#ffffff' },
+]
+
+// Mock agenda items
+const MOCK_AGENDA = [
+  { id: 1, title: 'Ganti oli mobil', completed: true, time: 'Jadwal Maintenance' },
+  { id: 2, title: 'Rapat keluarga', completed: false, time: '14:00 - 15:00' },
+]
+
 const DashboardPage = ({ user }) => {
   const navigate = useNavigate()
   const [dashboard, setDashboard] = useState(null)
@@ -227,6 +245,45 @@ const DashboardPage = ({ user }) => {
         </div>
       </div>
 
+      {/* Menu Shortcuts - 8 items with colored backgrounds */}
+      <div className="menu-shortcuts">
+        {MENU_SHORTCUTS.map(menu => {
+          const IconComp = menu.icon
+          return (
+            <button
+              key={menu.path}
+              className="shortcut-item"
+              style={{ backgroundColor: menu.bg }}
+              onClick={() => navigate(menu.path)}
+            >
+              <IconComp size={28} color={menu.color} />
+              <span>{menu.label}</span>
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Agenda Hari Ini */}
+      <div className="agenda-section">
+        <div className="agenda-header">
+          <h2>Agenda Hari ini</h2>
+          <span className="agenda-count">{MOCK_AGENDA.filter(a => a.completed).length}/{MOCK_AGENDA.length} selesai</span>
+        </div>
+        <div className="agenda-items">
+          {MOCK_AGENDA.map(item => (
+            <div key={item.id} className={`agenda-item ${item.completed ? 'completed' : ''}`}>
+              <div className="agenda-checkbox">
+                <input type="checkbox" defaultChecked={item.completed} />
+              </div>
+              <div className="agenda-content">
+                <span className="agenda-title">{item.title}</span>
+                <span className="agenda-time">{item.time}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Wallet Tabs */}
       {wallets.length > 0 && (
         <div className="wallet-tabs">
@@ -310,28 +367,6 @@ const DashboardPage = ({ user }) => {
         </div>
       </div>
 
-      {/* Quick Actions Menu */}
-      <div className="menu-section">
-        <div className="menu-header">Menu Cepat</div>
-        <div className="menu-grid">
-          <button className="menu-item" onClick={() => navigate('/keuangan')} title="Keuangan">
-            <Wallet size={24} style={{ color: '#d4a574' }} />
-            <span>Keuangan</span>
-          </button>
-          <button className="menu-item" onClick={() => navigate('/kalender')} title="Kalender">
-            <Calendar size={24} style={{ color: '#2b7fa3' }} />
-            <span>Kalender</span>
-          </button>
-          <button className="menu-item" onClick={() => navigate('/reports')} title="Laporan">
-            <BarChart3 size={24} style={{ color: '#5a6fcf' }} />
-            <span>Laporan</span>
-          </button>
-          <button className="menu-item" onClick={() => navigate('/berdua')} title="Berdua">
-            <Heart size={24} style={{ color: '#c55a82' }} />
-            <span>Berdua</span>
-          </button>
-        </div>
-      </div>
     </div>
   )
 }
