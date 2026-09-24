@@ -73,6 +73,21 @@ router.put('/:id', async (req, res) => {
         ? `${updated.name} - terkumpul Rp${updated.currentAmount.toLocaleString('id-ID')} / Rp${updated.targetAmount.toLocaleString('id-ID')}`
         : `${updated.name} - target Rp${updated.targetAmount.toLocaleString('id-ID')}`;
       await logAudit(tx, { userId, householdId, action, entity: 'GOAL', entityId: id, summary });
+
+      if (
+        currentAmount !== undefined &&
+        existing.currentAmount < existing.targetAmount &&
+        updated.currentAmount >= updated.targetAmount
+      ) {
+        await tx.notification.create({
+          data: {
+            type: 'GOAL_REACHED',
+            message: `Target tabungan "${updated.name}" sudah tercapai! 🎉`,
+            householdId
+          }
+        });
+      }
+
       return updated;
     });
     res.json(goal);

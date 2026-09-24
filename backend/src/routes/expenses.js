@@ -26,7 +26,7 @@ async function adjustBudgetSpent(tx, householdId, month, categoryId, delta) {
     await tx.notification.create({
       data: {
         type: 'BUDGET_EXCEEDED',
-        message: `Budget "${category?.name}" exceeded this month`,
+        message: `Anggaran "${category?.name}" sudah melebihi batas bulan ini`,
         householdId
       }
     });

@@ -1,5 +1,6 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
+const { checkDebtPaymentDue } = require('../utils/notificationTriggers');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -11,6 +12,13 @@ router.get('/', async (req, res) => {
   const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
   try {
+    // Time-based check (no user action triggers it) -- piggyback on dashboard
+    // loads instead of adding a cron dependency. Best-effort: never let a
+    // notification hiccup break the dashboard itself.
+    checkDebtPaymentDue(prisma, householdId).catch((err) => {
+      console.error('checkDebtPaymentDue error:', err);
+    });
+
     const [expenses, incomes, budgets, goals, debts, wallets] = await Promise.all([
       prisma.expense.findMany({
         where: {
