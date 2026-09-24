@@ -1,11 +1,12 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { Wrench, Link2, Settings, ChevronRight, MoreHorizontal } from 'lucide-react'
+import { Wrench, Link2, Settings, ChevronRight, MoreHorizontal, HelpCircle } from 'lucide-react'
 import './HubPage.css'
 
 const items = [
   { path: '/maintenance', label: 'Maintenance', desc: 'Jadwal perawatan rumah & kendaraan', icon: Wrench },
   { path: '/links', label: 'Link Penting', desc: 'Simpan tautan penting keluarga', icon: Link2 },
+  { path: '/help-faq', label: 'Bantuan & FAQ', desc: 'Panduan, setting awal, & pertanyaan umum', icon: HelpCircle },
   { path: '/settings', label: 'Pengaturan', desc: 'Profil, keamanan, & preferensi aplikasi', icon: Settings },
 ]
 
