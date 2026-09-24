@@ -48,7 +48,14 @@ const DashboardPage = ({ user }) => {
   const [showBalance, setShowBalance] = useState(true)
   const [selectedWalletId, setSelectedWalletId] = useState(null)
   const [now, setNow] = useState(new Date())
-  const [weather, setWeather] = useState(null)
+  const [weather, setWeather] = useState({
+    items: [
+      { label: 'Pagi', temp: 25, icon: '🌤️' },
+      { label: 'Siang', temp: 30, icon: '☀️' },
+      { label: 'Sore', temp: 28, icon: '⛅' },
+      { label: 'Malam', temp: 23, icon: '☁️' }
+    ]
+  })
 
   useEffect(() => {
     fetchDashboard()
