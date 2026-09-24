@@ -588,3 +588,33 @@
   font-size: 12px;
   font-weight: 700;
 }
+
+/* Pos Filter Pills */
+.pos-pills {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 0 16px;
+}
+
+.pos-pill {
+  padding: 8px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  background: white;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pos-pill:active {
+  transform: scale(0.95);
+}
+
+.pos-pill.active {
+  background: #d4a574;
+  color: white;
+  border-color: #d4a574;
+}

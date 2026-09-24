@@ -48,6 +48,7 @@ const DashboardPage = ({ user }) => {
   const [showBalance, setShowBalance] = useState(true)
   const [selectedWalletId, setSelectedWalletId] = useState(null)
   const [now, setNow] = useState(new Date())
+  const [selectedPos, setSelectedPos] = useState('Semua')
   const [weather, setWeather] = useState({
     items: [
       { label: 'Pagi', temp: 25, icon: '🌤️' },
@@ -197,6 +198,19 @@ const DashboardPage = ({ user }) => {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Pos Filter Pills */}
+      <div className="pos-pills">
+        {['Semua', 'Keluarga', 'Pribadi'].map(pos => (
+          <button
+            key={pos}
+            className={`pos-pill ${selectedPos === pos ? 'active' : ''}`}
+            onClick={() => setSelectedPos(pos)}
+          >
+            {pos}
+          </button>
+        ))}
       </div>
 
       {/* Wallet Tabs */}
