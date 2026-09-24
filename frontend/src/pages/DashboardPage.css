@@ -623,3 +623,160 @@
   color: white;
   border-color: #d4a574;
 }
+
+/* Agenda Section */
+.agenda-section {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin: 0 16px 16px 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.agenda-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.agenda-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f9fafb;
+  border-left: 4px solid #d4a574;
+  border-radius: 8px;
+}
+
+.agenda-time {
+  font-size: 12px;
+  font-weight: 600;
+  color: #d4a574;
+  min-width: 45px;
+}
+
+.agenda-content {
+  flex: 1;
+}
+
+.agenda-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.agenda-status {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.agenda-status.pending {
+  background: #fbbf24;
+}
+
+/* Summary / Riwayat Tabs */
+.summary-tabs {
+  background: white;
+  border-radius: 16px;
+  margin: 0 16px 16px 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.tabs-header {
+  display: flex;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 14px 16px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  transition: all 0.2s ease;
+  border-bottom: 3px solid transparent;
+}
+
+.tab-btn.active {
+  color: #d4a574;
+  border-bottom-color: #d4a574;
+}
+
+.tabs-content {
+  padding: 16px;
+}
+
+.ringkasan-view,
+.riwayat-view {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.summary-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.stat-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.stat-value.income-text {
+  color: #10b981;
+}
+
+.stat-value.expense-text {
+  color: #ef4444;
+}
+
+.recent-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.recent-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.recent-item:last-child {
+  border-bottom: none;
+}
+
+.item-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.item-amount {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+}

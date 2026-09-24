@@ -49,6 +49,7 @@ const DashboardPage = ({ user }) => {
   const [selectedWalletId, setSelectedWalletId] = useState(null)
   const [now, setNow] = useState(new Date())
   const [selectedPos, setSelectedPos] = useState('Semua')
+  const [selectedTab, setSelectedTab] = useState('Ringkasan')
   const [weather, setWeather] = useState({
     items: [
       { label: 'Pagi', temp: 25, icon: '🌤️' },
@@ -172,6 +173,13 @@ const DashboardPage = ({ user }) => {
     color: budget.category.color
   })).sort((a, b) => b.spent - a.spent)
 
+  // Mock agenda data (fallback)
+  const agendaItems = [
+    { id: 1, title: 'Bayar listrik', time: '14:00', status: 'pending' },
+    { id: 2, title: 'Belanja groceries', time: '16:00', status: 'pending' },
+    { id: 3, title: 'Meeting keluarga', time: '19:00', status: 'pending' }
+  ]
+
   return (
     <div className="dashboard-page">
       {/* Welcome Header */}
@@ -274,6 +282,28 @@ const DashboardPage = ({ user }) => {
         </div>
       </div>
 
+      {/* Agenda Hari Ini */}
+      <div className="agenda-section">
+        <div className="section-header">
+          <h2>Agenda Hari Ini</h2>
+        </div>
+        <div className="agenda-list">
+          {agendaItems.length > 0 ? (
+            agendaItems.map(item => (
+              <div key={item.id} className="agenda-item">
+                <div className="agenda-time">{item.time}</div>
+                <div className="agenda-content">
+                  <div className="agenda-title">{item.title}</div>
+                </div>
+                <div className="agenda-status pending"></div>
+              </div>
+            ))
+          ) : (
+            <div className="empty-state">Tidak ada agenda hari ini</div>
+          )}
+        </div>
+      </div>
+
       {/* Portfolio Value */}
       {portfolio && portfolio.summary && (
         <div style={{ marginBottom: 24, marginTop: 16 }}>
@@ -334,6 +364,59 @@ const DashboardPage = ({ user }) => {
             <ChevronRight size={16} />
           </button>
         )}
+      </div>
+
+      {/* Ringkasan / Riwayat Tabs */}
+      <div className="summary-tabs">
+        <div className="tabs-header">
+          <button
+            className={`tab-btn ${selectedTab === 'Ringkasan' ? 'active' : ''}`}
+            onClick={() => setSelectedTab('Ringkasan')}
+          >
+            Ringkasan
+          </button>
+          <button
+            className={`tab-btn ${selectedTab === 'Riwayat' ? 'active' : ''}`}
+            onClick={() => setSelectedTab('Riwayat')}
+          >
+            Riwayat
+          </button>
+        </div>
+
+        <div className="tabs-content">
+          {selectedTab === 'Ringkasan' ? (
+            <div className="ringkasan-view">
+              <div className="summary-stat">
+                <span className="stat-label">Saldo Akhir Bulan</span>
+                <span className="stat-value">Rp {overview.balance.toLocaleString('id-ID')}</span>
+              </div>
+              <div className="summary-stat">
+                <span className="stat-label">Total Pemasukan</span>
+                <span className="stat-value income-text">+ Rp {overview.totalIncome.toLocaleString('id-ID')}</span>
+              </div>
+              <div className="summary-stat">
+                <span className="stat-label">Total Pengeluaran</span>
+                <span className="stat-value expense-text">- Rp {overview.totalExpense.toLocaleString('id-ID')}</span>
+              </div>
+            </div>
+          ) : (
+            <div className="riwayat-view">
+              {categoryDetails.length > 0 ? (
+                <div className="recent-items">
+                  <div className="recent-label">Top Kategori Pengeluaran</div>
+                  {categoryDetails.slice(0, 3).map((cat, idx) => (
+                    <div key={idx} className="recent-item">
+                      <div className="item-name">{cat.name}</div>
+                      <div className="item-amount">Rp {cat.spent.toLocaleString('id-ID')}</div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="empty-state">Tidak ada transaksi</div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Quick Actions Menu */}
