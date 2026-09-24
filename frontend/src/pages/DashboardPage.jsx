@@ -24,6 +24,14 @@ const WEATHER_CODES = {
 // still shows something instead of just disappearing.
 const FALLBACK_COORDS = { latitude: -6.2088, longitude: 106.8456 }
 
+// 4 forecast time points (Pagi, Siang, Sore, Malam)
+const FORECAST_POINTS = [
+  { hour: 6, label: 'Pagi' },
+  { hour: 12, label: 'Siang' },
+  { hour: 16, label: 'Sore' },
+  { hour: 19, label: 'Malam' }
+]
+
 const greetingForHour = (hour) => {
   if (hour < 10) return 'Selamat pagi'
   if (hour < 15) return 'Selamat siang'
@@ -56,11 +64,18 @@ const DashboardPage = ({ user }) => {
   const fetchWeather = async () => {
     const loadFor = async ({ latitude, longitude, cityName }) => {
       try {
-        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`)
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m,weathercode&forecast_days=1&timezone=auto`)
         const data = await res.json()
-        if (data?.current_weather) {
-          const [label, icon] = WEATHER_CODES[data.current_weather.weathercode] || ['Cerah', '☀️']
-          setWeather({ temp: Math.round(data.current_weather.temperature), label, icon, city: cityName || null })
+        if (data?.hourly?.time?.length) {
+          const items = FORECAST_POINTS.map(({ hour, label }) => {
+            // Parse hour from ISO string (e.g., "2026-09-24T06:00" -> hour 6)
+            let idx = data.hourly.time.findIndex(t => parseInt(t.slice(11, 13), 10) === hour)
+            if (idx === -1) idx = 0
+            const code = data.hourly.weathercode[idx]
+            const [, icon] = WEATHER_CODES[code] || ['Cerah', '☀️']
+            return { label, temp: Math.round(data.hourly.temperature_2m[idx]), icon }
+          })
+          setWeather({ items, city: cityName || null })
         }
       } catch (err) {
         // Weather is a nice-to-have -- fail silently, dashboard works without it
@@ -162,14 +177,18 @@ const DashboardPage = ({ user }) => {
             <h1>{greetingForHour(now.getHours())}, Keluarga</h1>
             <span className="welcome-clock">{timeLabel}</span>
           </div>
-          <p>
-            {today}
-            {weather && (
-              <span className="welcome-weather">
-                {' '}· {weather.icon} {weather.temp}°C {weather.label}{weather.city ? `, ${weather.city}` : ''}
-              </span>
-            )}
-          </p>
+          <p>{today}</p>
+          {weather?.items && (
+            <div className="forecast-row">
+              {weather.items.map((f, i) => (
+                <div key={i} className="forecast-item">
+                  <div className="forecast-label">{f.label}</div>
+                  <div className="forecast-icon">{f.icon}</div>
+                  <div className="forecast-temp">{f.temp}°</div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
