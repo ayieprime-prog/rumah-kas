@@ -18,7 +18,7 @@
   --shadow-md: 0 6px 20px rgba(28, 25, 23, 0.10);
   --radius: 18px;
 
-  /* rotating icon-square palette, Seruma-style */
+  /* rotating icon-square palette, Pundi-style */
   --swatch-1-bg: #f7e3b0; --swatch-1-fg: #b8860b;
   --swatch-2-bg: #cfe8f2; --swatch-2-fg: #2b7fa3;
   --swatch-3-bg: #f4dcc7; --swatch-3-fg: #b06a2e;
@@ -102,7 +102,7 @@ button.btn-outline:hover {
   color: var(--primary-color);
 }
 
-/* Seruma-style pill buttons */
+/* Pundi-style pill buttons */
 button.btn-pill {
   width: 100%;
   background-color: var(--primary-color);
@@ -162,7 +162,7 @@ button.fab:hover {
   transform: translateY(-2px) scale(1.03);
 }
 
-/* Icon square (Seruma category-card icon) */
+/* Icon square (Pundi category-card icon) */
 .icon-square {
   width: 44px;
   height: 44px;

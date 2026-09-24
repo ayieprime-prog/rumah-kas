@@ -48,7 +48,7 @@ const MOCK_TRANSACTIONS = [
   { id: 5, date: '22 Sep 2026', category: 'Kesehatan', amount: 500000, type: 'expense', icon: '⚕️' },
 ]
 
-// 8 menu shortcuts with colored backgrounds (Seruma style)
+// 8 menu shortcuts with colored backgrounds (Pundi style)
 const MENU_SHORTCUTS = [
   { label: 'Keuangan', icon: Wallet, path: '/keuangan', bg: '#c9a961', color: '#ffffff' },
   { label: 'Kalender', icon: Calendar, path: '/kalender', bg: '#4a7c8c', color: '#ffffff' },

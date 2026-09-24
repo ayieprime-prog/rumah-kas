@@ -241,7 +241,7 @@ CREATE TABLE "Wallet" (
 - `/wallets` - Wallet management page
 
 ### Updated Pages
-- `/` - Dashboard redesigned with Seruma layout
+- `/` - Dashboard redesigned with Pundi layout
 - `/expenses` - Wallet selection added to form
 - `/income` - Wallet selection added to form
 

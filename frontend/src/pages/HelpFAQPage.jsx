@@ -188,7 +188,7 @@ const HelpFAQPage = () => {
       </div>
 
       <div className="faq-footer">
-        <p>Masih ada pertanyaan lain? Hubungi kami lewat WhatsApp di menu Tentang Seruma.</p>
+        <p>Masih ada pertanyaan lain? Hubungi kami lewat WhatsApp di menu Tentang Pundi.</p>
       </div>
     </div>
   )

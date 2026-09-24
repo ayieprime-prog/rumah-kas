@@ -5,7 +5,7 @@
 ### Phase A MVP (Production Ready)
 - **PR #1**: Wallet Management & Dashboard Redesign
   - 5 wallet CRUD endpoints
-  - Seruma-style dashboard with wallet tabs
+  - Pundi-style dashboard with wallet tabs
   - Wallet integration in expense/income forms
   - Database schema with Wallet model
   - 100% backward compatible
@@ -54,7 +54,7 @@
   - Add "Portfolio Value" card to dashboard
   - Show top 3 assets by value
   - Link to full Assets page
-- [ ] Frontend styling (Seruma design)
+- [ ] Frontend styling (Pundi design)
 - [ ] Build & test frontend
 
 ### Phase B.2 - Transfer Feature
