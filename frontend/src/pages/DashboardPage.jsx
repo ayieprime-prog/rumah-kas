@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
-import { Wallet, Calendar, Wrench, Heart, BookOpen, Link2, BarChart3, MoreHorizontal, TrendingUp, TrendingDown, Eye, EyeOff, Plus, ChevronRight, CreditCard, Banknote, Smartphone } from 'lucide-react'
+import { Wallet, Calendar, Wrench, Heart, BookOpen, Link2, BarChart3, MoreHorizontal, TrendingUp, TrendingDown, Eye, EyeOff, Plus, ChevronRight, CreditCard, Banknote, Smartphone, HelpCircle } from 'lucide-react'
 import './DashboardPage.css'
 
 const WALLET_ICONS = {
@@ -56,8 +56,8 @@ const MENU_SHORTCUTS = [
   { label: 'Conversation', icon: BookOpen, path: '/berdua', bg: '#a85a7a', color: '#ffffff' },
   { label: 'Jurnal Keluarga', icon: BookOpen, path: '/journal', bg: '#a85a7a', color: '#ffffff' },
   { label: 'Laporan', icon: BarChart3, path: '/reports', bg: '#5b6fa0', color: '#ffffff' },
-  { label: 'Bantuan', icon: Link2, path: '/help', bg: '#4a7c8c', color: '#ffffff' },
-  { label: 'Lainnya', icon: MoreHorizontal, path: '/settings', bg: '#5a9a6a', color: '#ffffff' },
+  { label: 'Bantuan & FAQ', icon: HelpCircle, path: '/help-faq', bg: '#6b8c7d', color: '#ffffff' },
+  { label: 'Lainnya', icon: MoreHorizontal, path: '/lainnya', bg: '#5a9a6a', color: '#ffffff' },
 ]
 
 // Mock agenda items

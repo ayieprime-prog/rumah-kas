@@ -23,6 +23,10 @@
   margin-bottom: 24px;
 }
 
+.dashboard-header-brand {
+  display: none;
+}
+
 /* When a personal wallpaper is set, give it room to actually read as a
    photo instead of a thin strip. min-height (not height) so it only ever
    grows the card -- never clips content or locks page scroll. */
