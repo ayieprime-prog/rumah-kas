@@ -85,6 +85,8 @@ const DashboardPage = ({ user }) => {
       { label: 'Malam', temp: 23, icon: '☁️' }
     ]
   })
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [addModalTab, setAddModalTab] = useState('todo') // 'todo' atau 'keuangan'
   useEffect(() => {
     fetchDashboard()
     fetchPortfolio()
@@ -278,7 +280,12 @@ const DashboardPage = ({ user }) => {
       <div className="agenda-section">
         <div className="agenda-header">
           <h2>Agenda Hari ini</h2>
-          <span className="agenda-count">{MOCK_AGENDA.filter(a => a.completed).length}/{MOCK_AGENDA.length} selesai</span>
+          <div className="agenda-header-right">
+            <span className="agenda-count">{MOCK_AGENDA.filter(a => a.completed).length}/{MOCK_AGENDA.length} selesai</span>
+            <button className="agenda-add-btn" onClick={() => setShowAddModal(true)}>
+              <Plus size={20} />
+            </button>
+          </div>
         </div>
         <div className="agenda-items">
           {MOCK_AGENDA.map(item => (
@@ -378,6 +385,93 @@ const DashboardPage = ({ user }) => {
         </div>
       </div>
 
+      {/* Add Todo/Keuangan Modal */}
+      {showAddModal && (
+        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{today}</h3>
+              <button className="modal-close" onClick={() => setShowAddModal(false)}>×</button>
+            </div>
+
+            {/* Tab Toggle */}
+            <div className="modal-tabs">
+              <button
+                className={`modal-tab ${addModalTab === 'todo' ? 'active' : ''}`}
+                onClick={() => setAddModalTab('todo')}
+              >
+                Todo
+              </button>
+              <button
+                className={`modal-tab ${addModalTab === 'keuangan' ? 'active' : ''}`}
+                onClick={() => setAddModalTab('keuangan')}
+              >
+                Keuangan
+              </button>
+            </div>
+
+            {/* Todo Tab Content */}
+            {addModalTab === 'todo' && (
+              <div className="modal-form">
+                <div className="form-group">
+                  <label>Pilih Kategori</label>
+                  <select>
+                    <option>Pilih kategori...</option>
+                    <option>Jadwal Bayar & Belanja</option>
+                    <option>Acara Keluarga</option>
+                    <option>Maintenance</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Nama Task</label>
+                  <input type="text" placeholder="Masukkan nama task" />
+                </div>
+                <div className="form-group">
+                  <label>Ingatkan saya</label>
+                  <div className="reminder-options">
+                    <button className="reminder-btn">Hari ini</button>
+                    <button className="reminder-btn">H-1</button>
+                    <button className="reminder-btn">H-3</button>
+                    <button className="reminder-btn">Custom...</button>
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>Jam berapa?</label>
+                  <input type="time" defaultValue="08:00" />
+                </div>
+                <button className="modal-submit">Simpan agenda</button>
+              </div>
+            )}
+
+            {/* Keuangan Tab Content */}
+            {addModalTab === 'keuangan' && (
+              <div className="modal-form">
+                <div className="form-group">
+                  <label>Tipe</label>
+                  <div className="type-options">
+                    <button className="type-btn">Pemasukan</button>
+                    <button className="type-btn active">Pengeluaran</button>
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>Kategori</label>
+                  <select>
+                    <option>Pilih kategori...</option>
+                    <option>Makanan & Minuman</option>
+                    <option>Transportasi</option>
+                    <option>Utilitas</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Nominal</label>
+                  <input type="number" placeholder="Rp 0" />
+                </div>
+                <button className="modal-submit">Simpan transaksi</button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
