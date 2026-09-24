@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { Shuffle, Heart, Star } from 'lucide-react'
+import { ChevronLeft, Shuffle } from 'lucide-react'
 import BackButton from '../components/BackButton'
 import conversationCards from '../data/conversationCards'
-import './ListPages.css'
 import './ConversationCardsPage.css'
 
 const FAVORITES_KEY = 'rumahkas_favorite_cards'
@@ -21,73 +20,83 @@ const ConversationCardsPage = () => {
       return []
     }
   })
-  const [showFavorites, setShowFavorites] = useState(false)
+  const [activeTab, setActiveTab] = useState('today') // 'today' or 'history'
 
   useEffect(() => {
     localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites))
   }, [favorites])
 
-  const isFavorited = (id) => favorites.some(f => f.id === id)
-
-  const toggleFavorite = (card) => {
-    setFavorites(prev =>
-      isFavorited(card.id) ? prev.filter(f => f.id !== card.id) : [...prev, card]
-    )
-  }
-
   const nextCard = () => setCurrent(pickRandom(current.id))
 
   return (
-    <div className="list-page">
-      <BackButton to="/berdua" label="Berdua" />
-
-      <div className="page-header">
+    <div className="cc-page">
+      <div className="cc-header">
+        <button className="cc-back-btn">
+          <ChevronLeft size={20} />
+        </button>
         <h1>Conversation Cards</h1>
+        <div style={{ width: 40 }} />
       </div>
 
-      <div className="cc-tabs">
-        <button className={`cc-tab ${!showFavorites ? 'active' : ''}`} onClick={() => setShowFavorites(false)}>Kartu</button>
-        <button className={`cc-tab ${showFavorites ? 'active' : ''}`} onClick={() => setShowFavorites(true)}>
-          Favorit ({favorites.length})
+      {/* Tab Toggle */}
+      <div className="cc-tab-toggle">
+        <button
+          className={`cc-tab-btn ${activeTab === 'today' ? 'active' : ''}`}
+          onClick={() => setActiveTab('today')}
+        >
+          Card Hari Ini
+        </button>
+        <button
+          className={`cc-tab-btn ${activeTab === 'history' ? 'active' : ''}`}
+          onClick={() => setActiveTab('history')}
+        >
+          Riwayat
         </button>
       </div>
 
-      {!showFavorites ? (
-        <>
-          <div className="cc-card">
-            <span className="cc-card-category">{current.category}</span>
-            <p className="cc-card-text">{current.text}</p>
-            <button className="cc-favorite-btn" onClick={() => toggleFavorite(current)}>
-              <Heart size={20} fill={isFavorited(current.id) ? 'currentColor' : 'none'} />
-            </button>
+      {/* Card Hari Ini View */}
+      {activeTab === 'today' && (
+        <div className="cc-content">
+          <div className="cc-card-container">
+            <div className="cc-card">
+              {/* Pundi Logo */}
+              <div className="cc-card-logo">
+                <img src="/pundi-icon.svg" alt="Pundi" />
+              </div>
+
+              {/* Question Text */}
+              <p className="cc-card-question">{current.text}</p>
+            </div>
           </div>
 
-          <button className="btn-pill" onClick={nextCard}>
-            <Shuffle size={18} /> Kartu Berikutnya
-          </button>
-        </>
-      ) : (
-        <div className="card">
+          {/* Action Buttons */}
+          <div className="cc-actions">
+            <button className="cc-btn-primary">
+              ↓ Rekam Jawaban
+            </button>
+            <button className="cc-btn-secondary" onClick={nextCard}>
+              ✕ Ganti Pertanyaan
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Riwayat View */}
+      {activeTab === 'history' && (
+        <div className="cc-content">
           {favorites.length > 0 ? (
-            favorites.map(card => (
-              <div key={card.id} className="list-row">
-                <div className="icon-square sw-5" style={{ width: 36, height: 36 }}>
-                  <Star size={16} />
+            <div className="cc-history-list">
+              {favorites.map(card => (
+                <div key={card.id} className="cc-history-item">
+                  <p className="cc-history-text">{card.text}</p>
+                  <span className="cc-history-category">{card.category}</span>
                 </div>
-                <div className="list-row-body">
-                  <div className="list-row-title">{card.text}</div>
-                  <div className="list-row-subtitle">{card.category}</div>
-                </div>
-                <button className="icon-btn" onClick={() => toggleFavorite(card)}>
-                  <Heart size={16} fill="currentColor" />
-                </button>
-              </div>
-            ))
+              ))}
+            </div>
           ) : (
-            <div className="empty-state">
-              <Heart size={28} className="empty-state-icon" />
-              <p>Belum ada kartu favorit</p>
-              <span>Tekan ikon hati di kartu untuk menyimpannya di sini</span>
+            <div className="cc-empty-state">
+              <p>Belum ada riwayat</p>
+              <span>Rekam jawaban untuk menyimpannya di sini</span>
             </div>
           )}
         </div>
