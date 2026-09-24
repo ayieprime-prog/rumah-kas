@@ -1,34 +1,43 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { Wrench, Link2, Settings, ChevronRight } from 'lucide-react'
-import './ListPages.css'
+import { Wrench, Link2, Settings, ChevronRight, MoreHorizontal, HelpCircle } from 'lucide-react'
+import './HubPage.css'
 
 const items = [
-  { path: '/maintenance', label: 'Maintenance', desc: 'Jadwal perawatan rumah & kendaraan', icon: Wrench, sw: 'sw-4' },
-  { path: '/links', label: 'Link Penting', desc: 'Simpan tautan penting keluarga', icon: Link2, sw: 'sw-3' },
-  { path: '/settings', label: 'Pengaturan', desc: 'Profil, keamanan, & preferensi aplikasi', icon: Settings, sw: 'sw-5' },
+  { path: '/maintenance', label: 'Maintenance', desc: 'Jadwal perawatan rumah & kendaraan', icon: Wrench },
+  { path: '/links', label: 'Link Penting', desc: 'Simpan tautan penting keluarga', icon: Link2 },
+  { path: '/help-faq', label: 'Bantuan & FAQ', desc: 'Panduan, setting awal, & pertanyaan umum', icon: HelpCircle },
+  { path: '/settings', label: 'Pengaturan', desc: 'Profil, keamanan, & preferensi aplikasi', icon: Settings },
 ]
 
 const LainnyaHubPage = () => {
   return (
-    <div className="list-page">
+    <div className="hub-page">
       <div className="page-header">
         <h1>Lainnya</h1>
+        <p>Fitur tambahan & pengaturan aplikasi</p>
       </div>
 
-      <div className="hub-list">
+      <div className="hub-summary">
+        <div className="summary-item">
+          <MoreHorizontal size={20} color="#6b7280" />
+          <span>Kelola Aplikasi</span>
+        </div>
+      </div>
+
+      <div className="menu-grid">
         {items.map(item => {
           const Icon = item.icon
           return (
-            <Link key={item.path} to={item.path} className="hub-item">
-              <div className={`icon-square ${item.sw}`}>
-                <Icon size={20} />
+            <Link key={item.path} to={item.path} className="menu-card">
+              <div className="card-icon">
+                <Icon size={24} />
               </div>
-              <div className="hub-item-body">
-                <div className="hub-item-title">{item.label}</div>
-                <div className="hub-item-desc">{item.desc}</div>
+              <div className="card-body">
+                <div className="card-title">{item.label}</div>
+                <div className="card-desc">{item.desc}</div>
               </div>
-              <ChevronRight size={18} className="hub-item-chevron" />
+              <ChevronRight size={18} className="card-chevron" />
             </Link>
           )
         })}

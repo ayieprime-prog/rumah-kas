@@ -21,6 +21,7 @@ import ConversationCardsPage from './pages/ConversationCardsPage'
 import JournalPage from './pages/JournalPage'
 import MaintenancePage from './pages/MaintenancePage'
 import LinksPage from './pages/LinksPage'
+import HelpFAQPage from './pages/HelpFAQPage'
 import WalletPage from './pages/WalletPage'
 import AssetPage from './pages/AssetPage'
 import TransferPage from './pages/TransferPage'
@@ -122,6 +123,7 @@ function App() {
                       <Route path="/journal" element={<JournalPage />} />
                       <Route path="/maintenance" element={<MaintenancePage />} />
                       <Route path="/links" element={<LinksPage />} />
+                      <Route path="/help-faq" element={<HelpFAQPage />} />
                       <Route path="/wallets" element={<WalletPage />} />
                       <Route path="/assets" element={<AssetPage />} />
                       <Route path="/transfers" element={<TransferPage />} />
