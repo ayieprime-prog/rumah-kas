@@ -218,19 +218,6 @@ const DashboardPage = ({ user }) => {
         </div>
       </div>
 
-      {/* Pos Filter Pills */}
-      <div className="pos-pills">
-        {['Semua', 'Keluarga', 'Pribadi'].map(pos => (
-          <button
-            key={pos}
-            className={`pos-pill ${selectedPos === pos ? 'active' : ''}`}
-            onClick={() => setSelectedPos(pos)}
-          >
-            {pos}
-          </button>
-        ))}
-      </div>
-
       {/* Wallet Tabs */}
       {wallets.length > 0 && (
         <div className="wallet-tabs">
@@ -289,28 +276,6 @@ const DashboardPage = ({ user }) => {
         <div className="summary-card expense">
           <div className="summary-label">Pengeluaran Bulan Ini</div>
           <div className="summary-value">Rp {overview.totalExpense.toLocaleString('id-ID')}</div>
-        </div>
-      </div>
-
-      {/* Agenda Hari Ini */}
-      <div className="agenda-section">
-        <div className="section-header">
-          <h2>Agenda Hari Ini</h2>
-        </div>
-        <div className="agenda-list">
-          {agendaItems.length > 0 ? (
-            agendaItems.map(item => (
-              <div key={item.id} className="agenda-item">
-                <div className="agenda-time">{item.time}</div>
-                <div className="agenda-content">
-                  <div className="agenda-title">{item.title}</div>
-                </div>
-                <div className="agenda-status pending"></div>
-              </div>
-            ))
-          ) : (
-            <div className="empty-state">Tidak ada agenda hari ini</div>
-          )}
         </div>
       </div>
 
@@ -374,59 +339,6 @@ const DashboardPage = ({ user }) => {
             <ChevronRight size={16} />
           </button>
         )}
-      </div>
-
-      {/* Ringkasan / Riwayat Tabs */}
-      <div className="summary-tabs">
-        <div className="tabs-header">
-          <button
-            className={`tab-btn ${selectedTab === 'Ringkasan' ? 'active' : ''}`}
-            onClick={() => setSelectedTab('Ringkasan')}
-          >
-            Ringkasan
-          </button>
-          <button
-            className={`tab-btn ${selectedTab === 'Riwayat' ? 'active' : ''}`}
-            onClick={() => setSelectedTab('Riwayat')}
-          >
-            Riwayat
-          </button>
-        </div>
-
-        <div className="tabs-content">
-          {selectedTab === 'Ringkasan' ? (
-            <div className="ringkasan-view">
-              <div className="summary-stat">
-                <span className="stat-label">Saldo Akhir Bulan</span>
-                <span className="stat-value">Rp {overview.balance.toLocaleString('id-ID')}</span>
-              </div>
-              <div className="summary-stat">
-                <span className="stat-label">Total Pemasukan</span>
-                <span className="stat-value income-text">+ Rp {overview.totalIncome.toLocaleString('id-ID')}</span>
-              </div>
-              <div className="summary-stat">
-                <span className="stat-label">Total Pengeluaran</span>
-                <span className="stat-value expense-text">- Rp {overview.totalExpense.toLocaleString('id-ID')}</span>
-              </div>
-            </div>
-          ) : (
-            <div className="riwayat-view">
-              {filteredCategoryDetails.length > 0 ? (
-                <div className="recent-items">
-                  <div className="recent-label">Top Kategori Pengeluaran</div>
-                  {filteredCategoryDetails.slice(0, 3).map((cat, idx) => (
-                    <div key={idx} className="recent-item">
-                      <div className="item-name">{cat.name}</div>
-                      <div className="item-amount">Rp {cat.spent.toLocaleString('id-ID')}</div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="empty-state">Tidak ada transaksi</div>
-              )}
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Quick Actions Menu */}
