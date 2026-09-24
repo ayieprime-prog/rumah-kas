@@ -16,15 +16,18 @@
 .dashboard-header {
   position: relative;
   background: linear-gradient(135deg, #f5f7fa 0%, #f9fafb 100%);
-  padding: 20px 16px;
+  padding: 16px;
   border-radius: 12px;
   margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .dashboard-header-brand {
   position: absolute;
-  top: 14px;
-  left: 14px;
+  top: 12px;
+  left: 12px;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -34,6 +37,7 @@
   font-size: 12px;
   font-weight: 700;
   color: #ffffff;
+  z-index: 1;
 }
 
 .dashboard-header-brand-icon {
@@ -48,8 +52,14 @@
 .dashboard-header.has-wallpaper {
   min-height: 280px;
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
   padding: 28px 20px;
+}
+
+.welcome-section {
+  padding-top: 28px;
 }
 
 .welcome-topline {
