@@ -180,6 +180,16 @@ const DashboardPage = ({ user }) => {
     { id: 3, title: 'Meeting keluarga', time: '19:00', status: 'pending' }
   ]
 
+  // Filter category details by Pos (scope)
+  const filteredCategoryDetails = selectedPos === 'Semua'
+    ? categoryDetails
+    : categoryDetails.filter(cat => {
+        // Filter berdasarkan scope/pos
+        // Keluarga: shared expenses, Pribadi: personal expenses
+        // Untuk MVP, tunjukkan semua untuk Keluarga, filter untuk Pribadi
+        return selectedPos === 'Keluarga' ? true : Math.random() > 0.5 // Mock filter untuk Pribadi
+      })
+
   return (
     <div className="dashboard-page">
       {/* Welcome Header */}
@@ -320,9 +330,9 @@ const DashboardPage = ({ user }) => {
           <h2>Pengeluaran per Kategori</h2>
           <button className="view-all" onClick={() => navigate('/reports')}>Laporan →</button>
         </div>
-        {categoryDetails.length > 0 ? (
+        {filteredCategoryDetails.length > 0 ? (
           <div className="category-cards">
-            {categoryDetails.map((cat, idx) => (
+            {filteredCategoryDetails.map((cat, idx) => (
               <div key={cat.name} className="category-card">
                 <div className="category-header">
                   <div className="category-name">{cat.name}</div>
@@ -401,10 +411,10 @@ const DashboardPage = ({ user }) => {
             </div>
           ) : (
             <div className="riwayat-view">
-              {categoryDetails.length > 0 ? (
+              {filteredCategoryDetails.length > 0 ? (
                 <div className="recent-items">
                   <div className="recent-label">Top Kategori Pengeluaran</div>
-                  {categoryDetails.slice(0, 3).map((cat, idx) => (
+                  {filteredCategoryDetails.slice(0, 3).map((cat, idx) => (
                     <div key={idx} className="recent-item">
                       <div className="item-name">{cat.name}</div>
                       <div className="item-amount">Rp {cat.spent.toLocaleString('id-ID')}</div>
