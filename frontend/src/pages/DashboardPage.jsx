@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
-import { Wallet, Calendar, Wrench, Heart, BookOpen, Link2, BarChart3, MoreHorizontal, TrendingUp, TrendingDown, Eye, EyeOff, Plus, ChevronRight, CreditCard, Banknote, Smartphone, HelpCircle } from 'lucide-react'
+import { Wallet, Calendar, Wrench, Heart, BookOpen, Link2, BarChart3, MoreHorizontal, TrendingUp, TrendingDown, Eye, EyeOff, Plus, ChevronRight, CreditCard, Banknote, Smartphone, HelpCircle, Search, RefreshCw } from 'lucide-react'
 import './DashboardPage.css'
 
 const WALLET_ICONS = {
@@ -85,6 +85,7 @@ const DashboardPage = ({ user }) => {
       { label: 'Malam', temp: 23, icon: '☁️' }
     ]
   })
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   useEffect(() => {
     fetchDashboard()
@@ -165,6 +166,21 @@ const DashboardPage = ({ user }) => {
     { path: '/keuangan', label: 'Goal', icon: TrendingUp, color: '#10b981' },
   ]
 
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    try {
+      await Promise.all([fetchDashboard(), fetchPortfolio(), fetchWeather()])
+    } catch (err) {
+      console.error('Refresh failed:', err)
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
+
+  const handleSearch = () => {
+    navigate('/expenses')
+  }
+
   if (loading) {
     return (
       <div className="dashboard-page">
@@ -228,7 +244,24 @@ const DashboardPage = ({ user }) => {
         <div className="welcome-section">
           <div className="welcome-topline">
             <h1>{greetingForHour(now.getHours())}, Keluarga</h1>
-            <span className="welcome-clock">{timeLabel}</span>
+            <div className="welcome-actions">
+              <button
+                className={`action-icon ${isRefreshing ? 'spinning' : ''}`}
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                title="Refresh data"
+              >
+                <RefreshCw size={20} />
+              </button>
+              <button
+                className="action-icon"
+                onClick={handleSearch}
+                title="Cari transaksi"
+              >
+                <Search size={20} />
+              </button>
+              <span className="welcome-clock">{timeLabel}</span>
+            </div>
           </div>
           <p>{today}</p>
           {weather?.items && (
