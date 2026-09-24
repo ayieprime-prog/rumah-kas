@@ -119,6 +119,36 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
+/* Summary Tabs Section */
+.summary-tabs-section {
+  margin-bottom: 20px;
+}
+
+.summary-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.summary-tab {
+  padding: 12px 16px;
+  border: none;
+  border-radius: 12px;
+  background: #f5f5f5;
+  color: #9ca3af;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.summary-tab.active {
+  background: white;
+  color: #1f2937;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
 /* Agenda Section */
 .agenda-section {
   background: white;
@@ -128,6 +158,202 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   position: relative;
   z-index: 5;
+}
+
+/* Financial Summary Section */
+.financial-summary-section {
+  background: white;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.filter-group {
+  margin-bottom: 18px;
+}
+
+.filter-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+}
+
+.filter-btn {
+  padding: 8px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  background: white;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.filter-btn:hover {
+  border-color: #d4a574;
+  color: #d4a574;
+}
+
+.filter-btn.active {
+  background: #faf8f5;
+  border-color: #d4a574;
+  color: #d4a574;
+}
+
+/* Kekayaan Bersih Card */
+.kekayaan-bersih-card {
+  background: linear-gradient(135deg, #2d5a4d 0%, #1f4739 100%);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.kekayaan-bersih-card .card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.kekayaan-bersih-card h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+}
+
+.kekayaan-bersih-card .eye-btn {
+  background: none;
+  border: none;
+  color: #d4a574;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+
+.kekayaan-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 8px;
+}
+
+.kekayaan-detail {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 16px;
+}
+
+.kekayaan-detail-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.kekayaan-detail-btn:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.kekayaan-detail-btn:active {
+  transform: scale(0.98);
+}
+
+/* Saldo Aktif Detail Card */
+.saldo-aktif-detail-card {
+  background: white;
+  border-radius: 14px;
+  padding: 16px;
+  border-left: 4px solid #10b981;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.card-header-detail {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.card-header-detail h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.card-header-detail .eye-btn {
+  background: none;
+  border: none;
+  color: #d4a574;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+
+.saldo-aktif-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+.saldo-aktif-description {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-bottom: 14px;
+  line-height: 1.4;
+}
+
+.saldo-aktif-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.breakdown-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  padding: 8px;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.breakdown-label {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.breakdown-amount {
+  color: #1f2937;
+  font-weight: 700;
 }
 
 .agenda-header {
@@ -652,6 +878,63 @@
   .shortcut-item svg {
     width: 20px;
     height: 20px;
+  }
+
+  .summary-tabs {
+    margin-bottom: 12px;
+  }
+
+  .summary-tab {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  .financial-summary-section {
+    padding: 14px;
+  }
+
+  .filter-buttons {
+    gap: 6px;
+  }
+
+  .filter-btn {
+    padding: 7px 12px;
+    font-size: 11px;
+  }
+
+  .kekayaan-bersih-card {
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+
+  .kekayaan-value {
+    font-size: 24px;
+  }
+
+  .kekayaan-detail-btn {
+    padding: 10px;
+    font-size: 13px;
+  }
+
+  .saldo-aktif-detail-card {
+    padding: 14px;
+  }
+
+  .card-header-detail h3 {
+    font-size: 13px;
+  }
+
+  .saldo-aktif-value {
+    font-size: 20px;
+  }
+
+  .saldo-aktif-description {
+    font-size: 10px;
+  }
+
+  .breakdown-item {
+    font-size: 11px;
+    padding: 6px;
   }
 
   .agenda-section {

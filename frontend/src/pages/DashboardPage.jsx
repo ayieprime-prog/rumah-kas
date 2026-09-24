@@ -87,6 +87,9 @@ const DashboardPage = ({ user }) => {
   })
   const [showAddModal, setShowAddModal] = useState(false)
   const [addModalTab, setAddModalTab] = useState('todo') // 'todo' atau 'keuangan'
+  const [summaryTab, setSummaryTab] = useState('agenda') // 'agenda' atau 'ringkasan'
+  const [selectedWalletFilter, setSelectedWalletFilter] = useState('semua') // 'semua', 'tunai', 'bank', 'digital'
+  const [selectedPosFilter, setSelectedPosFilter] = useState('semua') // 'semua', 'keluarga', 'pribadi'
   useEffect(() => {
     fetchDashboard()
     fetchPortfolio()
@@ -276,30 +279,150 @@ const DashboardPage = ({ user }) => {
         })}
       </div>
 
-      {/* Agenda Hari Ini */}
-      <div className="agenda-section">
-        <div className="agenda-header">
-          <h2>Agenda Hari ini</h2>
-          <div className="agenda-header-right">
-            <span className="agenda-count">{MOCK_AGENDA.filter(a => a.completed).length}/{MOCK_AGENDA.length} selesai</span>
-            <button className="agenda-add-btn" onClick={() => setShowAddModal(true)}>
-              <Plus size={20} />
-            </button>
-          </div>
+      {/* Summary Tabs: Agenda & Ringkasan Keuangan */}
+      <div className="summary-tabs-section">
+        <div className="summary-tabs">
+          <button
+            className={`summary-tab ${summaryTab === 'agenda' ? 'active' : ''}`}
+            onClick={() => setSummaryTab('agenda')}
+          >
+            Agenda Hari ini
+          </button>
+          <button
+            className={`summary-tab ${summaryTab === 'ringkasan' ? 'active' : ''}`}
+            onClick={() => setSummaryTab('ringkasan')}
+          >
+            Ringkasan Keuangan
+          </button>
         </div>
-        <div className="agenda-items">
-          {MOCK_AGENDA.map(item => (
-            <div key={item.id} className={`agenda-item ${item.completed ? 'completed' : ''}`}>
-              <div className="agenda-checkbox">
-                <input type="checkbox" defaultChecked={item.completed} />
-              </div>
-              <div className="agenda-content">
-                <span className="agenda-title">{item.title}</span>
-                <span className="agenda-time">{item.time}</span>
+
+        {/* Agenda Tab Content */}
+        {summaryTab === 'agenda' && (
+          <div className="agenda-section">
+            <div className="agenda-header">
+              <h2>Agenda Hari ini</h2>
+              <div className="agenda-header-right">
+                <span className="agenda-count">{MOCK_AGENDA.filter(a => a.completed).length}/{MOCK_AGENDA.length} selesai</span>
+                <button className="agenda-add-btn" onClick={() => setShowAddModal(true)}>
+                  <Plus size={20} />
+                </button>
               </div>
             </div>
-          ))}
-        </div>
+            <div className="agenda-items">
+              {MOCK_AGENDA.map(item => (
+                <div key={item.id} className={`agenda-item ${item.completed ? 'completed' : ''}`}>
+                  <div className="agenda-checkbox">
+                    <input type="checkbox" defaultChecked={item.completed} />
+                  </div>
+                  <div className="agenda-content">
+                    <span className="agenda-title">{item.title}</span>
+                    <span className="agenda-time">{item.time}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Ringkasan Keuangan Tab Content */}
+        {summaryTab === 'ringkasan' && (
+          <div className="financial-summary-section">
+            {/* Wallet Filter */}
+            <div className="filter-group">
+              <label className="filter-label">Semua Wallet</label>
+              <div className="filter-buttons">
+                <button
+                  className={`filter-btn ${selectedWalletFilter === 'semua' ? 'active' : ''}`}
+                  onClick={() => setSelectedWalletFilter('semua')}
+                >
+                  Semua Wallet
+                </button>
+                <button
+                  className={`filter-btn ${selectedWalletFilter === 'tunai' ? 'active' : ''}`}
+                  onClick={() => setSelectedWalletFilter('tunai')}
+                >
+                  Tunai
+                </button>
+                <button
+                  className={`filter-btn ${selectedWalletFilter === 'bank' ? 'active' : ''}`}
+                  onClick={() => setSelectedWalletFilter('bank')}
+                >
+                  Bank
+                </button>
+                <button
+                  className={`filter-btn ${selectedWalletFilter === 'digital' ? 'active' : ''}`}
+                  onClick={() => setSelectedWalletFilter('digital')}
+                >
+                  Dompet Digital
+                </button>
+              </div>
+            </div>
+
+            {/* Pos Filter */}
+            <div className="filter-group">
+              <label className="filter-label">Semua Pos</label>
+              <div className="filter-buttons">
+                <button
+                  className={`filter-btn ${selectedPosFilter === 'semua' ? 'active' : ''}`}
+                  onClick={() => setSelectedPosFilter('semua')}
+                >
+                  Keluarga
+                </button>
+                <button
+                  className={`filter-btn ${selectedPosFilter === 'pribadi' ? 'active' : ''}`}
+                  onClick={() => setSelectedPosFilter('pribadi')}
+                >
+                  Pribadi Andri
+                </button>
+              </div>
+            </div>
+
+            {/* Kekayaan Bersih Card */}
+            <div className="kekayaan-bersih-card">
+              <div className="card-top">
+                <h3>Kekayaan Bersih Keluarga</h3>
+                <button className="eye-btn" onClick={() => setShowBalance(!showBalance)}>
+                  {showBalance ? <Eye size={20} /> : <EyeOff size={20} />}
+                </button>
+              </div>
+              <div className="kekayaan-value">
+                {showBalance ? `Rp ${overview.balance.toLocaleString('id-ID')}` : '••••••••'}
+              </div>
+              <div className="kekayaan-detail">
+                Harta Rp {showBalance ? overview.balance.toLocaleString('id-ID') : '••••••••'} – Utang Rp 0
+              </div>
+              <button className="kekayaan-detail-btn">
+                Lihat rincian →
+              </button>
+            </div>
+
+            {/* Saldo Aktif Detail */}
+            <div className="saldo-aktif-detail-card">
+              <div className="card-header-detail">
+                <h3>Saldo Aktif</h3>
+                <button className="eye-btn" onClick={() => setShowBalance(!showBalance)}>
+                  {showBalance ? <Eye size={20} /> : <EyeOff size={20} />}
+                </button>
+              </div>
+              <div className="saldo-aktif-value">
+                {showBalance ? `Rp ${Math.max(0, uangBebas).toLocaleString('id-ID')}` : '••••••••'}
+              </div>
+              <div className="saldo-aktif-description">
+                Akumulasi dari awal, gak reset tiap bulan • di luar dana Tabungan/Goal
+              </div>
+              <div className="saldo-aktif-breakdown">
+                <div className="breakdown-item">
+                  <span className="breakdown-label">Andri (demo)</span>
+                  <span className="breakdown-amount">Rp 100.000</span>
+                </div>
+                <div className="breakdown-item">
+                  <span className="breakdown-label">Anita (demo)</span>
+                  <span className="breakdown-amount">Rp 120.000</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Wallet Tabs */}
