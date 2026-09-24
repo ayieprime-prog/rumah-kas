@@ -240,55 +240,64 @@
 
 /* Wallet Tabs */
 .wallet-tabs {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 20px;
-  overflow-x: auto;
-  padding: 0 0 8px 0;
-  -webkit-overflow-scrolling: touch;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
   position: relative;
   z-index: 5;
 }
 
 .wallet-tab {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: 10px;
+  padding: 16px;
   background: white;
   border: 2px solid #e5e7eb;
-  border-radius: 12px;
+  border-radius: 14px;
   cursor: pointer;
-  min-width: max-content;
   transition: all 0.3s ease;
-  text-align: left;
+  text-align: center;
 }
 
 .wallet-tab:active {
-  transform: scale(0.95);
+  transform: scale(0.98);
 }
 
 .wallet-tab.active {
   border-color: #d4a574;
-  background: #faf8f5;
+  background: linear-gradient(135deg, #faf8f5 0%, #f5f1e8 100%);
+  box-shadow: 0 4px 12px rgba(212, 168, 67, 0.15);
+}
+
+.wallet-tab svg {
+  width: 24px;
+  height: 24px;
+  color: #d4a574;
 }
 
 .wallet-info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
+  width: 100%;
 }
 
 .wallet-name {
-  font-size: 12px;
-  color: #6b7280;
-  font-weight: 500;
+  font-size: 11px;
+  color: #9ca3af;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .wallet-balance {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   color: #1f2937;
+  word-break: break-word;
 }
 
 /* Balance Cards */
@@ -671,17 +680,23 @@
   }
 
   .wallet-tabs {
-    gap: 6px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
     margin-bottom: 16px;
   }
 
   .wallet-tab {
-    padding: 10px 12px;
+    padding: 14px 12px;
     gap: 8px;
   }
 
+  .wallet-tab svg {
+    width: 20px;
+    height: 20px;
+  }
+
   .wallet-name {
-    font-size: 11px;
+    font-size: 10px;
   }
 
   .wallet-balance {
@@ -960,7 +975,7 @@
 .transaction-history {
   background: white;
   border-radius: 16px;
-  padding: 16px;
+  padding: 20px;
   margin-bottom: 20px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
@@ -969,7 +984,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .transaction-history .section-header h2 {
@@ -982,32 +999,36 @@
 .transaction-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0;
 }
 
 .transaction-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: #f9fafb;
-  border-radius: 12px;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid #f5f5f5;
   transition: all 0.2s ease;
 }
 
+.transaction-item:last-child {
+  border-bottom: none;
+}
+
 .transaction-item:active {
-  background: #f3f4f6;
-  transform: scale(0.99);
+  opacity: 0.8;
 }
 
 .tx-icon {
-  font-size: 24px;
-  width: 40px;
-  height: 40px;
+  font-size: 20px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  background: #f0f0f0;
+  border-radius: 12px;
 }
 
 .tx-content {
@@ -1015,7 +1036,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .tx-category {
@@ -1026,7 +1047,7 @@
 
 .tx-date {
   font-size: 12px;
-  color: #9ca3af;
+  color: #b8b8b8;
 }
 
 .tx-amount {
@@ -1034,7 +1055,7 @@
   font-weight: 700;
   color: #1f2937;
   text-align: right;
-  min-width: 100px;
+  min-width: 110px;
 }
 
 .tx-amount.income {
@@ -1048,8 +1069,13 @@
 /* Responsive */
 @media (max-width: 480px) {
   .transaction-history {
-    padding: 14px;
+    padding: 16px;
     margin-bottom: 16px;
+  }
+
+  .transaction-history .section-header {
+    margin-bottom: 14px;
+    padding-bottom: 10px;
   }
 
   .transaction-history .section-header h2 {
@@ -1057,14 +1083,14 @@
   }
 
   .transaction-item {
-    padding: 10px;
-    gap: 10px;
+    padding: 12px 0;
+    gap: 12px;
   }
 
   .tx-icon {
-    font-size: 20px;
-    width: 36px;
-    height: 36px;
+    font-size: 18px;
+    width: 40px;
+    height: 40px;
   }
 
   .tx-category {
@@ -1077,6 +1103,6 @@
 
   .tx-amount {
     font-size: 13px;
-    min-width: 90px;
+    min-width: 100px;
   }
 }
