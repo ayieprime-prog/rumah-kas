@@ -33,6 +33,13 @@ router.post('/', async (req, res) => {
         userId, householdId, action: 'CREATE_INCOME', entity: 'INCOME', entityId: created.id,
         summary: `${source} - Rp${parsedAmount.toLocaleString('id-ID')}`
       });
+      await tx.notification.create({
+        data: {
+          type: 'INCOME_RECORDED',
+          message: `Pemasukan baru dicatat: ${source} - Rp${parsedAmount.toLocaleString('id-ID')}`,
+          householdId
+        }
+      });
       return created;
     });
     res.status(201).json(income);

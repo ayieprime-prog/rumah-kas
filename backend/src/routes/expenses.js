@@ -67,6 +67,13 @@ router.post('/', async (req, res) => {
         userId, householdId, action: 'CREATE_EXPENSE', entity: 'EXPENSE', entityId: created.id,
         summary: `${description} - Rp${parsedAmount.toLocaleString('id-ID')}`
       });
+      await tx.notification.create({
+        data: {
+          type: 'EXPENSE_RECORDED',
+          message: `Pengeluaran baru dicatat: ${description} - Rp${parsedAmount.toLocaleString('id-ID')}`,
+          householdId
+        }
+      });
       return created;
     });
 
