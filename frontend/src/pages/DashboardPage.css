@@ -119,23 +119,22 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-/* Summary Tabs Section */
-.summary-tabs-section {
-  margin-bottom: 20px;
-}
-
-.summary-tabs {
+/* Summary Toggle Tabs */
+.summary-toggle-tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 10px;
+  margin-bottom: 20px;
+  background: #f5f5f5;
+  padding: 4px;
+  border-radius: 14px;
 }
 
-.summary-tab {
+.summary-toggle-tab {
   padding: 12px 16px;
   border: none;
   border-radius: 12px;
-  background: #f5f5f5;
+  background: transparent;
   color: #9ca3af;
   font-size: 13px;
   font-weight: 600;
@@ -143,7 +142,7 @@
   transition: all 0.3s ease;
 }
 
-.summary-tab.active {
+.summary-toggle-tab.active {
   background: white;
   color: #1f2937;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
@@ -880,13 +879,16 @@
     height: 20px;
   }
 
-  .summary-tabs {
-    margin-bottom: 12px;
+  .summary-toggle-tabs {
+    gap: 8px;
+    padding: 3px;
+    margin-bottom: 16px;
   }
 
-  .summary-tab {
+  .summary-toggle-tab {
     padding: 10px 12px;
     font-size: 12px;
+    border-radius: 10px;
   }
 
   .financial-summary-section {
