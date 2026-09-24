@@ -282,43 +282,17 @@ const DashboardPage = ({ user }) => {
       {/* Summary Toggle Tabs */}
       <div className="summary-toggle-tabs">
         <button
-          className={`summary-toggle-tab ${summaryTab === 'agenda' ? 'active' : ''}`}
-          onClick={() => setSummaryTab('agenda')}
+          className={`summary-toggle-tab ${summaryTab === 'ringkasan' ? 'active' : ''}`}
+          onClick={() => setSummaryTab('ringkasan')}
         >
           Ringkasan Keuangan
         </button>
         <button
-          className={`summary-toggle-tab ${summaryTab === 'ringkasan' ? 'active' : ''}`}
-          onClick={() => setSummaryTab('ringkasan')}
+          className={`summary-toggle-tab ${summaryTab === 'agenda' ? 'active' : ''}`}
+          onClick={() => setSummaryTab('agenda')}
         >
           Agenda Minggu ini
         </button>
-      </div>
-
-      {/* Agenda Hari Ini Section - Always Show */}
-      <div className="agenda-section">
-        <div className="agenda-header">
-          <h2>Agenda Hari ini</h2>
-          <div className="agenda-header-right">
-            <span className="agenda-count">{MOCK_AGENDA.filter(a => a.completed).length}/{MOCK_AGENDA.length} selesai</span>
-            <button className="agenda-add-btn" onClick={() => setShowAddModal(true)}>
-              <Plus size={20} />
-            </button>
-          </div>
-        </div>
-        <div className="agenda-items">
-          {MOCK_AGENDA.map(item => (
-            <div key={item.id} className={`agenda-item ${item.completed ? 'completed' : ''}`}>
-              <div className="agenda-checkbox">
-                <input type="checkbox" defaultChecked={item.completed} />
-              </div>
-              <div className="agenda-content">
-                <span className="agenda-title">{item.title}</span>
-                <span className="agenda-time">{item.time}</span>
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* Financial Summary Section - Show only when ringkasan tab active */}
@@ -389,8 +363,36 @@ const DashboardPage = ({ user }) => {
         </div>
       )}
 
-      {/* Wallet Tabs - Show only when NOT in ringkasan mode */}
-      {summaryTab !== 'ringkasan' && wallets.length > 0 && (
+      {/* Agenda Section - Show only when agenda tab active */}
+      {summaryTab === 'agenda' && (
+        <div className="agenda-section">
+          <div className="agenda-header">
+            <h2>Agenda Hari ini</h2>
+            <div className="agenda-header-right">
+              <span className="agenda-count">{MOCK_AGENDA.filter(a => a.completed).length}/{MOCK_AGENDA.length} selesai</span>
+              <button className="agenda-add-btn" onClick={() => setShowAddModal(true)}>
+                <Plus size={20} />
+              </button>
+            </div>
+          </div>
+          <div className="agenda-items">
+            {MOCK_AGENDA.map(item => (
+              <div key={item.id} className={`agenda-item ${item.completed ? 'completed' : ''}`}>
+                <div className="agenda-checkbox">
+                  <input type="checkbox" defaultChecked={item.completed} />
+                </div>
+                <div className="agenda-content">
+                  <span className="agenda-title">{item.title}</span>
+                  <span className="agenda-time">{item.time}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Wallet Tabs - Show only when agenda tab active */}
+      {summaryTab === 'agenda' && wallets.length > 0 && (
         <div className="wallet-tabs">
           {wallets.map(wallet => {
             const IconComp = WALLET_ICONS[wallet.icon] || Wallet
@@ -411,66 +413,68 @@ const DashboardPage = ({ user }) => {
         </div>
       )}
 
-      {/* Saldo Aktif & Uang Bebas Cards */}
-      <div className="balance-cards">
-        <div className="balance-card saldo-aktif">
-          <div className="card-header">
-            <span className="card-label">Saldo Aktif</span>
-            <button className="eye-btn" onClick={() => setShowBalance(!showBalance)}>
-              {showBalance ? <Eye size={16} /> : <EyeOff size={16} />}
-            </button>
-          </div>
-          <div className="card-value">
-            {showBalance ? `Rp ${overview.balance.toLocaleString('id-ID')}` : '••••••••'}
-          </div>
-        </div>
-
-        <div className="balance-card uang-bebas">
-          <div className="card-header">
-            <span className="card-label">Uang Bebas</span>
-            <button className="eye-btn" onClick={() => setShowBalance(!showBalance)}>
-              {showBalance ? <Eye size={16} /> : <EyeOff size={16} />}
-            </button>
-          </div>
-          <div className="card-value">
-            {showBalance ? `Rp ${Math.max(0, uangBebas).toLocaleString('id-ID')}` : '••••••••'}
-          </div>
-        </div>
-      </div>
-
-      {/* Income & Expenses Summary */}
-      <div className="summary-grid">
-        <div className="summary-card income">
-          <div className="summary-label">Pemasukan Bulan Ini</div>
-          <div className="summary-value">Rp {overview.totalIncome.toLocaleString('id-ID')}</div>
-        </div>
-        <div className="summary-card expense">
-          <div className="summary-label">Pengeluaran Bulan Ini</div>
-          <div className="summary-value">Rp {overview.totalExpense.toLocaleString('id-ID')}</div>
-        </div>
-      </div>
-
-      {/* Transaction History */}
-      <div className="transaction-history">
-        <div className="section-header">
-          <h2>Riwayat Transaksi</h2>
-          <button className="view-all" onClick={() => navigate('/expenses')}>Lihat semua →</button>
-        </div>
-        <div className="transaction-list">
-          {MOCK_TRANSACTIONS.map(tx => (
-            <div key={tx.id} className="transaction-item">
-              <div className="tx-icon">{tx.icon}</div>
-              <div className="tx-content">
-                <div className="tx-category">{tx.category}</div>
-                <div className="tx-date">{tx.date}</div>
-              </div>
-              <div className={`tx-amount ${tx.type}`}>
-                {tx.type === 'income' ? '+' : '-'} Rp {tx.amount.toLocaleString('id-ID')}
-              </div>
+      {/* Saldo Aktif & Uang Bebas Cards - Show only when agenda tab active */}
+      {summaryTab === 'agenda' && (
+        <div className="balance-cards">
+          <div className="balance-card saldo-aktif">
+            <div className="card-header">
+              <span className="card-label">Saldo Aktif</span>
+              <button className="eye-btn" onClick={() => setShowBalance(!showBalance)}>
+                {showBalance ? <Eye size={16} /> : <EyeOff size={16} />}
+              </button>
             </div>
-          ))}
+            <div className="card-value">
+              {showBalance ? `Rp ${overview.balance.toLocaleString('id-ID')}` : '••••••••'}
+            </div>
+          </div>
+
+          <div className="balance-card uang-bebas">
+            <div className="card-header">
+              <span className="card-label">Uang Bebas</span>
+              <button className="eye-btn" onClick={() => setShowBalance(!showBalance)}>
+                {showBalance ? <Eye size={16} /> : <EyeOff size={16} />}
+              </button>
+            </div>
+            <div className="card-value">
+              {showBalance ? `Rp ${Math.max(0, uangBebas).toLocaleString('id-ID')}` : '••••••••'}
+            </div>
+          </div>
         </div>
-      </div>
+
+        {/* Income & Expenses Summary */}
+        <div className="summary-grid">
+          <div className="summary-card income">
+            <div className="summary-label">Pemasukan Bulan Ini</div>
+            <div className="summary-value">Rp {overview.totalIncome.toLocaleString('id-ID')}</div>
+          </div>
+          <div className="summary-card expense">
+            <div className="summary-label">Pengeluaran Bulan Ini</div>
+            <div className="summary-value">Rp {overview.totalExpense.toLocaleString('id-ID')}</div>
+          </div>
+        </div>
+
+        {/* Transaction History */}
+        <div className="transaction-history">
+          <div className="section-header">
+            <h2>Riwayat Transaksi</h2>
+            <button className="view-all" onClick={() => navigate('/expenses')}>Lihat semua →</button>
+          </div>
+          <div className="transaction-list">
+            {MOCK_TRANSACTIONS.map(tx => (
+              <div key={tx.id} className="transaction-item">
+                <div className="tx-icon">{tx.icon}</div>
+                <div className="tx-content">
+                  <div className="tx-category">{tx.category}</div>
+                  <div className="tx-date">{tx.date}</div>
+                </div>
+                <div className={`tx-amount ${tx.type}`}>
+                  {tx.type === 'income' ? '+' : '-'} Rp {tx.amount.toLocaleString('id-ID')}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Add Todo/Keuangan Modal */}
       {showAddModal && (
