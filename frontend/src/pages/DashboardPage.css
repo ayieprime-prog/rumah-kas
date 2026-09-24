@@ -39,54 +39,9 @@
 
 .welcome-topline {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   gap: 8px;
-}
-
-.welcome-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.action-icon {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  border-radius: 8px;
-  padding: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #1f2937;
-  transition: all 0.2s ease;
-}
-
-.action-icon:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.action-icon:active {
-  transform: scale(0.95);
-}
-
-.action-icon:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.action-icon.spinning svg {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 .welcome-section h1 {
@@ -611,23 +566,6 @@
 
   .welcome-section p {
     font-size: 12px;
-  }
-
-  .welcome-topline {
-    flex-wrap: wrap;
-  }
-
-  .welcome-actions {
-    gap: 8px;
-  }
-
-  .action-icon {
-    padding: 6px;
-  }
-
-  .action-icon svg {
-    width: 18px;
-    height: 18px;
   }
 
   .welcome-clock {

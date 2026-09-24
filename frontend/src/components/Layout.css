@@ -36,7 +36,46 @@
 .topbar-right {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
+}
+
+.topbar-action-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  border-radius: 8px;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  transition: all 0.2s ease;
+}
+
+.topbar-action-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.topbar-action-btn:active {
+  transform: scale(0.95);
+}
+
+.topbar-action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.topbar-action-btn.spinning svg {
+  animation: topbar-spin 1s linear infinite;
+}
+
+@keyframes topbar-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .topbar-user {

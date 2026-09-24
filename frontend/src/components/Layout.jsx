@@ -1,11 +1,12 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Home, Wallet, Calendar, Heart, MoreHorizontal } from 'lucide-react'
+import { Home, Wallet, Calendar, Heart, MoreHorizontal, Search, RefreshCw } from 'lucide-react'
 import NotificationBell from './NotificationBell'
 import './Layout.css'
 
 const Layout = ({ user, children }) => {
   const location = useLocation()
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   const tabs = [
     { path: '/', label: 'Beranda', icon: Home },
@@ -26,6 +27,18 @@ const Layout = ({ user, children }) => {
     return location.pathname === item.path
   }
 
+  const handleRefresh = () => {
+    setIsRefreshing(true)
+    window.dispatchEvent(new CustomEvent('dashboard-refresh'))
+    setTimeout(() => setIsRefreshing(false), 1500)
+  }
+
+  const handleSearch = () => {
+    window.location.href = '/expenses'
+  }
+
+  const isBerandaPage = location.pathname === '/'
+
   return (
     <div className="layout">
       <header className="topbar">
@@ -34,6 +47,25 @@ const Layout = ({ user, children }) => {
           Pundi
         </Link>
         <div className="topbar-right">
+          {isBerandaPage && (
+            <>
+              <button
+                className={`topbar-action-btn ${isRefreshing ? 'spinning' : ''}`}
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                title="Refresh data"
+              >
+                <RefreshCw size={18} />
+              </button>
+              <button
+                className="topbar-action-btn"
+                onClick={handleSearch}
+                title="Cari transaksi"
+              >
+                <Search size={18} />
+              </button>
+            </>
+          )}
           <NotificationBell />
           <Link to="/profile" className="topbar-user">
             <span>{user?.name}</span>
