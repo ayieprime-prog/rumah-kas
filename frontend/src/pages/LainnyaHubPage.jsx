@@ -1,25 +1,26 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { MessageCircle, BookHeart, ChevronRight, Heart } from 'lucide-react'
+import { Wrench, Link2, Settings, ChevronRight, MoreHorizontal } from 'lucide-react'
 import './HubPage.css'
 
 const items = [
-  { path: '/conversation-cards', label: 'Conversation Cards', desc: 'Kartu obrolan seru untuk pasangan', icon: MessageCircle },
-  { path: '/journal', label: 'Jurnal Keluarga', desc: 'Catatan & kenangan harian bersama', icon: BookHeart },
+  { path: '/maintenance', label: 'Maintenance', desc: 'Jadwal perawatan rumah & kendaraan', icon: Wrench },
+  { path: '/links', label: 'Link Penting', desc: 'Simpan tautan penting keluarga', icon: Link2 },
+  { path: '/settings', label: 'Pengaturan', desc: 'Profil, keamanan, & preferensi aplikasi', icon: Settings },
 ]
 
-const BerduaHubPage = () => {
+const LainnyaHubPage = () => {
   return (
     <div className="hub-page">
       <div className="page-header">
-        <h1>Berdua</h1>
-        <p>Hubungan & aktivitas bersama pasangan</p>
+        <h1>Lainnya</h1>
+        <p>Fitur tambahan & pengaturan aplikasi</p>
       </div>
 
       <div className="hub-summary">
         <div className="summary-item">
-          <Heart size={20} color="#c55a82" />
-          <span>Hubungan Harmonis</span>
+          <MoreHorizontal size={20} color="#6b7280" />
+          <span>Kelola Aplikasi</span>
         </div>
       </div>
 
@@ -44,4 +45,4 @@ const BerduaHubPage = () => {
   )
 }
 
-export default BerduaHubPage
+export default LainnyaHubPage
