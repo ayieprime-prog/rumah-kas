@@ -94,6 +94,7 @@
 }
 
 .shortcut-item {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -117,6 +118,36 @@
 
 .shortcut-item:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Shimmering glossy rim - a thin translucent border plus a slow diagonal
+   light sweep, layered via mask so only the edge is visible and the
+   button/card's own background and content are untouched. Shared across
+   the hero weather card, the forecast pills, and the shortcut buttons for
+   a cohesive "premium" look regardless of each element's own color. */
+.dashboard-header::after,
+.forecast-item::after,
+.shortcut-item::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background-image:
+    linear-gradient(115deg, transparent 20%, rgba(255, 255, 255, 0.9) 50%, transparent 80%),
+    linear-gradient(rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.35));
+  background-size: 250% 250%, 100% 100%;
+  background-repeat: no-repeat, no-repeat;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  animation: shimmerSweep 3.5s ease-in-out infinite;
+}
+
+@keyframes shimmerSweep {
+  0% { background-position: -50% 0%, 0 0; }
+  100% { background-position: 150% 0%, 0 0; }
 }
 
 /* Summary Toggle Tabs */
@@ -1072,6 +1103,7 @@
 }
 
 .forecast-item {
+  position: relative;
   flex: 1;
   display: flex;
   flex-direction: column;
