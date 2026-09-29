@@ -38,6 +38,10 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: `Frequency must be one of: ${FREQUENCIES.join(', ')}` });
   }
 
+  if (endDate && new Date(endDate) <= new Date(startDate)) {
+    return res.status(400).json({ error: 'End date must be after start date' });
+  }
+
   try {
     const category = await prisma.expenseCategory.findFirst({ where: { id: categoryId, householdId } });
     if (!category) {
@@ -87,6 +91,12 @@ router.put('/:id', async (req, res) => {
 
     if (frequency && !FREQUENCIES.includes(frequency)) {
       return res.status(400).json({ error: `Frequency must be one of: ${FREQUENCIES.join(', ')}` });
+    }
+
+    const effectiveStartDate = startDate ? new Date(startDate) : existing.startDate;
+    const effectiveEndDate = endDate !== undefined ? (endDate ? new Date(endDate) : null) : existing.endDate;
+    if (effectiveEndDate && effectiveEndDate <= effectiveStartDate) {
+      return res.status(400).json({ error: 'End date must be after start date' });
     }
 
     if (categoryId && categoryId !== existing.categoryId) {
