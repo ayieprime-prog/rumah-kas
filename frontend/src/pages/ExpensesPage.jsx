@@ -17,7 +17,7 @@ const ExpensesPage = () => {
   const [error, setError] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [form, setForm] = useState({ description: '', amount: '', categoryId: '', walletId: '', date: new Date().toISOString().slice(0, 10) })
+  const [form, setForm] = useState({ description: '', amount: '', categoryId: '', walletId: '', date: new Date().toISOString().slice(0, 10), scope: 'KELUARGA' })
 
   const month = currentMonth()
 
@@ -57,7 +57,7 @@ const ExpensesPage = () => {
       if (!submitData.walletId) delete submitData.walletId
       await axios.post('/api/expenses', submitData)
       setShowModal(false)
-      setForm({ description: '', amount: '', categoryId: '', walletId: '', date: new Date().toISOString().slice(0, 10) })
+      setForm({ description: '', amount: '', categoryId: '', walletId: '', date: new Date().toISOString().slice(0, 10), scope: 'KELUARGA' })
       loadData()
     } catch (err) {
       setError(err.response?.data?.error || 'Gagal menyimpan pengeluaran')
@@ -180,6 +180,13 @@ const ExpensesPage = () => {
                   </select>
                 </div>
               )}
+              <div className="form-group">
+                <label>Pos</label>
+                <select value={form.scope} onChange={e => setForm({ ...form, scope: e.target.value })}>
+                  <option value="KELUARGA">Keluarga</option>
+                  <option value="PRIBADI">Pribadi</option>
+                </select>
+              </div>
               <button type="submit" className="btn-pill" disabled={saving}>
                 {saving ? 'Menyimpan...' : 'Simpan'}
               </button>

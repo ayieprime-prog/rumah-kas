@@ -100,6 +100,7 @@ model Expense {
   description String
   amount      Float
   date        DateTime
+  scope       String   @default("KELUARGA") // "KELUARGA" or "PRIBADI"
 
   householdId       String
   household         Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
@@ -129,6 +130,7 @@ model Income {
   source      String   // e.g., "Gaji Suami", "Passive Income", etc
   amount      Float
   date        DateTime
+  scope       String   @default("KELUARGA") // "KELUARGA" or "PRIBADI"
 
   householdId String
   household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
@@ -321,6 +323,7 @@ model Wallet {
   balance   Float    @default(0)
   icon      String   @default("wallet")
   isActive  Boolean  @default(true)
+  scope     String   @default("KELUARGA") // "KELUARGA" or "PRIBADI"
 
   householdId String
   household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)

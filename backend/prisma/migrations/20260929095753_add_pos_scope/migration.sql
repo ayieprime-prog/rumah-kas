@@ -1,0 +1,8 @@
+-- AlterTable
+ALTER TABLE "Expense" ADD COLUMN     "scope" TEXT NOT NULL DEFAULT 'KELUARGA';
+
+-- AlterTable
+ALTER TABLE "Income" ADD COLUMN     "scope" TEXT NOT NULL DEFAULT 'KELUARGA';
+
+-- AlterTable
+ALTER TABLE "Wallet" ADD COLUMN     "scope" TEXT NOT NULL DEFAULT 'KELUARGA';

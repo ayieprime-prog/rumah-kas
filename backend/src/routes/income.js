@@ -12,6 +12,8 @@ async function adjustWalletBalance(tx, walletId, delta) {
   await tx.wallet.update({ where: { id: walletId }, data: { balance: { increment: delta } } });
 }
 
+const SCOPES = ['KELUARGA', 'PRIBADI'];
+
 // Ringkasan pendapatan yang "dikunci" per kategori untuk sebuah bulan
 router.get('/locks', async (req, res) => {
   const { householdId } = req;
@@ -27,8 +29,12 @@ router.get('/locks', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const { source, amount, date, walletId, lockedCategoryId } = req.body;
+  const { source, amount, date, walletId, lockedCategoryId, scope } = req.body;
   const { householdId, userId } = req;
+
+  if (scope && !SCOPES.includes(scope)) {
+    return res.status(400).json({ error: `Scope must be one of: ${SCOPES.join(', ')}` });
+  }
 
   try {
     if (walletId) {
@@ -54,7 +60,8 @@ router.post('/', async (req, res) => {
           date: new Date(date),
           householdId,
           walletId: walletId || null,
-          lockedCategoryId: lockedCategoryId || null
+          lockedCategoryId: lockedCategoryId || null,
+          scope: scope || 'KELUARGA'
         },
         include: { wallet: true, lockedCategory: true }
       });
@@ -111,8 +118,12 @@ router.get('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
-  const { source, amount, date, walletId, lockedCategoryId } = req.body;
+  const { source, amount, date, walletId, lockedCategoryId, scope } = req.body;
   const { householdId, userId } = req;
+
+  if (scope && !SCOPES.includes(scope)) {
+    return res.status(400).json({ error: `Scope must be one of: ${SCOPES.join(', ')}` });
+  }
 
   try {
     const existing = await prisma.income.findFirst({ where: { id, householdId } });
@@ -145,7 +156,8 @@ router.put('/:id', async (req, res) => {
           ...(amount && { amount: newAmount }),
           ...(date && { date: new Date(date) }),
           ...(walletId !== undefined && { walletId: newWalletId }),
-          ...(lockedCategoryId !== undefined && { lockedCategoryId: lockedCategoryId || null })
+          ...(lockedCategoryId !== undefined && { lockedCategoryId: lockedCategoryId || null }),
+          ...(scope && { scope })
         },
         include: { wallet: true, lockedCategory: true }
       });

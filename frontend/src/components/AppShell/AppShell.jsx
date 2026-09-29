@@ -84,9 +84,9 @@ function BottomNavigation({ currentPath }) {
   const navItems = [
     { icon: Home, label: 'Beranda', path: '/', ariaLabel: 'Home' },
     { icon: Wallet, label: 'Keuangan', path: '/keuangan', ariaLabel: 'Finance' },
-    { icon: Calendar, label: 'Kalender', path: '/calendar', ariaLabel: 'Calendar' },
-    { icon: Users, label: 'Berdua', path: '/shared', ariaLabel: 'Shared' },
-    { icon: Settings, label: 'Lainnya', path: '/settings', ariaLabel: 'Settings' }
+    { icon: Calendar, label: 'Kalender', path: '/kalender', ariaLabel: 'Calendar' },
+    { icon: Users, label: 'Berdua', path: '/berdua', ariaLabel: 'Shared' },
+    { icon: Settings, label: 'Lainnya', path: '/lainnya', ariaLabel: 'Settings' }
   ]
 
   return (
@@ -123,9 +123,9 @@ function SideNavigation({ currentPath }) {
   const navItems = [
     { icon: Home, label: 'Beranda', path: '/', ariaLabel: 'Home' },
     { icon: Wallet, label: 'Keuangan', path: '/keuangan', ariaLabel: 'Finance' },
-    { icon: Calendar, label: 'Kalender', path: '/calendar', ariaLabel: 'Calendar' },
-    { icon: Users, label: 'Berdua', path: '/shared', ariaLabel: 'Shared' },
-    { icon: Settings, label: 'Lainnya', path: '/settings', ariaLabel: 'Settings' }
+    { icon: Calendar, label: 'Kalender', path: '/kalender', ariaLabel: 'Calendar' },
+    { icon: Users, label: 'Berdua', path: '/berdua', ariaLabel: 'Shared' },
+    { icon: Settings, label: 'Lainnya', path: '/lainnya', ariaLabel: 'Settings' }
   ]
 
   return (

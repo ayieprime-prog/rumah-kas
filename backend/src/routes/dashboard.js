@@ -66,6 +66,15 @@ router.get('/', cacheMiddleware(req => cacheKeys.dashboard(req.householdId), 60)
     const totalExpense = expenses.reduce((sum, e) => sum + e.amount, 0);
     const balance = totalIncome - totalExpense;
 
+    // Same totals split by Pos (Keluarga/Pribadi) so the frontend can filter
+    // the "Saldo Aktif" figure without needing the raw transaction lists.
+    const byScope = {};
+    for (const scope of ['KELUARGA', 'PRIBADI']) {
+      const scopedIncome = incomes.filter(i => i.scope === scope).reduce((sum, i) => sum + i.amount, 0);
+      const scopedExpense = expenses.filter(e => e.scope === scope).reduce((sum, e) => sum + e.amount, 0);
+      byScope[scope] = { totalIncome: scopedIncome, totalExpense: scopedExpense, balance: scopedIncome - scopedExpense };
+    }
+
     // Group expenses by category
     const expensesByCategory = {};
     expenses.forEach(exp => {
@@ -87,7 +96,8 @@ router.get('/', cacheMiddleware(req => cacheKeys.dashboard(req.householdId), 60)
         currentMonth,
         totalIncome,
         totalExpense,
-        balance
+        balance,
+        byScope
       },
       expensesByCategory,
       budgets,
@@ -104,7 +114,8 @@ router.get('/', cacheMiddleware(req => cacheKeys.dashboard(req.householdId), 60)
         name: w.name,
         type: w.type,
         balance: w.balance,
-        icon: w.icon
+        icon: w.icon,
+        scope: w.scope
       })),
       walletSummary: {
         totalBalance,

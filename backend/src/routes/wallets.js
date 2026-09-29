@@ -56,10 +56,14 @@ router.get('/summary', authenticate, async (req, res) => {
 // Create wallet
 router.post('/', authenticate, async (req, res) => {
   try {
-    const { name, type, balance, icon } = req.body
+    const { name, type, balance, icon, scope } = req.body
 
     if (!name || !type) {
       return res.status(400).json({ error: 'Name and type are required' })
+    }
+
+    if (scope && !['KELUARGA', 'PRIBADI'].includes(scope)) {
+      return res.status(400).json({ error: 'Scope must be one of: KELUARGA, PRIBADI' })
     }
 
     const user = await prisma.user.findUnique({
@@ -75,6 +79,7 @@ router.post('/', authenticate, async (req, res) => {
         type,
         balance: balance || 0,
         icon: icon || 'wallet',
+        scope: scope || 'KELUARGA',
         householdId: user.householdId
       }
     })
@@ -89,8 +94,12 @@ router.post('/', authenticate, async (req, res) => {
 // Update wallet
 router.put('/:id', authenticate, async (req, res) => {
   try {
-    const { name, type, balance, isActive } = req.body
+    const { name, type, balance, isActive, scope } = req.body
     const walletId = req.params.id
+
+    if (scope && !['KELUARGA', 'PRIBADI'].includes(scope)) {
+      return res.status(400).json({ error: 'Scope must be one of: KELUARGA, PRIBADI' })
+    }
 
     const wallet = await prisma.wallet.findUnique({ where: { id: walletId } })
     if (!wallet) return res.status(404).json({ error: 'Wallet not found' })
@@ -110,7 +119,8 @@ router.put('/:id', authenticate, async (req, res) => {
         ...(name && { name }),
         ...(type && { type }),
         ...(balance !== undefined && { balance }),
-        ...(isActive !== undefined && { isActive })
+        ...(isActive !== undefined && { isActive }),
+        ...(scope && { scope })
       }
     })
 

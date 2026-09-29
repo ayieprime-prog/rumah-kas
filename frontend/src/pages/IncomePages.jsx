@@ -15,7 +15,7 @@ const IncomePages = () => {
   const [error, setError] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [form, setForm] = useState({ source: '', amount: '', walletId: '', lockedCategoryId: '', date: new Date().toISOString().slice(0, 10) })
+  const [form, setForm] = useState({ source: '', amount: '', walletId: '', lockedCategoryId: '', date: new Date().toISOString().slice(0, 10), scope: 'KELUARGA' })
 
   useEffect(() => { loadData() }, [])
 
@@ -50,7 +50,7 @@ const IncomePages = () => {
       if (!submitData.lockedCategoryId) delete submitData.lockedCategoryId
       await axios.post('/api/income', submitData)
       setShowModal(false)
-      setForm({ source: '', amount: '', walletId: '', lockedCategoryId: '', date: new Date().toISOString().slice(0, 10) })
+      setForm({ source: '', amount: '', walletId: '', lockedCategoryId: '', date: new Date().toISOString().slice(0, 10), scope: 'KELUARGA' })
       loadData()
     } catch (err) {
       setError('Gagal menyimpan pemasukan')
@@ -193,6 +193,13 @@ const IncomePages = () => {
                   </small>
                 </div>
               )}
+              <div className="form-group">
+                <label>Pos</label>
+                <select value={form.scope} onChange={e => setForm({ ...form, scope: e.target.value })}>
+                  <option value="KELUARGA">Keluarga</option>
+                  <option value="PRIBADI">Pribadi</option>
+                </select>
+              </div>
               <button type="submit" className="btn-pill" disabled={saving}>
                 {saving ? 'Menyimpan...' : 'Simpan'}
               </button>

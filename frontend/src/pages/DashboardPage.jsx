@@ -170,6 +170,7 @@ const DashboardPage = ({ user }) => {
           overview={overview}
           goals={goals}
           incomeLocks={incomeLocks}
+          wallets={wallets}
           walletSummary={walletSummary}
           debtSummary={debtSummary}
           portfolio={portfolio}

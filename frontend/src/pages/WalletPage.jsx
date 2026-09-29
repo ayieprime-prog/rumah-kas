@@ -17,7 +17,7 @@ const WalletPage = () => {
   const [showModal, setShowModal] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [saving, setSaving] = useState(false)
-  const [form, setForm] = useState({ name: '', type: 'CASH', balance: 0 })
+  const [form, setForm] = useState({ name: '', type: 'CASH', balance: 0, scope: 'KELUARGA' })
 
   useEffect(() => {
     loadWallets()
@@ -46,7 +46,7 @@ const WalletPage = () => {
       }
       setShowModal(false)
       setEditingId(null)
-      setForm({ name: '', type: 'CASH', balance: 0 })
+      setForm({ name: '', type: 'CASH', balance: 0, scope: 'KELUARGA' })
       loadWallets()
     } catch (err) {
       setError(editingId ? 'Gagal mengubah wallet' : 'Gagal membuat wallet')
@@ -57,7 +57,7 @@ const WalletPage = () => {
 
   const handleEdit = (wallet) => {
     setEditingId(wallet.id)
-    setForm({ name: wallet.name, type: wallet.type, balance: wallet.balance })
+    setForm({ name: wallet.name, type: wallet.type, balance: wallet.balance, scope: wallet.scope || 'KELUARGA' })
     setShowModal(true)
   }
 
@@ -73,7 +73,7 @@ const WalletPage = () => {
 
   const handleOpenModal = () => {
     setEditingId(null)
-    setForm({ name: '', type: 'CASH', balance: 0 })
+    setForm({ name: '', type: 'CASH', balance: 0, scope: 'KELUARGA' })
     setShowModal(true)
   }
 
@@ -109,7 +109,7 @@ const WalletPage = () => {
               <div key={wallet.id} className="list-row" style={{ alignItems: 'center' }}>
                 <div className="list-row-body" style={{ flex: 1 }}>
                   <div className="list-row-title">{typeInfo?.icon || '💳'} {wallet.name}</div>
-                  <div className="list-row-subtitle">{typeInfo?.label}</div>
+                  <div className="list-row-subtitle">{typeInfo?.label}{wallet.scope === 'PRIBADI' ? ' · Pribadi' : ''}</div>
                 </div>
                 <div style={{ textAlign: 'right', marginRight: 16 }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: '#1f2937' }}>
@@ -169,6 +169,13 @@ const WalletPage = () => {
                   onChange={e => setForm({ ...form, balance: parseFloat(e.target.value) || 0 })}
                   placeholder="0"
                 />
+              </div>
+              <div className="form-group">
+                <label>Pos</label>
+                <select value={form.scope} onChange={e => setForm({ ...form, scope: e.target.value })}>
+                  <option value="KELUARGA">Keluarga</option>
+                  <option value="PRIBADI">Pribadi</option>
+                </select>
               </div>
               <button type="submit" className="btn-pill" disabled={saving}>
                 {saving ? 'Menyimpan...' : 'Simpan'}

@@ -8,6 +8,7 @@ const router = express.Router();
 const prisma = new PrismaClient();
 
 const monthOf = (date) => new Date(date).toISOString().slice(0, 7);
+const SCOPES = ['KELUARGA', 'PRIBADI'];
 
 async function adjustWalletBalance(tx, walletId, delta) {
   if (!walletId || !delta) return;
@@ -37,11 +38,15 @@ async function adjustBudgetSpent(tx, householdId, month, categoryId, delta) {
 
 // Create expense
 router.post('/', async (req, res) => {
-  const { description, amount, categoryId, date, walletId } = req.body;
+  const { description, amount, categoryId, date, walletId, scope } = req.body;
   const { householdId, userId } = req;
 
   if (!description || !amount || !categoryId || !date) {
     return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  if (scope && !SCOPES.includes(scope)) {
+    return res.status(400).json({ error: `Scope must be one of: ${SCOPES.join(', ')}` });
   }
 
   try {
@@ -60,7 +65,7 @@ router.post('/', async (req, res) => {
     const parsedAmount = parseFloat(amount);
     const expense = await prisma.$transaction(async (tx) => {
       const created = await tx.expense.create({
-        data: { description, amount: parsedAmount, date: new Date(date), householdId, categoryId, walletId: walletId || null },
+        data: { description, amount: parsedAmount, date: new Date(date), householdId, categoryId, walletId: walletId || null, scope: scope || 'KELUARGA' },
         include: { category: true, wallet: true }
       });
       await adjustBudgetSpent(tx, householdId, monthOf(date), categoryId, parsedAmount);
@@ -128,8 +133,12 @@ router.get('/', async (req, res) => {
 // Update expense
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
-  const { description, amount, categoryId, date, walletId } = req.body;
+  const { description, amount, categoryId, date, walletId, scope } = req.body;
   const { householdId, userId } = req;
+
+  if (scope && !SCOPES.includes(scope)) {
+    return res.status(400).json({ error: `Scope must be one of: ${SCOPES.join(', ')}` });
+  }
 
   try {
     const existing = await prisma.expense.findFirst({ where: { id, householdId } });
@@ -164,7 +173,8 @@ router.put('/:id', async (req, res) => {
           ...(amount !== undefined && { amount: newAmount }),
           ...(categoryId && { categoryId }),
           ...(date && { date: newDate }),
-          ...(walletId !== undefined && { walletId: newWalletId })
+          ...(walletId !== undefined && { walletId: newWalletId }),
+          ...(scope && { scope })
         },
         include: { category: true, wallet: true }
       });

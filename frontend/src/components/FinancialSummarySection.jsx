@@ -1,10 +1,13 @@
 import React, { useState } from 'react'
 import { Eye, EyeOff, ChevronDown, ChevronUp } from 'lucide-react'
 
+const WALLET_TYPE_MAP = { tunai: 'CASH', bank: 'BANK_ACCOUNT', digital: 'DIGITAL_WALLET' }
+
 const FinancialSummarySection = ({
   overview,
   goals,
   incomeLocks,
+  wallets,
   walletSummary,
   debtSummary,
   portfolio,
@@ -17,11 +20,27 @@ const FinancialSummarySection = ({
 }) => {
   const [showKekayaanDetail, setShowKekayaanDetail] = useState(false)
 
+  // "Keluarga" is the default/only option until a wallet or transaction is
+  // explicitly marked Pribadi, so the 'semua' filter value (the Pos
+  // toggle's default) maps to KELUARGA, not "ignore the filter" like the
+  // wallet-type filter's 'semua' does.
+  const posScope = selectedPosFilter === 'pribadi' ? 'PRIBADI' : 'KELUARGA'
+
+  const filteredWallets = (wallets || []).filter(w => {
+    if (selectedWalletFilter !== 'semua' && w.type !== WALLET_TYPE_MAP[selectedWalletFilter]) return false
+    if ((w.scope || 'KELUARGA') !== posScope) return false
+    return true
+  })
+  const totalSaldoWallet = filteredWallets.reduce((sum, w) => sum + w.balance, 0)
+
+  // Assets and debts have no Pos concept yet, so they're counted the same
+  // regardless of which Pos is selected - only the wallet-derived and
+  // monthly-income/expense portions actually respond to the Pos filter.
+  const scopedOverview = overview.byScope?.[posScope] || overview
   const totalGoals = goals.reduce((sum, g) => sum + g.currentAmount, 0)
   const totalLocked = incomeLocks?.totalRemaining || 0
-  const uangBebas = overview.balance - totalGoals - totalLocked
+  const uangBebas = scopedOverview.balance - totalGoals - totalLocked
 
-  const totalSaldoWallet = walletSummary?.totalBalance || 0
   const totalNilaiAset = portfolio?.summary?.totalValue || 0
   const totalUtang = debtSummary?.totalDebt || 0
   const totalHarta = totalSaldoWallet + totalNilaiAset
@@ -109,7 +128,7 @@ const FinancialSummarySection = ({
         <div className="saldo-aktif-breakdown">
           <div className="breakdown-item">
             <span className="breakdown-label">Saldo Bulan Ini</span>
-            <span className="breakdown-amount">{formatRp(overview.balance)}</span>
+            <span className="breakdown-amount">{formatRp(scopedOverview.balance)}</span>
           </div>
           <div className="breakdown-item">
             <span className="breakdown-label">Tabungan/Goal</span>
