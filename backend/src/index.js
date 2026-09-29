@@ -9,6 +9,8 @@ require('express-async-errors');
 
 const { errorHandler, notFound } = require('./middleware/errorHandler');
 const { authenticate } = require('./middleware/auth');
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('../openapi.json');
 
 // Import routes with error handling
 let authRoutes, householdRoutes, expenseRoutes, incomeRoutes, budgetRoutes, goalRoutes, debtRoutes, dashboardRoutes, reportsRoutes, notificationRoutes, linkRoutes, maintenanceRoutes, eventRoutes, journalRoutes, auditLogRoutes, walletRoutes, assetRoutes, transferRoutes, allocationRoutes, budgetAnalyticsRoutes;
@@ -116,6 +118,16 @@ app.get('/health', (req, res) => {
     db: process.env.DATABASE_URL ? 'configured' : 'not_configured'
   });
 });
+
+// Swagger UI - API Documentation (accessible without auth for reference)
+app.use('/api/docs', swaggerUi.serve);
+app.get('/api/docs', swaggerUi.setup(swaggerDocument, {
+  swaggerOptions: {
+    docExpansion: 'list',
+    defaultModelsExpandDepth: 1,
+    displayOperationId: true
+  }
+}));
 
 // Public routes
 if (authRoutes) app.use('/api/auth', authRoutes);
