@@ -1,8 +1,32 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
+const { invalidateCache } = require('../utils/caching');
 
 const router = express.Router();
 const prisma = new PrismaClient();
+
+const monthOf = (date) => date.toISOString().slice(0, 7);
+
+async function adjustBudgetSpent(tx, householdId, month, categoryId, delta) {
+  if (!delta) return;
+  const budget = await tx.budget.findUnique({
+    where: { householdId_month_categoryId: { householdId, month, categoryId } }
+  });
+  if (!budget) return;
+  const nextSpent = Math.max(0, budget.spent + delta);
+  await tx.budget.update({ where: { id: budget.id }, data: { spent: nextSpent } });
+
+  if (delta > 0 && nextSpent > budget.limit && budget.spent <= budget.limit) {
+    const category = await tx.expenseCategory.findUnique({ where: { id: categoryId } });
+    await tx.notification.create({
+      data: {
+        type: 'BUDGET_EXCEEDED',
+        message: `Anggaran "${category?.name}" sudah melebihi batas bulan ini`,
+        householdId
+      }
+    });
+  }
+}
 
 // Create maintenance item
 router.post('/', async (req, res) => {
@@ -131,10 +155,16 @@ router.post('/:id/log', async (req, res) => {
             householdId
           }
         });
+
+        await adjustBudgetSpent(tx, householdId, monthOf(serviceDateObj), categoryId, parsedCost);
       }
 
       return { log, item: updatedItem };
     });
+
+    if (recordAsExpense && parsedCost && categoryId) {
+      invalidateCache.dashboard(householdId);
+    }
 
     res.status(201).json(result);
   } catch (error) {
