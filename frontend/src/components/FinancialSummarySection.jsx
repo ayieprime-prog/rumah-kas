@@ -1,10 +1,13 @@
-import React from 'react'
-import { Eye, EyeOff } from 'lucide-react'
+import React, { useState } from 'react'
+import { Eye, EyeOff, ChevronDown, ChevronUp } from 'lucide-react'
 
 const FinancialSummarySection = ({
   overview,
   goals,
   incomeLocks,
+  walletSummary,
+  debtSummary,
+  portfolio,
   showBalance,
   onToggleBalance,
   selectedWalletFilter,
@@ -12,9 +15,19 @@ const FinancialSummarySection = ({
   selectedPosFilter,
   onPosFilterChange
 }) => {
+  const [showKekayaanDetail, setShowKekayaanDetail] = useState(false)
+
   const totalGoals = goals.reduce((sum, g) => sum + g.currentAmount, 0)
   const totalLocked = incomeLocks?.totalRemaining || 0
   const uangBebas = overview.balance - totalGoals - totalLocked
+
+  const totalSaldoWallet = walletSummary?.totalBalance || 0
+  const totalNilaiAset = portfolio?.summary?.totalValue || 0
+  const totalUtang = debtSummary?.totalDebt || 0
+  const totalHarta = totalSaldoWallet + totalNilaiAset
+  const kekayaanBersih = totalHarta - totalUtang
+
+  const formatRp = (value) => showBalance ? `Rp ${value.toLocaleString('id-ID')}` : '••••••••'
 
   return (
     <div className="financial-summary-section">
@@ -47,12 +60,36 @@ const FinancialSummarySection = ({
           </button>
         </div>
         <div className="kekayaan-value">
-          {showBalance ? `Rp ${overview.balance.toLocaleString('id-ID')}` : '••••••••'}
+          {formatRp(kekayaanBersih)}
         </div>
         <div className="kekayaan-detail">
-          Harta Rp {showBalance ? overview.balance.toLocaleString('id-ID') : '••••••••'} – Utang Rp 0
+          Harta {formatRp(totalHarta)} – Utang {formatRp(totalUtang)}
         </div>
-        <button className="kekayaan-detail-btn">Lihat rincian →</button>
+        <button
+          className="kekayaan-detail-btn"
+          onClick={() => setShowKekayaanDetail(!showKekayaanDetail)}
+          aria-expanded={showKekayaanDetail}
+        >
+          {showKekayaanDetail ? 'Sembunyikan rincian' : 'Lihat rincian'}
+          {showKekayaanDetail ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        </button>
+
+        {showKekayaanDetail && (
+          <div className="kekayaan-breakdown">
+            <div className="breakdown-item">
+              <span className="breakdown-label">Saldo Wallet</span>
+              <span className="breakdown-amount">{formatRp(totalSaldoWallet)}</span>
+            </div>
+            <div className="breakdown-item">
+              <span className="breakdown-label">Nilai Aset</span>
+              <span className="breakdown-amount">{formatRp(totalNilaiAset)}</span>
+            </div>
+            <div className="breakdown-item">
+              <span className="breakdown-label">Total Utang</span>
+              <span className="breakdown-amount">{formatRp(totalUtang)}</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Saldo Aktif Detail */}

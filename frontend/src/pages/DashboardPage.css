@@ -314,6 +314,10 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .kekayaan-detail-btn:hover {
@@ -322,6 +326,13 @@
 
 .kekayaan-detail-btn:active {
   transform: scale(0.98);
+}
+
+.kekayaan-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
 }
 
 /* Saldo Aktif Detail Card */

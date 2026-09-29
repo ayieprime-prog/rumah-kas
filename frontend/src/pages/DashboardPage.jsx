@@ -156,7 +156,7 @@ const DashboardPage = ({ user }) => {
   if (error) return <div className="alert alert-error">{error}</div>
   if (!dashboard) return <div className="alert alert-error">Data tidak tersedia</div>
 
-  const { overview, wallets = [], goals, incomeLocks } = dashboard
+  const { overview, wallets = [], goals, incomeLocks, walletSummary, debtSummary } = dashboard
   const today = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
 
   return (
@@ -170,6 +170,9 @@ const DashboardPage = ({ user }) => {
           overview={overview}
           goals={goals}
           incomeLocks={incomeLocks}
+          walletSummary={walletSummary}
+          debtSummary={debtSummary}
+          portfolio={portfolio}
           showBalance={showBalance}
           onToggleBalance={() => setShowBalance(!showBalance)}
           selectedWalletFilter={selectedWalletFilter}
