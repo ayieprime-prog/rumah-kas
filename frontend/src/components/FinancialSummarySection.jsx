@@ -108,13 +108,19 @@ const FinancialSummarySection = ({
         </div>
         <div className="saldo-aktif-breakdown">
           <div className="breakdown-item">
-            <span className="breakdown-label">Andri (demo)</span>
-            <span className="breakdown-amount">Rp 100.000</span>
+            <span className="breakdown-label">Saldo Bulan Ini</span>
+            <span className="breakdown-amount">{formatRp(overview.balance)}</span>
           </div>
           <div className="breakdown-item">
-            <span className="breakdown-label">Anita (demo)</span>
-            <span className="breakdown-amount">Rp 120.000</span>
+            <span className="breakdown-label">Tabungan/Goal</span>
+            <span className="breakdown-amount">- {formatRp(totalGoals)}</span>
           </div>
+          {totalLocked > 0 && (
+            <div className="breakdown-item">
+              <span className="breakdown-label">Dana Terkunci</span>
+              <span className="breakdown-amount">- {formatRp(totalLocked)}</span>
+            </div>
+          )}
         </div>
       </div>
     </div>

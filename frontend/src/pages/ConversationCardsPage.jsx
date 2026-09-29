@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, Shuffle } from 'lucide-react'
-import BackButton from '../components/BackButton'
 import conversationCards from '../data/conversationCards'
 import './ConversationCardsPage.css'
 
@@ -12,6 +12,7 @@ const pickRandom = (excludeId) => {
 }
 
 const ConversationCardsPage = () => {
+  const navigate = useNavigate()
   const [current, setCurrent] = useState(() => pickRandom())
   const [favorites, setFavorites] = useState(() => {
     try {
@@ -21,6 +22,7 @@ const ConversationCardsPage = () => {
     }
   })
   const [activeTab, setActiveTab] = useState('today') // 'today' or 'history'
+  const [justRecorded, setJustRecorded] = useState(false)
 
   useEffect(() => {
     localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites))
@@ -28,10 +30,20 @@ const ConversationCardsPage = () => {
 
   const nextCard = () => setCurrent(pickRandom(current.id))
 
+  const alreadyRecorded = favorites.some(c => c.id === current.id)
+
+  const recordAnswer = () => {
+    if (!alreadyRecorded) {
+      setFavorites(prev => [...prev, current])
+    }
+    setJustRecorded(true)
+    setTimeout(() => setJustRecorded(false), 1500)
+  }
+
   return (
     <div className="cc-page">
       <div className="cc-header">
-        <button className="cc-back-btn">
+        <button className="cc-back-btn" onClick={() => navigate(-1)} aria-label="Kembali">
           <ChevronLeft size={20} />
         </button>
         <h1>Conversation Cards</h1>
@@ -71,8 +83,8 @@ const ConversationCardsPage = () => {
 
           {/* Action Buttons */}
           <div className="cc-actions">
-            <button className="cc-btn-primary">
-              ↓ Rekam Jawaban
+            <button className="cc-btn-primary" onClick={recordAnswer}>
+              {justRecorded ? '✓ Tersimpan' : alreadyRecorded ? '✓ Sudah direkam' : '↓ Rekam Jawaban'}
             </button>
             <button className="cc-btn-secondary" onClick={nextCard}>
               ✕ Ganti Pertanyaan

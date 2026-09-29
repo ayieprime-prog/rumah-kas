@@ -1,8 +1,16 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
+import axios from 'axios'
 import AddModal from '../AddModal'
 
+jest.mock('axios')
+
 describe('AddModal', () => {
+  beforeEach(() => {
+    axios.get.mockResolvedValue({ data: [] })
+  })
+  afterEach(() => jest.clearAllMocks())
+
   it('does not render when isOpen is false', () => {
     const { container } = render(
       <AddModal isOpen={false} onClose={jest.fn()} today="24 September 2026" />

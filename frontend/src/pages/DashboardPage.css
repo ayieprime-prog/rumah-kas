@@ -1314,7 +1314,8 @@
   background: #e5e7eb;
 }
 
-.type-btn.active {
+.type-btn.active,
+.reminder-btn.active {
   background: #d4a574;
   color: white;
   border-color: #d4a574;
@@ -1339,6 +1340,11 @@
 
 .modal-submit:active {
   transform: scale(0.98);
+}
+
+.modal-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* Transaction History */
@@ -1370,6 +1376,14 @@
   display: flex;
   flex-direction: column;
   gap: 0;
+}
+
+.tx-empty,
+.agenda-empty {
+  padding: 20px 0;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 13px;
 }
 
 .transaction-item {
