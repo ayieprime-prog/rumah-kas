@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
-import { Wallet, Calendar, Wrench, Heart, BookOpen, Link2, BarChart3, MoreHorizontal, TrendingUp, TrendingDown, Eye, EyeOff, Plus, ChevronRight, CreditCard, Banknote, Smartphone, HelpCircle } from 'lucide-react'
+import GreetingSection from '../components/GreetingSection'
+import MenuShortcuts from '../components/MenuShortcuts'
+import SummaryToggleTabs from '../components/SummaryToggleTabs'
+import FinancialSummarySection from '../components/FinancialSummarySection'
+import AgendaSection from '../components/AgendaSection'
+import WalletTabs from '../components/WalletTabs'
+import BalanceCards from '../components/BalanceCards'
+import IncomeExpensesSummary from '../components/IncomeExpensesSummary'
+import TransactionHistory from '../components/TransactionHistory'
+import AddModal from '../components/AddModal'
 import './DashboardPage.css'
 
-const WALLET_ICONS = {
-  Banknote: Banknote,
-  CreditCard: CreditCard,
-  Smartphone: Smartphone,
-  wallet: Wallet
-}
-
-// WMO weather codes (Open-Meteo) collapsed to a simple label + emoji.
 const WEATHER_CODES = {
   0: ['Cerah', '☀️'], 1: ['Cerah berawan', '🌤️'], 2: ['Berawan', '⛅'], 3: ['Mendung', '☁️'],
   45: ['Berkabut', '🌫️'], 48: ['Berkabut', '🌫️'],
@@ -20,50 +20,13 @@ const WEATHER_CODES = {
   80: ['Hujan ringan', '🌦️'], 81: ['Hujan', '🌧️'], 82: ['Hujan lebat', '🌧️'],
   95: ['Badai petir', '⛈️'], 96: ['Badai petir', '⛈️'], 99: ['Badai petir', '⛈️'],
 }
-// Jakarta -- fallback when geolocation is denied/unavailable so the widget
-// still shows something instead of just disappearing.
 const FALLBACK_COORDS = { latitude: -6.2088, longitude: 106.8456 }
 
-// 4 forecast time points (Pagi, Siang, Sore, Malam)
 const FORECAST_POINTS = [
   { hour: 6, label: 'Pagi' },
   { hour: 12, label: 'Siang' },
   { hour: 16, label: 'Sore' },
   { hour: 19, label: 'Malam' }
-]
-
-const greetingForHour = (hour) => {
-  if (hour < 10) return 'Selamat pagi'
-  if (hour < 15) return 'Selamat siang'
-  if (hour < 18) return 'Selamat sore'
-  return 'Selamat malam'
-}
-
-// Mock transaction history data
-const MOCK_TRANSACTIONS = [
-  { id: 1, date: '24 Sep 2026', category: 'Makanan & Minuman', amount: 150000, type: 'expense', icon: '🍔' },
-  { id: 2, date: '24 Sep 2026', category: 'Gaji', amount: 5000000, type: 'income', icon: '💰' },
-  { id: 3, date: '23 Sep 2026', category: 'Transportasi', amount: 75000, type: 'expense', icon: '🚗' },
-  { id: 4, date: '23 Sep 2026', category: 'Utilitas', amount: 250000, type: 'expense', icon: '💡' },
-  { id: 5, date: '22 Sep 2026', category: 'Kesehatan', amount: 500000, type: 'expense', icon: '⚕️' },
-]
-
-// 8 menu shortcuts with colored backgrounds (Pundi style)
-const MENU_SHORTCUTS = [
-  { label: 'Keuangan', icon: Wallet, path: '/keuangan', bg: '#c9a961', color: '#ffffff' },
-  { label: 'Kalender', icon: Calendar, path: '/kalender', bg: '#4a7c8c', color: '#ffffff' },
-  { label: 'Maintenance', icon: Wrench, path: '/maintenance', bg: '#b8956a', color: '#ffffff' },
-  { label: 'Conversation', icon: BookOpen, path: '/berdua', bg: '#a85a7a', color: '#ffffff' },
-  { label: 'Jurnal Keluarga', icon: BookOpen, path: '/journal', bg: '#a85a7a', color: '#ffffff' },
-  { label: 'Laporan', icon: BarChart3, path: '/reports', bg: '#5b6fa0', color: '#ffffff' },
-  { label: 'Bantuan & FAQ', icon: HelpCircle, path: '/help-faq', bg: '#6b8c7d', color: '#ffffff' },
-  { label: 'Lainnya', icon: MoreHorizontal, path: '/lainnya', bg: '#5a9a6a', color: '#ffffff' },
-]
-
-// Mock agenda items
-const MOCK_AGENDA = [
-  { id: 1, title: 'Ganti oli mobil', completed: true, time: 'Jadwal Maintenance' },
-  { id: 2, title: 'Rapat keluarga', completed: false, time: '14:00 - 15:00' },
 ]
 
 const DashboardPage = ({ user }) => {
@@ -193,376 +156,54 @@ const DashboardPage = ({ user }) => {
   if (error) return <div className="alert alert-error">{error}</div>
   if (!dashboard) return <div className="alert alert-error">Data tidak tersedia</div>
 
-  const { overview, expensesByCategory, wallets = [], walletSummary = {}, budgets, goals, debtSummary, incomeLocks } = dashboard
+  const { overview, wallets = [], goals, incomeLocks } = dashboard
   const today = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
-  const timeLabel = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-  const headerStyle = user?.wallpaper ? {
-    backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.15) 55%, rgba(0,0,0,0.6) 100%), url(${user.wallpaper})`,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center'
-  } : undefined
-
-  // Calculate "uang bebas" (free money) = Saldo Aktif - Tabungan Goals - Pendapatan Terkunci
-  const totalGoals = goals.reduce((sum, g) => sum + g.currentAmount, 0)
-  const totalLocked = incomeLocks?.totalRemaining || 0
-  const uangBebas = overview.balance - totalGoals - totalLocked
-
-  // Get category spending details
-  const categoryDetails = budgets.map(budget => ({
-    name: budget.category.name,
-    spent: budget.spent,
-    limit: budget.limit,
-    percentage: budget.limit > 0 ? Math.round((budget.spent / budget.limit) * 100) : 0,
-    color: budget.category.color
-  })).sort((a, b) => b.spent - a.spent)
-
-  // Mock agenda data (fallback)
-  const agendaItems = [
-    { id: 1, title: 'Bayar listrik', time: '14:00', status: 'pending' },
-    { id: 2, title: 'Belanja groceries', time: '16:00', status: 'pending' },
-    { id: 3, title: 'Meeting keluarga', time: '19:00', status: 'pending' }
-  ]
-
-  // Filter category details by Pos (scope)
-  const filteredCategoryDetails = selectedPos === 'Semua'
-    ? categoryDetails
-    : categoryDetails.filter(cat => {
-        // Filter berdasarkan scope/pos
-        // Keluarga: shared expenses, Pribadi: personal expenses
-        // Untuk MVP, tunjukkan semua untuk Keluarga, filter untuk Pribadi
-        return selectedPos === 'Keluarga' ? true : Math.random() > 0.5 // Mock filter untuk Pribadi
-      })
 
   return (
     <div className="dashboard-page">
-      {/* Welcome Header */}
-      <div className={`dashboard-header ${user?.wallpaper ? 'has-wallpaper' : ''}`} style={headerStyle}>
-        <div className="dashboard-header-brand">
-          <img src="/pundi-icon.svg" alt="Pundi" className="dashboard-header-brand-icon" />
-          <span>Pundi</span>
-        </div>
-        <div className="welcome-section">
-          <div className="welcome-topline">
-            <h1>{greetingForHour(now.getHours())}, Keluarga</h1>
-            <span className="welcome-clock">{timeLabel}</span>
-          </div>
-          <p>{today}</p>
-          {weather?.items && (
-            <div className="forecast-row">
-              {weather.items.map((f, i) => (
-                <div key={i} className="forecast-item">
-                  <div className="forecast-label">{f.label}</div>
-                  <div className="forecast-icon">{f.icon}</div>
-                  <div className="forecast-temp">{f.temp}°</div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      <GreetingSection user={user} now={now} weather={weather} />
+      <MenuShortcuts />
+      <SummaryToggleTabs activeTab={summaryTab} onTabChange={setSummaryTab} />
 
-      {/* Menu Shortcuts - 8 items with colored backgrounds */}
-      <div className="menu-shortcuts">
-        {MENU_SHORTCUTS.map(menu => {
-          const IconComp = menu.icon
-          return (
-            <button
-              key={menu.path}
-              className="shortcut-item"
-              style={{ backgroundColor: menu.bg }}
-              onClick={() => navigate(menu.path)}
-            >
-              <IconComp size={28} color={menu.color} />
-              <span>{menu.label}</span>
-            </button>
-          )
-        })}
-      </div>
-
-      {/* Summary Toggle Tabs */}
-      <div className="summary-toggle-tabs">
-        <button
-          className={`summary-toggle-tab ${summaryTab === 'ringkasan' ? 'active' : ''}`}
-          onClick={() => setSummaryTab('ringkasan')}
-        >
-          Ringkasan Keuangan
-        </button>
-        <button
-          className={`summary-toggle-tab ${summaryTab === 'agenda' ? 'active' : ''}`}
-          onClick={() => setSummaryTab('agenda')}
-        >
-          Agenda Minggu ini
-        </button>
-      </div>
-
-      {/* Financial Summary Section - Show only when ringkasan tab active */}
       {summaryTab === 'ringkasan' && (
-        <div className="financial-summary-section">
-          {/* Wallet Filter */}
-          <div className="filter-group">
-            <label className="filter-label">Semua Wallet</label>
-            <div className="filter-buttons">
-              <button className={`filter-btn ${selectedWalletFilter === 'semua' ? 'active' : ''}`} onClick={() => setSelectedWalletFilter('semua')}>Semua Wallet</button>
-              <button className={`filter-btn ${selectedWalletFilter === 'tunai' ? 'active' : ''}`} onClick={() => setSelectedWalletFilter('tunai')}>Tunai</button>
-              <button className={`filter-btn ${selectedWalletFilter === 'bank' ? 'active' : ''}`} onClick={() => setSelectedWalletFilter('bank')}>Bank</button>
-              <button className={`filter-btn ${selectedWalletFilter === 'digital' ? 'active' : ''}`} onClick={() => setSelectedWalletFilter('digital')}>Dompet Digital</button>
-            </div>
-          </div>
-
-          {/* Pos Filter */}
-          <div className="filter-group">
-            <label className="filter-label">Semua Pos</label>
-            <div className="filter-buttons">
-              <button className={`filter-btn ${selectedPosFilter === 'semua' ? 'active' : ''}`} onClick={() => setSelectedPosFilter('semua')}>Keluarga</button>
-              <button className={`filter-btn ${selectedPosFilter === 'pribadi' ? 'active' : ''}`} onClick={() => setSelectedPosFilter('pribadi')}>Pribadi Andri</button>
-            </div>
-          </div>
-
-          {/* Kekayaan Bersih Card */}
-          <div className="kekayaan-bersih-card">
-            <div className="card-top">
-              <h3>Kekayaan Bersih Keluarga</h3>
-              <button className="eye-btn" onClick={() => setShowBalance(!showBalance)}>
-                {showBalance ? <Eye size={20} /> : <EyeOff size={20} />}
-              </button>
-            </div>
-            <div className="kekayaan-value">
-              {showBalance ? `Rp ${overview.balance.toLocaleString('id-ID')}` : '••••••••'}
-            </div>
-            <div className="kekayaan-detail">
-              Harta Rp {showBalance ? overview.balance.toLocaleString('id-ID') : '••••••••'} – Utang Rp 0
-            </div>
-            <button className="kekayaan-detail-btn">Lihat rincian →</button>
-          </div>
-
-          {/* Saldo Aktif Detail */}
-          <div className="saldo-aktif-detail-card">
-            <div className="card-header-detail">
-              <h3>Saldo Aktif</h3>
-              <button className="eye-btn" onClick={() => setShowBalance(!showBalance)}>
-                {showBalance ? <Eye size={20} /> : <EyeOff size={20} />}
-              </button>
-            </div>
-            <div className="saldo-aktif-value">
-              {showBalance ? `Rp ${Math.max(0, uangBebas).toLocaleString('id-ID')}` : '••••••••'}
-            </div>
-            <div className="saldo-aktif-description">
-              Akumulasi dari awal, gak reset tiap bulan • di luar dana Tabungan/Goal
-            </div>
-            <div className="saldo-aktif-breakdown">
-              <div className="breakdown-item">
-                <span className="breakdown-label">Andri (demo)</span>
-                <span className="breakdown-amount">Rp 100.000</span>
-              </div>
-              <div className="breakdown-item">
-                <span className="breakdown-label">Anita (demo)</span>
-                <span className="breakdown-amount">Rp 120.000</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <FinancialSummarySection
+          overview={overview}
+          goals={goals}
+          incomeLocks={incomeLocks}
+          showBalance={showBalance}
+          onToggleBalance={() => setShowBalance(!showBalance)}
+          selectedWalletFilter={selectedWalletFilter}
+          onWalletFilterChange={setSelectedWalletFilter}
+          selectedPosFilter={selectedPosFilter}
+          onPosFilterChange={setSelectedPosFilter}
+        />
       )}
 
-      {/* Agenda Section - Show only when agenda tab active */}
       {summaryTab === 'agenda' && (
-        <div className="agenda-section">
-          <div className="agenda-header">
-            <h2>Agenda Hari ini</h2>
-            <div className="agenda-header-right">
-              <span className="agenda-count">{MOCK_AGENDA.filter(a => a.completed).length}/{MOCK_AGENDA.length} selesai</span>
-              <button className="agenda-add-btn" onClick={() => setShowAddModal(true)}>
-                <Plus size={20} />
-              </button>
-            </div>
-          </div>
-          <div className="agenda-items">
-            {MOCK_AGENDA.map(item => (
-              <div key={item.id} className={`agenda-item ${item.completed ? 'completed' : ''}`}>
-                <div className="agenda-checkbox">
-                  <input type="checkbox" defaultChecked={item.completed} />
-                </div>
-                <div className="agenda-content">
-                  <span className="agenda-title">{item.title}</span>
-                  <span className="agenda-time">{item.time}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <>
+          <AgendaSection onAddClick={() => setShowAddModal(true)} />
+          <WalletTabs
+            wallets={wallets}
+            selectedWalletId={selectedWalletId}
+            onWalletSelect={setSelectedWalletId}
+          />
+          <BalanceCards
+            overview={overview}
+            goals={goals}
+            incomeLocks={incomeLocks}
+            showBalance={showBalance}
+            onToggleBalance={() => setShowBalance(!showBalance)}
+          />
+          <IncomeExpensesSummary overview={overview} />
+          <TransactionHistory />
+        </>
       )}
 
-      {/* Wallet Tabs - Show only when agenda tab active */}
-      {summaryTab === 'agenda' && wallets.length > 0 && (
-        <div className="wallet-tabs">
-          {wallets.map(wallet => {
-            const IconComp = WALLET_ICONS[wallet.icon] || Wallet
-            return (
-              <button
-                key={wallet.id}
-                className={`wallet-tab ${selectedWalletId === wallet.id ? 'active' : ''}`}
-                onClick={() => setSelectedWalletId(wallet.id)}
-              >
-                <IconComp size={16} />
-                <div className="wallet-info">
-                  <div className="wallet-name">{wallet.name}</div>
-                  <div className="wallet-balance">Rp {wallet.balance.toLocaleString('id-ID')}</div>
-                </div>
-              </button>
-            )
-          })}
-        </div>
-      )}
-
-      {/* Saldo Aktif & Uang Bebas Cards - Show only when agenda tab active */}
-      {summaryTab === 'agenda' && (
-        <div className="balance-cards">
-          <div className="balance-card saldo-aktif">
-            <div className="card-header">
-              <span className="card-label">Saldo Aktif</span>
-              <button className="eye-btn" onClick={() => setShowBalance(!showBalance)}>
-                {showBalance ? <Eye size={16} /> : <EyeOff size={16} />}
-              </button>
-            </div>
-            <div className="card-value">
-              {showBalance ? `Rp ${overview.balance.toLocaleString('id-ID')}` : '••••••••'}
-            </div>
-          </div>
-
-          <div className="balance-card uang-bebas">
-            <div className="card-header">
-              <span className="card-label">Uang Bebas</span>
-              <button className="eye-btn" onClick={() => setShowBalance(!showBalance)}>
-                {showBalance ? <Eye size={16} /> : <EyeOff size={16} />}
-              </button>
-            </div>
-            <div className="card-value">
-              {showBalance ? `Rp ${Math.max(0, uangBebas).toLocaleString('id-ID')}` : '••••••••'}
-            </div>
-          </div>
-        </div>
-
-        {/* Income & Expenses Summary */}
-        <div className="summary-grid">
-          <div className="summary-card income">
-            <div className="summary-label">Pemasukan Bulan Ini</div>
-            <div className="summary-value">Rp {overview.totalIncome.toLocaleString('id-ID')}</div>
-          </div>
-          <div className="summary-card expense">
-            <div className="summary-label">Pengeluaran Bulan Ini</div>
-            <div className="summary-value">Rp {overview.totalExpense.toLocaleString('id-ID')}</div>
-          </div>
-        </div>
-
-        {/* Transaction History */}
-        <div className="transaction-history">
-          <div className="section-header">
-            <h2>Riwayat Transaksi</h2>
-            <button className="view-all" onClick={() => navigate('/expenses')}>Lihat semua →</button>
-          </div>
-          <div className="transaction-list">
-            {MOCK_TRANSACTIONS.map(tx => (
-              <div key={tx.id} className="transaction-item">
-                <div className="tx-icon">{tx.icon}</div>
-                <div className="tx-content">
-                  <div className="tx-category">{tx.category}</div>
-                  <div className="tx-date">{tx.date}</div>
-                </div>
-                <div className={`tx-amount ${tx.type}`}>
-                  {tx.type === 'income' ? '+' : '-'} Rp {tx.amount.toLocaleString('id-ID')}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Add Todo/Keuangan Modal */}
-      {showAddModal && (
-        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>{today}</h3>
-              <button className="modal-close" onClick={() => setShowAddModal(false)}>×</button>
-            </div>
-
-            {/* Tab Toggle */}
-            <div className="modal-tabs">
-              <button
-                className={`modal-tab ${addModalTab === 'todo' ? 'active' : ''}`}
-                onClick={() => setAddModalTab('todo')}
-              >
-                Todo
-              </button>
-              <button
-                className={`modal-tab ${addModalTab === 'keuangan' ? 'active' : ''}`}
-                onClick={() => setAddModalTab('keuangan')}
-              >
-                Keuangan
-              </button>
-            </div>
-
-            {/* Todo Tab Content */}
-            {addModalTab === 'todo' && (
-              <div className="modal-form">
-                <div className="form-group">
-                  <label>Pilih Kategori</label>
-                  <select>
-                    <option>Pilih kategori...</option>
-                    <option>Jadwal Bayar & Belanja</option>
-                    <option>Acara Keluarga</option>
-                    <option>Maintenance</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>Nama Task</label>
-                  <input type="text" placeholder="Masukkan nama task" />
-                </div>
-                <div className="form-group">
-                  <label>Ingatkan saya</label>
-                  <div className="reminder-options">
-                    <button className="reminder-btn">Hari ini</button>
-                    <button className="reminder-btn">H-1</button>
-                    <button className="reminder-btn">H-3</button>
-                    <button className="reminder-btn">Custom...</button>
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label>Jam berapa?</label>
-                  <input type="time" defaultValue="08:00" />
-                </div>
-                <button className="modal-submit">Simpan agenda</button>
-              </div>
-            )}
-
-            {/* Keuangan Tab Content */}
-            {addModalTab === 'keuangan' && (
-              <div className="modal-form">
-                <div className="form-group">
-                  <label>Tipe</label>
-                  <div className="type-options">
-                    <button className="type-btn">Pemasukan</button>
-                    <button className="type-btn active">Pengeluaran</button>
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label>Kategori</label>
-                  <select>
-                    <option>Pilih kategori...</option>
-                    <option>Makanan & Minuman</option>
-                    <option>Transportasi</option>
-                    <option>Utilitas</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>Nominal</label>
-                  <input type="number" placeholder="Rp 0" />
-                </div>
-                <button className="modal-submit">Simpan transaksi</button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      <AddModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        today={today}
+      />
     </div>
   )
 }
