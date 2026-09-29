@@ -54,11 +54,24 @@ function nextOccurrence(date, frequency, anchorDay) {
 const monthOf = (date) => date.toISOString().slice(0, 7);
 
 async function adjustBudgetSpent(tx, householdId, month, categoryId, delta) {
+  if (!delta) return;
   const budget = await tx.budget.findUnique({
     where: { householdId_month_categoryId: { householdId, month, categoryId } }
   });
   if (!budget) return;
-  await tx.budget.update({ where: { id: budget.id }, data: { spent: Math.max(0, budget.spent + delta) } });
+  const nextSpent = Math.max(0, budget.spent + delta);
+  await tx.budget.update({ where: { id: budget.id }, data: { spent: nextSpent } });
+
+  if (delta > 0 && nextSpent > budget.limit && budget.spent <= budget.limit) {
+    const category = await tx.expenseCategory.findUnique({ where: { id: categoryId } });
+    await tx.notification.create({
+      data: {
+        type: 'BUDGET_EXCEEDED',
+        message: `Anggaran "${category?.name}" sudah melebihi batas bulan ini`,
+        householdId
+      }
+    });
+  }
 }
 
 async function adjustWalletBalance(tx, walletId, delta) {
