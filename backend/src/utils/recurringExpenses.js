@@ -13,25 +13,42 @@ const { invalidateCache } = require('./caching');
 
 const MAX_OCCURRENCES_PER_RUN = 366;
 
-function nextOccurrence(date, frequency) {
-  const next = new Date(date);
+/**
+ * Add whole months to `date`, landing on `anchorDay` (clamped to the last
+ * day of the target month, e.g. Jan 31 + 1 month -> Feb 28/29, not the
+ * "Feb 31 overflows to Mar 3" behavior plain Date#setMonth/#setFullYear
+ * give you - which would otherwise permanently drift a rule anchored on a
+ * high day-of-month away from its intended date after the first short month.
+ */
+function addCalendarMonths(date, monthsToAdd, anchorDay) {
+  const totalMonths = date.getFullYear() * 12 + date.getMonth() + monthsToAdd;
+  const targetYear = Math.floor(totalMonths / 12);
+  const targetMonth = totalMonths % 12;
+  const lastDayOfTargetMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+  const result = new Date(date);
+  result.setFullYear(targetYear, targetMonth, Math.min(anchorDay, lastDayOfTargetMonth));
+  return result;
+}
+
+function nextOccurrence(date, frequency, anchorDay) {
   switch (frequency) {
-    case 'DAILY':
+    case 'DAILY': {
+      const next = new Date(date);
       next.setDate(next.getDate() + 1);
-      break;
-    case 'WEEKLY':
+      return next;
+    }
+    case 'WEEKLY': {
+      const next = new Date(date);
       next.setDate(next.getDate() + 7);
-      break;
+      return next;
+    }
     case 'MONTHLY':
-      next.setMonth(next.getMonth() + 1);
-      break;
+      return addCalendarMonths(date, 1, anchorDay);
     case 'YEARLY':
-      next.setFullYear(next.getFullYear() + 1);
-      break;
+      return addCalendarMonths(date, 12, anchorDay);
     default:
       throw new Error(`Unknown recurrence frequency: ${frequency}`);
   }
-  return next;
 }
 
 const monthOf = (date) => date.toISOString().slice(0, 7);
@@ -54,7 +71,10 @@ async function adjustWalletBalance(tx, walletId, delta) {
  * Returns the number of Expense rows created.
  */
 async function generateForRule(prisma, rule, now) {
-  let occurrenceDate = rule.lastGeneratedAt ? nextOccurrence(rule.lastGeneratedAt, rule.frequency) : rule.startDate;
+  const anchorDay = rule.startDate.getDate();
+  let occurrenceDate = rule.lastGeneratedAt
+    ? nextOccurrence(rule.lastGeneratedAt, rule.frequency, anchorDay)
+    : rule.startDate;
   let generated = 0;
 
   while (
@@ -87,7 +107,7 @@ async function generateForRule(prisma, rule, now) {
 
     generated++;
     invalidateCache.dashboard(rule.householdId);
-    occurrenceDate = nextOccurrence(occurrenceDate, rule.frequency);
+    occurrenceDate = nextOccurrence(occurrenceDate, rule.frequency, anchorDay);
   }
 
   return generated;
