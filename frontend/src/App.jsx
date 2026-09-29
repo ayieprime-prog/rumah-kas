@@ -28,6 +28,8 @@ import TransferPage from './pages/TransferPage'
 import AllocationPage from './pages/AllocationPage'
 import BudgetAnalyticsPage from './pages/BudgetAnalyticsPage'
 import ProfilePage from './pages/ProfilePage'
+import CategoriesPage from './pages/CategoriesPage'
+import RecurringPage from './pages/RecurringPage'
 
 // Components
 import Layout from './components/Layout'
@@ -148,6 +150,8 @@ function App() {
                       <Route path="/transfers" element={<TransferPage />} />
                       <Route path="/allocation" element={<AllocationPage />} />
                       <Route path="/budget-analytics" element={<BudgetAnalyticsPage />} />
+                      <Route path="/categories" element={<CategoriesPage />} />
+                      <Route path="/recurring" element={<RecurringPage />} />
                       <Route path="/settings" element={<SettingsPage onLogout={handleLogout} />} />
                       <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>

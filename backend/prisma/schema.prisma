@@ -85,6 +85,7 @@ model ExpenseCategory {
   expenses  Expense[]
   budgets   Budget[]
   lockedIncomes Income[] @relation("IncomeLock")
+  recurringExpenses RecurringExpense[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -109,7 +110,8 @@ model Expense {
   wallet      Wallet? @relation(fields: [walletId], references: [id])
 
   isRecurring Boolean @default(false)
-  recurringId String? @unique
+  recurringId String?
+  recurring   RecurringExpense? @relation(fields: [recurringId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -118,6 +120,7 @@ model Expense {
   @@index([categoryId])
   @@index([walletId])
   @@index([date])
+  @@index([recurringId])
 }
 
 model Income {
@@ -152,20 +155,31 @@ model Income {
 }
 
 model RecurringExpense {
-  id          String   @id @default(cuid())
-  description String
-  amount      Float
-  frequency   String   // "DAILY", "WEEKLY", "MONTHLY", "YEARLY"
-  startDate   DateTime
-  endDate     DateTime? // null = indefinite
+  id              String    @id @default(cuid())
+  description     String
+  amount          Float
+  frequency       String    // "DAILY", "WEEKLY", "MONTHLY", "YEARLY"
+  startDate       DateTime
+  endDate         DateTime? // null = indefinite
+  isActive        Boolean   @default(true)
+  lastGeneratedAt DateTime? // last date this rule turned into a real Expense
 
   householdId String
   household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  categoryId String
+  category   ExpenseCategory @relation(fields: [categoryId], references: [id])
+
+  walletId String?
+  wallet   Wallet? @relation(fields: [walletId], references: [id])
+
+  generatedExpenses Expense[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([householdId])
+  @@index([categoryId])
 }
 
 // ============= BUDGETING & GOALS =============
@@ -314,6 +328,7 @@ model Wallet {
   incomes       Income[]
   transfersFrom Transfer[] @relation("fromWallet")
   transfersTo   Transfer[] @relation("toWallet")
+  recurringExpenses RecurringExpense[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

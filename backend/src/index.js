@@ -13,7 +13,7 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('../openapi.json');
 
 // Import routes with error handling
-let authRoutes, householdRoutes, expenseRoutes, incomeRoutes, budgetRoutes, goalRoutes, debtRoutes, dashboardRoutes, reportsRoutes, notificationRoutes, linkRoutes, maintenanceRoutes, eventRoutes, journalRoutes, auditLogRoutes, walletRoutes, assetRoutes, transferRoutes, allocationRoutes, budgetAnalyticsRoutes, performanceRoutes;
+let authRoutes, householdRoutes, expenseRoutes, incomeRoutes, budgetRoutes, goalRoutes, debtRoutes, dashboardRoutes, reportsRoutes, notificationRoutes, linkRoutes, maintenanceRoutes, eventRoutes, journalRoutes, auditLogRoutes, walletRoutes, assetRoutes, transferRoutes, allocationRoutes, budgetAnalyticsRoutes, performanceRoutes, categoryRoutes, recurringRoutes;
 let routeLoadError = null;
 
 try {
@@ -38,6 +38,8 @@ try {
   allocationRoutes = require('./routes/allocation');
   budgetAnalyticsRoutes = require('./routes/budgetanalytics');
   performanceRoutes = require('./routes/performance');
+  categoryRoutes = require('./routes/categories');
+  recurringRoutes = require('./routes/recurring');
 } catch (err) {
   routeLoadError = err.message;
   console.error('========================================================');
@@ -167,6 +169,8 @@ if (transferRoutes) app.use('/api/transfers', authenticate, transferRoutes);
 if (allocationRoutes) app.use('/api/allocation', authenticate, allocationRoutes);
 if (budgetAnalyticsRoutes) app.use('/api/budget-analytics', authenticate, budgetAnalyticsRoutes);
 if (performanceRoutes) app.use('/api/performance', authenticate, performanceRoutes);
+if (categoryRoutes) app.use('/api/categories', authenticate, categoryRoutes);
+if (recurringRoutes) app.use('/api/recurring', authenticate, recurringRoutes);
 if (pushNotificationRoutes) app.use('/api/push-notifications', authenticate, pushNotificationRoutes);
 
 // Serve frontend build (single-service deployment). Vite fingerprints every

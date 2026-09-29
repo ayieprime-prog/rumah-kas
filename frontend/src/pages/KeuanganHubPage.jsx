@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Wallet, TrendingUp, DollarSign, Target, CreditCard, BarChart3, ChevronRight, Landmark, Building2, ArrowLeftRight, PieChart, Activity, Eye, EyeOff } from 'lucide-react'
+import { Wallet, TrendingUp, DollarSign, Target, CreditCard, BarChart3, ChevronRight, Landmark, Building2, ArrowLeftRight, PieChart, Activity, Eye, EyeOff, Tag, Repeat } from 'lucide-react'
 import axios from 'axios'
 import './KeuanganPage.css'
 
@@ -10,6 +10,8 @@ const items = [
   { path: '/income', label: 'Pemasukan', desc: 'Catat sumber pemasukan keluarga', icon: TrendingUp },
   { path: '/transfers', label: 'Transfer', desc: 'Pindahkan saldo antar wallet & anggota', icon: ArrowLeftRight },
   { path: '/budget', label: 'Anggaran', desc: 'Atur batas belanja per kategori', icon: DollarSign },
+  { path: '/categories', label: 'Kategori', desc: 'Kelola kategori pengeluaran', icon: Tag },
+  { path: '/recurring', label: 'Transaksi Rutin', desc: 'Tagihan & langganan berulang otomatis', icon: Repeat },
   { path: '/goals', label: 'Tujuan Tabungan', desc: 'Target menabung bersama', icon: Target },
   { path: '/debt', label: 'Hutang', desc: 'Pantau cicilan & sisa hutang', icon: CreditCard },
   { path: '/assets', label: 'Portfolio Aset', desc: 'Rumah, kendaraan, investasi, & lainnya', icon: Building2 },
