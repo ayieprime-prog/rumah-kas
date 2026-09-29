@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { PrismaClient } = require('@prisma/client');
+const { validateString } = require('../utils/validation');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -23,24 +24,26 @@ const cookieOptions = () => ({
 router.post('/register', async (req, res) => {
   const { householdName, email, password, name } = req.body;
 
-  if (!householdName || !email || !password || !name) {
-    return res.status(400).json({ error: 'Missing required fields' });
-  }
-
-  if (password.length < 8) {
-    return res.status(400).json({ error: 'Password minimal 8 karakter' });
-  }
-
   try {
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    // Validate all inputs
+    const validHouseholdName = validateString(householdName, 'householdName', { minLength: 1, maxLength: 100 });
+    const validEmail = validateString(email, 'email', { minLength: 5, maxLength: 255 });
+    const validPassword = validateString(password, 'password', { minLength: 8, maxLength: 128 });
+    const validName = validateString(name, 'name', { minLength: 1, maxLength: 100 });
+
+    // Basic email format check (more thorough validation could use regex)
+    if (!validEmail.includes('@')) {
+      return res.status(400).json({ error: 'Email must be valid' });
+    }
+    const existingUser = await prisma.user.findUnique({ where: { email: validEmail } });
     if (existingUser) {
       return res.status(409).json({ error: 'Email already registered' });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(validPassword, 10);
 
     const household = await prisma.household.create({
-      data: { name: householdName }
+      data: { name: validHouseholdName }
     });
 
     // Create default expense categories
@@ -67,9 +70,9 @@ router.post('/register', async (req, res) => {
 
     const user = await prisma.user.create({
       data: {
-        email,
+        email: validEmail,
         password: hashedPassword,
-        name,
+        name: validName,
         role: 'ADMIN',
         householdId: household.id
       }
@@ -89,7 +92,9 @@ router.post('/register', async (req, res) => {
     });
   } catch (error) {
     console.error('Register error:', error);
-    res.status(500).json({ error: 'Registration failed' });
+    const statusCode = error.message.includes('must') || error.message.includes('valid') ? 400 : 500;
+    const message = statusCode === 400 ? error.message : 'Registration failed';
+    res.status(statusCode).json({ error: message });
   }
 });
 
@@ -97,18 +102,22 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password required' });
-  }
-
   try {
-    const user = await prisma.user.findUnique({ where: { email } });
+    // Validate inputs
+    const validEmail = validateString(email, 'email', { minLength: 5, maxLength: 255 });
+    const validPassword = validateString(password, 'password', { minLength: 8, maxLength: 128 });
+
+    if (!validEmail.includes('@')) {
+      return res.status(400).json({ error: 'Email must be valid' });
+    }
+
+    const user = await prisma.user.findUnique({ where: { email: validEmail } });
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword) {
+    const isValidPassword = await bcrypt.compare(validPassword, user.password);
+    if (!isValidPassword) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
@@ -130,7 +139,9 @@ router.post('/login', async (req, res) => {
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ error: 'Login failed' });
+    const statusCode = error.message.includes('must') || error.message.includes('valid') ? 400 : 500;
+    const message = statusCode === 400 ? error.message : 'Login failed';
+    res.status(statusCode).json({ error: message });
   }
 });
 

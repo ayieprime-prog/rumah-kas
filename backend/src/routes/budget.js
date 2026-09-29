@@ -1,6 +1,7 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const { invalidateCache } = require('../utils/caching');
+const { validateAmount, validateMonth, validateString } = require('../utils/validation');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -10,24 +11,31 @@ router.post('/', async (req, res) => {
   const { householdId } = req;
 
   try {
-    const category = await prisma.expenseCategory.findFirst({ where: { id: categoryId, householdId } });
+    // Validate inputs
+    const validMonth = validateMonth(month, 'month');
+    const validLimit = validateAmount(limit, 'limit', { min: 0, max: 999999999.99 });
+    const validCategoryId = validateString(categoryId, 'categoryId', { maxLength: 50 });
+
+    const category = await prisma.expenseCategory.findFirst({ where: { id: validCategoryId, householdId } });
     if (!category) {
       return res.status(404).json({ error: 'Category not found' });
     }
 
     const budget = await prisma.budget.create({
       data: {
-        month,
-        limit: parseFloat(limit),
+        month: validMonth,
+        limit: validLimit,
         householdId,
-        categoryId
+        categoryId: validCategoryId
       },
       include: { category: true }
     });
     invalidateCache.dashboard(householdId);
     res.status(201).json(budget);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to create budget' });
+    const statusCode = error.message.includes('must') || error.message.includes('valid') ? 400 : 500;
+    const message = statusCode === 400 ? error.message : 'Failed to create budget';
+    res.status(statusCode).json({ error: message });
   }
 });
 
@@ -37,7 +45,10 @@ router.get('/', async (req, res) => {
 
   try {
     const where = { householdId };
-    if (month) where.month = month;
+    if (month) {
+      const validMonth = validateMonth(month, 'month', { required: false });
+      if (validMonth) where.month = validMonth;
+    }
 
     const budgets = await prisma.budget.findMany({
       where,
@@ -47,7 +58,9 @@ router.get('/', async (req, res) => {
 
     res.json(budgets);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch budgets' });
+    const statusCode = error.message.includes('must') || error.message.includes('valid') ? 400 : 500;
+    const message = statusCode === 400 ? error.message : 'Failed to fetch budgets';
+    res.status(statusCode).json({ error: message });
   }
 });
 
@@ -57,20 +70,26 @@ router.put('/:id', async (req, res) => {
   const { householdId } = req;
 
   try {
-    const existing = await prisma.budget.findFirst({ where: { id, householdId } });
+    // Validate inputs
+    const validId = validateString(id, 'id', { maxLength: 50 });
+    const validLimit = validateAmount(limit, 'limit', { min: 0, max: 999999999.99 });
+
+    const existing = await prisma.budget.findFirst({ where: { id: validId, householdId } });
     if (!existing) {
       return res.status(404).json({ error: 'Budget not found' });
     }
 
     const budget = await prisma.budget.update({
-      where: { id },
-      data: { limit: parseFloat(limit) },
+      where: { id: validId },
+      data: { limit: validLimit },
       include: { category: true }
     });
     invalidateCache.dashboard(householdId);
     res.json(budget);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to update budget' });
+    const statusCode = error.message.includes('must') || error.message.includes('valid') ? 400 : 500;
+    const message = statusCode === 400 ? error.message : 'Failed to update budget';
+    res.status(statusCode).json({ error: message });
   }
 });
 
@@ -79,12 +98,15 @@ router.delete('/:id', async (req, res) => {
   const { householdId } = req;
 
   try {
-    const existing = await prisma.budget.findFirst({ where: { id, householdId } });
+    // Validate id
+    const validId = validateString(id, 'id', { maxLength: 50 });
+
+    const existing = await prisma.budget.findFirst({ where: { id: validId, householdId } });
     if (!existing) {
       return res.status(404).json({ error: 'Budget not found' });
     }
 
-    await prisma.budget.delete({ where: { id } });
+    await prisma.budget.delete({ where: { id: validId } });
     invalidateCache.dashboard(householdId);
     res.json({ message: 'Budget deleted' });
   } catch (error) {
