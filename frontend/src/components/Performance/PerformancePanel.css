@@ -1,0 +1,45 @@
+.perf-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-color);
+  margin: 0 0 4px;
+}
+
+.perf-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0 0 12px;
+}
+
+.perf-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+
+.perf-row:last-child {
+  margin-bottom: 0;
+}
+
+.perf-row-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-color);
+  margin: 0;
+}
+
+.perf-row-count {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.perf-row-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--warning-color);
+}
