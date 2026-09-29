@@ -129,7 +129,7 @@ const MaintenancePage = () => {
                     <CheckCircle2 size={16} /> Catat Servis
                   </button>
                 </div>
-                <button className="icon-btn" onClick={() => handleDelete(item.id)}>
+                <button className="icon-btn" onClick={() => handleDelete(item.id)} aria-label="Hapus maintenance">
                   <Trash2 size={16} />
                 </button>
               </div>
@@ -149,7 +149,7 @@ const MaintenancePage = () => {
           <div className="modal-card" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Tambah Item Maintenance</h2>
-              <button className="modal-close" onClick={() => setShowAddModal(false)}><X size={18} /></button>
+              <button className="modal-close" onClick={() => setShowAddModal(false)} aria-label="Tutup"><X size={18} /></button>
             </div>
             <form onSubmit={handleAdd} className="auth-form">
               <div className="form-group">
@@ -183,7 +183,7 @@ const MaintenancePage = () => {
           <div className="modal-card" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Catat Servis: {logFor.name}</h2>
-              <button className="modal-close" onClick={() => setLogFor(null)}><X size={18} /></button>
+              <button className="modal-close" onClick={() => setLogFor(null)} aria-label="Tutup"><X size={18} /></button>
             </div>
             <form onSubmit={handleLog} className="auth-form">
               <div className="form-group">

@@ -138,7 +138,7 @@ const IncomePages = () => {
                   <div className="list-row-subtitle">{new Date(inc.date).toLocaleDateString('id-ID')}</div>
                 </div>
                 <div className="list-row-amount positive">+Rp {inc.amount.toLocaleString('id-ID')}</div>
-                <button className="icon-btn" onClick={() => handleDelete(inc.id)}>
+                <button className="icon-btn" onClick={() => handleDelete(inc.id)} aria-label="Hapus pemasukan">
                   <Trash2 size={16} />
                 </button>
               </div>
@@ -157,7 +157,7 @@ const IncomePages = () => {
           <div className="modal-card" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Tambah Pemasukan</h2>
-              <button className="modal-close" onClick={() => setShowModal(false)}><X size={18} /></button>
+              <button className="modal-close" onClick={() => setShowModal(false)} aria-label="Tutup"><X size={18} /></button>
             </div>
             <form onSubmit={handleSubmit} className="auth-form">
               <div className="form-group">

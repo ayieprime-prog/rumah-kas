@@ -92,7 +92,7 @@ const GoalsPage = () => {
                     <div className="icon-square sw-5" style={{ width: 32, height: 32 }}><Target size={16} /></div>
                     <strong style={{ fontSize: 14 }}>{goal.name}</strong>
                   </div>
-                  <button className="icon-btn" onClick={() => handleDelete(goal.id)}><Trash2 size={16} /></button>
+                  <button className="icon-btn" onClick={() => handleDelete(goal.id)} aria-label="Hapus target"><Trash2 size={16} /></button>
                 </div>
                 <div className="progress-track">
                   <div className="progress-track-fill" style={{ width: `${progress}%`, background: 'linear-gradient(90deg, var(--accent-color), var(--secondary-color))' }}></div>
@@ -130,7 +130,7 @@ const GoalsPage = () => {
           <div className="modal-card" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Tambah Target Tabungan</h2>
-              <button className="modal-close" onClick={() => setShowModal(false)}><X size={18} /></button>
+              <button className="modal-close" onClick={() => setShowModal(false)} aria-label="Tutup"><X size={18} /></button>
             </div>
             <form onSubmit={handleSubmit} className="auth-form">
               <div className="form-group">

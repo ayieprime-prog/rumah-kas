@@ -79,7 +79,7 @@ const JournalPage = () => {
                 <div className="journal-entry-author">{entry.author?.name}</div>
                 <div className="journal-entry-date">{new Date(entry.entryDate).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</div>
               </div>
-              <button className="icon-btn" onClick={() => handleDelete(entry.id)}>
+              <button className="icon-btn" onClick={() => handleDelete(entry.id)} aria-label="Hapus catatan">
                 <Trash2 size={16} />
               </button>
             </div>
@@ -99,7 +99,7 @@ const JournalPage = () => {
           <div className="modal-card" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Tulis Catatan</h2>
-              <button className="modal-close" onClick={() => setShowModal(false)}><X size={18} /></button>
+              <button className="modal-close" onClick={() => setShowModal(false)} aria-label="Tutup"><X size={18} /></button>
             </div>
             <form onSubmit={handleSubmit} className="auth-form">
               <div className="form-group">

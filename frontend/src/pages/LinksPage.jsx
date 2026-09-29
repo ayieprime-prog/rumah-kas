@@ -87,10 +87,10 @@ const LinksPage = () => {
                   <div className="list-row-title">{link.title}</div>
                   {link.notes && <div className="list-row-subtitle">{link.notes}</div>}
                 </div>
-                <a href={link.url} target="_blank" rel="noopener noreferrer" className="icon-btn" style={{ color: 'var(--accent-color)' }}>
+                <a href={link.url} target="_blank" rel="noopener noreferrer" className="icon-btn" style={{ color: 'var(--accent-color)' }} aria-label={`Buka ${link.title}`}>
                   <ExternalLink size={16} />
                 </a>
-                <button className="icon-btn" onClick={() => handleDelete(link.id)}>
+                <button className="icon-btn" onClick={() => handleDelete(link.id)} aria-label="Hapus link">
                   <Trash2 size={16} />
                 </button>
               </div>
@@ -110,7 +110,7 @@ const LinksPage = () => {
           <div className="modal-card" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Tambah Link</h2>
-              <button className="modal-close" onClick={() => setShowModal(false)}><X size={18} /></button>
+              <button className="modal-close" onClick={() => setShowModal(false)} aria-label="Tutup"><X size={18} /></button>
             </div>
             <form onSubmit={handleSubmit} className="auth-form">
               <div className="form-group">

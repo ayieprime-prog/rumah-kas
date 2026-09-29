@@ -116,7 +116,7 @@ const DebtPage = () => {
                       </button>
                     )}
                   </div>
-                  <button className="icon-btn" onClick={() => handleDelete(debt.id)}>
+                  <button className="icon-btn" onClick={() => handleDelete(debt.id)} aria-label="Hapus hutang">
                     <Trash2 size={16} />
                   </button>
                 </div>
@@ -136,7 +136,7 @@ const DebtPage = () => {
           <div className="modal-card" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Tambah Hutang</h2>
-              <button className="modal-close" onClick={() => setShowModal(false)}><X size={18} /></button>
+              <button className="modal-close" onClick={() => setShowModal(false)} aria-label="Tutup"><X size={18} /></button>
             </div>
             <form onSubmit={handleSubmit} className="auth-form">
               <div className="form-group">

@@ -101,7 +101,7 @@ const BudgetPage = () => {
                       Rp {b.spent.toLocaleString('id-ID')} / Rp {b.limit.toLocaleString('id-ID')}
                     </div>
                   </div>
-                  <button className="icon-btn" onClick={() => handleDelete(b.id)}>
+                  <button className="icon-btn" onClick={() => handleDelete(b.id)} aria-label="Hapus anggaran">
                     <Trash2 size={16} />
                   </button>
                 </div>
@@ -122,7 +122,7 @@ const BudgetPage = () => {
           <div className="modal-card" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Tambah Anggaran</h2>
-              <button className="modal-close" onClick={() => setShowModal(false)}><X size={18} /></button>
+              <button className="modal-close" onClick={() => setShowModal(false)} aria-label="Tutup"><X size={18} /></button>
             </div>
             <form onSubmit={handleSubmit} className="auth-form">
               <div className="form-group">

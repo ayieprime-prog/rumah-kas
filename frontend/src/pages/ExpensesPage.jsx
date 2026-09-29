@@ -130,7 +130,7 @@ const ExpensesPage = () => {
                   <div className="list-row-subtitle">{exp.category?.name} · {new Date(exp.date).toLocaleDateString('id-ID')}</div>
                 </div>
                 <div className="list-row-amount negative">-Rp {exp.amount.toLocaleString('id-ID')}</div>
-                <button className="icon-btn" onClick={() => handleDelete(exp.id)}>
+                <button className="icon-btn" onClick={() => handleDelete(exp.id)} aria-label="Hapus pengeluaran">
                   <Trash2 size={16} />
                 </button>
               </div>
@@ -149,7 +149,7 @@ const ExpensesPage = () => {
           <div className="modal-card" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Tambah Pengeluaran</h2>
-              <button className="modal-close" onClick={() => setShowModal(false)}><X size={18} /></button>
+              <button className="modal-close" onClick={() => setShowModal(false)} aria-label="Tutup"><X size={18} /></button>
             </div>
             <form onSubmit={handleSubmit} className="auth-form">
               <div className="form-group">
