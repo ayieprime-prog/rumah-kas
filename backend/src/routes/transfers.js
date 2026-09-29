@@ -113,48 +113,62 @@ router.post('/', async (req, res) => {
     const isSameUser = recipientId === null || recipientId === undefined;
     const status = isSameUser ? 'COMPLETED' : 'PENDING';
 
-    // Create transfer
-    const transfer = await prisma.transfer.create({
-      data: {
-        fromWalletId,
-        toWalletId,
-        amount,
-        note,
-        recipientId,
-        initiatedById: userId,
-        status,
-        approvedBy: isSameUser ? userId : null,
-        approvedAt: isSameUser ? new Date() : null,
-        householdId: user.householdId
-      },
-      include: {
-        fromWallet: { select: { id: true, name: true } },
-        toWallet: { select: { id: true, name: true } }
+    // Transfer creation and (for the auto-complete case) both wallet balance
+    // updates all happen in one DB transaction: a crash or error partway
+    // through rolls back everything instead of leaving one wallet debited
+    // without the other credited. The `balance: { gte: amount }` guard on
+    // the decrement makes it a single atomic check-and-update, closing the
+    // race window a separate read-then-compare would leave open between
+    // concurrent transfers off the same wallet.
+    const transfer = await prisma.$transaction(async (tx) => {
+      const created = await tx.transfer.create({
+        data: {
+          fromWalletId,
+          toWalletId,
+          amount,
+          note,
+          recipientId,
+          initiatedById: userId,
+          status,
+          approvedBy: isSameUser ? userId : null,
+          approvedAt: isSameUser ? new Date() : null,
+          householdId: user.householdId
+        },
+        include: {
+          fromWallet: { select: { id: true, name: true } },
+          toWallet: { select: { id: true, name: true } }
+        }
+      });
+
+      if (isSameUser) {
+        const debited = await tx.wallet.updateMany({
+          where: { id: fromWalletId, balance: { gte: amount } },
+          data: { balance: { decrement: amount } }
+        });
+        if (debited.count === 0) {
+          const err = new Error('Insufficient balance');
+          err.statusCode = 400;
+          throw err;
+        }
+
+        await tx.wallet.update({
+          where: { id: toWalletId },
+          data: { balance: { increment: amount } }
+        });
       }
+
+      return created;
     });
 
-    // If auto-complete (same user), update wallet balances
-    if (isSameUser) {
-      await prisma.wallet.update({
-        where: { id: fromWalletId },
-        data: { balance: { decrement: amount } }
-      });
-
-      await prisma.wallet.update({
-        where: { id: toWalletId },
-        data: { balance: { increment: amount } }
-      });
-
-      invalidateCache.dashboard(user.householdId);
-    }
-
+    if (isSameUser) invalidateCache.dashboard(user.householdId);
     res.status(201).json(transfer);
   } catch (err) {
+    if (err.statusCode) return res.status(err.statusCode).json({ error: err.message });
     handlePrismaError(err, res);
   }
 });
 
-// PUT /api/transfers/:id/approve - Approve a pending transfer
+// PUT /api/transfers/:id/approve - Approve a pending transfer, then execute it
 // Body: { approvedBy? (defaults to req.userId) }
 router.put('/:id/approve', async (req, res) => {
   try {
@@ -174,48 +188,57 @@ router.put('/:id/approve', async (req, res) => {
 
     if (!transfer) return res.status(404).json({ error: 'Transfer not found' });
 
-    if (transfer.status !== 'PENDING') {
+    // APPROVED is accepted here too (not just PENDING): if a previous call
+    // got as far as marking it APPROVED but crashed before the wallet
+    // balances were moved, calling approve again safely resumes from there
+    // instead of leaving the transfer permanently stuck - no money has
+    // moved yet at that point, so re-attempting the transaction is safe.
+    if (transfer.status !== 'PENDING' && transfer.status !== 'APPROVED') {
       return res.status(400).json({ error: 'Only pending transfers can be approved' });
     }
 
-    // Update transfer status
-    const updatedTransfer = await prisma.transfer.update({
-      where: { id },
-      data: {
-        status: 'APPROVED',
-        approvedBy: userId,
-        approvedAt: new Date()
-      },
-      include: {
-        fromWallet: { select: { id: true, name: true, balance: true } },
-        toWallet: { select: { id: true, name: true, balance: true } }
+    if (transfer.status === 'PENDING') {
+      await prisma.transfer.update({
+        where: { id },
+        data: { status: 'APPROVED', approvedBy: userId, approvedAt: new Date() }
+      });
+    }
+
+    // Both wallet balance updates and the final COMPLETED status write are
+    // one DB transaction: either the whole transfer executes, or (on a
+    // crash, error, or insufficient balance discovered here) none of it
+    // does and the transfer stays at APPROVED, safely retryable - never a
+    // state where one wallet is debited without the other being credited.
+    const completedTransfer = await prisma.$transaction(async (tx) => {
+      const debited = await tx.wallet.updateMany({
+        where: { id: transfer.fromWalletId, balance: { gte: transfer.amount } },
+        data: { balance: { decrement: transfer.amount } }
+      });
+      if (debited.count === 0) {
+        const err = new Error('Insufficient balance in source wallet');
+        err.statusCode = 400;
+        throw err;
       }
-    });
 
-    // Execute transfer: update wallet balances
-    await prisma.wallet.update({
-      where: { id: transfer.fromWalletId },
-      data: { balance: { decrement: transfer.amount } }
-    });
+      await tx.wallet.update({
+        where: { id: transfer.toWalletId },
+        data: { balance: { increment: transfer.amount } }
+      });
 
-    await prisma.wallet.update({
-      where: { id: transfer.toWalletId },
-      data: { balance: { increment: transfer.amount } }
-    });
-
-    // Update transfer status to COMPLETED
-    const completedTransfer = await prisma.transfer.update({
-      where: { id },
-      data: { status: 'COMPLETED' },
-      include: {
-        fromWallet: { select: { id: true, name: true, balance: true } },
-        toWallet: { select: { id: true, name: true, balance: true } }
-      }
+      return tx.transfer.update({
+        where: { id },
+        data: { status: 'COMPLETED' },
+        include: {
+          fromWallet: { select: { id: true, name: true, balance: true } },
+          toWallet: { select: { id: true, name: true, balance: true } }
+        }
+      });
     });
 
     invalidateCache.dashboard(user.householdId);
     res.json(completedTransfer);
   } catch (err) {
+    if (err.statusCode) return res.status(err.statusCode).json({ error: err.message });
     handlePrismaError(err, res);
   }
 });
@@ -281,7 +304,10 @@ router.delete('/:id', async (req, res) => {
 
     if (!transfer) return res.status(404).json({ error: 'Transfer not found' });
 
-    if (transfer.status !== 'PENDING' && transfer.status !== 'REJECTED') {
+    // APPROVED is safe to delete too: no wallet balance changes happen
+    // until the approve endpoint's own $transaction executes, so an
+    // approved-but-not-yet-executed transfer can still be cancelled outright.
+    if (!['PENDING', 'REJECTED', 'APPROVED'].includes(transfer.status)) {
       return res.status(400).json({ error: 'Cannot delete completed transfers' });
     }
 

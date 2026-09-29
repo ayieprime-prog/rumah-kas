@@ -148,19 +148,13 @@ router.delete('/:id', authenticate, async (req, res) => {
       return res.status(403).json({ error: 'Unauthorized' })
     }
 
-    // Set all expenses/incomes using this wallet to NULL
-    await prisma.expense.updateMany({
-      where: { walletId },
-      data: { walletId: null }
-    })
-
-    await prisma.income.updateMany({
-      where: { walletId },
-      data: { walletId: null }
-    })
-
-    // Delete wallet
-    await prisma.wallet.delete({ where: { id: walletId } })
+    // One transaction so a crash partway through can't leave expenses/
+    // incomes detached from a wallet that still exists, or vice versa.
+    await prisma.$transaction([
+      prisma.expense.updateMany({ where: { walletId }, data: { walletId: null } }),
+      prisma.income.updateMany({ where: { walletId }, data: { walletId: null } }),
+      prisma.wallet.delete({ where: { id: walletId } })
+    ])
 
     invalidateCache.dashboard(user.householdId)
     res.json({ message: 'Wallet deleted' })
