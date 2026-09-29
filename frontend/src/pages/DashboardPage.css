@@ -100,25 +100,44 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 14px 8px;
+  gap: 8px;
+  padding: 16px 8px;
   border: none;
-  border-radius: 14px;
+  border-radius: 18px;
   color: white;
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background-image: linear-gradient(160deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 40%, rgba(0, 0, 0, 0.14) 100%);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 6px 14px -4px rgba(0, 0, 0, 0.22);
 }
 
 .shortcut-item:active {
-  transform: scale(0.95);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  transform: scale(0.96) translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .shortcut-item:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-3px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 12px 20px -6px rgba(0, 0, 0, 0.28);
+}
+
+.shortcut-icon-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3);
+}
+
+.shortcut-label {
+  letter-spacing: 0.2px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
 }
 
 /* Shimmering glossy rim - a thin translucent border plus a slow diagonal
@@ -923,13 +942,19 @@
   .shortcut-item {
     padding: 12px 6px;
     font-size: 10px;
-    gap: 4px;
-    border-radius: 12px;
+    gap: 6px;
+    border-radius: 14px;
+  }
+
+  .shortcut-icon-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
   }
 
   .shortcut-item svg {
-    width: 20px;
-    height: 20px;
+    width: 17px;
+    height: 17px;
   }
 
   .summary-toggle-tabs {

@@ -28,8 +28,10 @@ const MenuShortcuts = () => {
             onClick={() => navigate(menu.path)}
             aria-label={menu.label}
           >
-            <IconComp size={28} color={menu.color} />
-            <span>{menu.label}</span>
+            <span className="shortcut-icon-badge">
+              <IconComp size={20} color={menu.color} />
+            </span>
+            <span className="shortcut-label">{menu.label}</span>
           </button>
         )
       })}
