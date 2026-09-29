@@ -3,6 +3,7 @@ const { PrismaClient } = require('@prisma/client');
 const { logAudit } = require('../utils/audit');
 const { checkLockExceeded } = require('../utils/incomeLock');
 const { invalidateCache } = require('../utils/caching');
+const { getMonthRange } = require('../utils/dateRange');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -102,10 +103,7 @@ router.get('/', async (req, res) => {
     const where = { householdId };
 
     if (month) {
-      const [year, monthNum] = month.split('-');
-      const startDate = new Date(`${year}-${monthNum}-01`);
-      const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
-      where.date = { gte: startDate, lte: endDate };
+      where.date = getMonthRange(month);
     }
 
     if (categoryId) {

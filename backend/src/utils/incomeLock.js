@@ -1,22 +1,17 @@
-const monthRange = (month) => {
-  const [year, monthNum] = month.split('-');
-  const startDate = new Date(`${year}-${monthNum}-01`);
-  const endDate = new Date(parseInt(year), parseInt(monthNum), 0, 23, 59, 59, 999);
-  return { startDate, endDate };
-};
+const { getMonthRange } = require('./dateRange');
 
 // Berapa yang "dikunci" (dari pendapatan) vs sudah terpakai (dari
 // pengeluaran) untuk satu kategori di bulan tertentu.
 async function getLockedAllocation(prisma, householdId, categoryId, month) {
-  const { startDate, endDate } = monthRange(month);
+  const range = getMonthRange(month);
 
   const [incomeAgg, expenseAgg] = await Promise.all([
     prisma.income.aggregate({
-      where: { householdId, lockedCategoryId: categoryId, date: { gte: startDate, lte: endDate } },
+      where: { householdId, lockedCategoryId: categoryId, date: range },
       _sum: { amount: true }
     }),
     prisma.expense.aggregate({
-      where: { householdId, categoryId, date: { gte: startDate, lte: endDate } },
+      where: { householdId, categoryId, date: range },
       _sum: { amount: true }
     })
   ]);
@@ -29,10 +24,10 @@ async function getLockedAllocation(prisma, householdId, categoryId, month) {
 // Ringkasan semua kategori yang punya pendapatan terkunci di bulan ini --
 // dipakai halaman Income dan untuk mengoreksi Uang Bebas di dashboard.
 async function getAllLockedAllocations(prisma, householdId, month) {
-  const { startDate, endDate } = monthRange(month);
+  const range = getMonthRange(month);
 
   const lockedIncomes = await prisma.income.findMany({
-    where: { householdId, lockedCategoryId: { not: null }, date: { gte: startDate, lte: endDate } },
+    where: { householdId, lockedCategoryId: { not: null }, date: range },
     include: { lockedCategory: true }
   });
 
@@ -41,7 +36,7 @@ async function getAllLockedAllocations(prisma, householdId, month) {
   const categoryIds = [...new Set(lockedIncomes.map(i => i.lockedCategoryId))];
   const expenseSums = await prisma.expense.groupBy({
     by: ['categoryId'],
-    where: { householdId, categoryId: { in: categoryIds }, date: { gte: startDate, lte: endDate } },
+    where: { householdId, categoryId: { in: categoryIds }, date: range },
     _sum: { amount: true }
   });
   const spentMap = Object.fromEntries(expenseSums.map(e => [e.categoryId, e._sum.amount || 0]));

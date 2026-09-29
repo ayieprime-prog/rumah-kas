@@ -1,5 +1,6 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
+const { clampDay } = require('../utils/dateRange');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -24,10 +25,6 @@ router.post('/', async (req, res) => {
 });
 
 const dayKey = (date) => date.toISOString().slice(0, 10);
-const clampDay = (year, monthIndex, day) => {
-  const lastDay = new Date(year, monthIndex + 1, 0).getDate();
-  return new Date(year, monthIndex, Math.min(day, lastDay));
-};
 
 // List events for a month (YYYY-MM), plus derived transaction markers and
 // upcoming-payment reminders (bills/debt, maintenance, expected income) so

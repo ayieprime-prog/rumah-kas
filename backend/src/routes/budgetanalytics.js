@@ -1,5 +1,6 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
+const { getMonthRange, currentMonthString, nextMonthString } = require('../utils/dateRange');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -40,10 +41,7 @@ router.get('/overview', async (req, res) => {
 
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const targetMonth = month || getYearMonth(new Date());
-    const [year, monthNum] = targetMonth.split('-');
-    const startDate = new Date(`${year}-${monthNum}-01`);
-    const endDate = new Date(year, parseInt(monthNum), 0);
+    const targetMonth = month || currentMonthString();
 
     // Get all budgets for the month
     const budgets = await prisma.budget.findMany({
@@ -60,10 +58,7 @@ router.get('/overview', async (req, res) => {
     const expenses = await prisma.expense.findMany({
       where: {
         householdId: user.householdId,
-        date: {
-          gte: startDate,
-          lte: endDate
-        }
+        date: getMonthRange(targetMonth)
       },
       include: {
         category: true
@@ -139,17 +134,12 @@ router.get('/trends', async (req, res) => {
     // Get all expenses for the period
     const monthlyData = {};
     for (const m of monthsList) {
-      const [year, monthNum] = m.split('-');
-      const startDate = new Date(`${year}-${monthNum}-01`);
-      const endDate = new Date(year, parseInt(monthNum), 0);
+      const monthRange = getMonthRange(m);
 
       const expenses = await prisma.expense.findMany({
         where: {
           householdId: user.householdId,
-          date: {
-            gte: startDate,
-            lte: endDate
-          }
+          date: monthRange
         }
       });
 
@@ -222,17 +212,12 @@ router.get('/category-trends', async (req, res) => {
     const categoryData = {};
 
     for (const m of monthsList) {
-      const [year, monthNum] = m.split('-');
-      const startDate = new Date(`${year}-${monthNum}-01`);
-      const endDate = new Date(year, parseInt(monthNum), 0);
+      const monthRange = getMonthRange(m);
 
       const expenses = await prisma.expense.findMany({
         where: {
           householdId: user.householdId,
-          date: {
-            gte: startDate,
-            lte: endDate
-          }
+          date: monthRange
         },
         include: { category: true }
       });
@@ -305,23 +290,18 @@ router.get('/forecast', async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     const monthsList = getPreviousMonths(parseInt(months));
-    const now = new Date();
-    const nextMonth = `${now.getFullYear()}-${String(now.getMonth() + 2).padStart(2, '0')}`;
+    const currentMonth = currentMonthString();
+    const nextMonth = nextMonthString(currentMonth);
 
     // Get historical monthly totals
     const historicalData = [];
     for (const m of monthsList) {
-      const [year, monthNum] = m.split('-');
-      const startDate = new Date(`${year}-${monthNum}-01`);
-      const endDate = new Date(year, parseInt(monthNum), 0);
+      const monthRange = getMonthRange(m);
 
       const expenses = await prisma.expense.findMany({
         where: {
           householdId: user.householdId,
-          date: {
-            gte: startDate,
-            lte: endDate
-          }
+          date: monthRange
         },
         include: { category: true }
       });
@@ -396,7 +376,7 @@ router.get('/forecast', async (req, res) => {
     const nextMonthBudgetTotal = nextMonthBudgets.reduce((sum, b) => sum + b.limit, 0);
 
     res.json({
-      currentMonth: getYearMonth(now),
+      currentMonth,
       nextMonth,
       forecast,
       summary: {

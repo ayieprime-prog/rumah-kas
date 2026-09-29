@@ -3,6 +3,7 @@ const { PrismaClient } = require('@prisma/client');
 const { checkDebtPaymentDue } = require('../utils/notificationTriggers');
 const { getAllLockedAllocations } = require('../utils/incomeLock');
 const { cacheMiddleware, cacheKeys } = require('../utils/caching');
+const { getMonthRange, currentMonthString } = require('../utils/dateRange');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -14,8 +15,8 @@ const prisma = new PrismaClient();
 // write path that doesn't (or a bug in one that doesn't).
 router.get('/', cacheMiddleware(req => cacheKeys.dashboard(req.householdId), 60), async (req, res) => {
   const { householdId } = req;
-  const now = new Date();
-  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const currentMonth = currentMonthString();
+  const monthRange = getMonthRange(currentMonth);
 
   try {
     // Time-based check (no user action triggers it) -- piggyback on dashboard
@@ -27,23 +28,11 @@ router.get('/', cacheMiddleware(req => cacheKeys.dashboard(req.householdId), 60)
 
     const [expenses, incomes, budgets, goals, debts, wallets, incomeLocks] = await Promise.all([
       prisma.expense.findMany({
-        where: {
-          householdId,
-          date: {
-            gte: new Date(`${currentMonth}-01`),
-            lte: new Date(now.getFullYear(), now.getMonth() + 1, 0)
-          }
-        },
+        where: { householdId, date: monthRange },
         include: { category: true }
       }),
       prisma.income.findMany({
-        where: {
-          householdId,
-          date: {
-            gte: new Date(`${currentMonth}-01`),
-            lte: new Date(now.getFullYear(), now.getMonth() + 1, 0)
-          }
-        }
+        where: { householdId, date: monthRange }
       }),
       prisma.budget.findMany({
         where: { householdId, month: currentMonth },

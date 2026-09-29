@@ -1,3 +1,5 @@
+const { clampDay } = require('./dateRange');
+
 const DUE_SOON_DAYS = 3;
 
 // Debt has no explicit per-cycle due date -- it repeats monthly on the same
@@ -14,7 +16,11 @@ async function checkDebtPaymentDue(prisma, householdId) {
     if (debt.paidAmount >= debt.totalAmount) continue; // lunas
 
     const start = new Date(debt.startDate);
-    const due = new Date(today.getFullYear(), today.getMonth(), start.getDate());
+    // Clamp instead of letting e.g. day 31 overflow into the next month in
+    // a shorter month (native Date behavior) - that overflow was silently
+    // pushing the computed due date outside the "due soon" window for the
+    // entire actual billing month, for any debt anchored on day 29-31.
+    const due = clampDay(today.getFullYear(), today.getMonth(), start.getDate());
     if (debt.endDate && due > new Date(debt.endDate)) continue;
 
     const diffDays = Math.round((due.getTime() - today.getTime()) / 86400000);

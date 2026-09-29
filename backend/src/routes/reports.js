@@ -1,19 +1,26 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
+const { getMonthRange } = require('../utils/dateRange');
 
 const router = express.Router();
 const prisma = new PrismaClient();
 
+// All arithmetic here is done in UTC, matching how dates are stored
+// (always UTC midnight - see monthOf()-style helpers elsewhere) rather
+// than the server's local timezone. Parsing with a trailing 'Z' but then
+// using local-time getDay()/setDate()/setHours() would silently shift
+// which calendar day/week a transaction falls into on any server not
+// running in UTC.
 function getWeekRange(dateStr) {
-  const d = new Date(`${dateStr}T00:00:00`);
-  const day = d.getDay(); // 0 (Sun) - 6 (Sat)
+  const d = new Date(`${dateStr}T00:00:00.000Z`);
+  const day = d.getUTCDay(); // 0 (Sun) - 6 (Sat)
   const diffToMonday = day === 0 ? -6 : 1 - day;
   const monday = new Date(d);
-  monday.setDate(d.getDate() + diffToMonday);
-  monday.setHours(0, 0, 0, 0);
+  monday.setUTCDate(d.getUTCDate() + diffToMonday);
+  monday.setUTCHours(0, 0, 0, 0);
   const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  sunday.setHours(23, 59, 59, 999);
+  sunday.setUTCDate(monday.getUTCDate() + 6);
+  sunday.setUTCHours(23, 59, 59, 999);
   return { startDate: monday, endDate: sunday };
 }
 
@@ -58,8 +65,8 @@ router.get('/daily/:date', async (req, res) => {
   const { date } = req.params;
 
   try {
-    const startDate = new Date(`${date}T00:00:00`);
-    const endDate = new Date(`${date}T23:59:59.999`);
+    const startDate = new Date(`${date}T00:00:00.000Z`);
+    const endDate = new Date(`${date}T23:59:59.999Z`);
     const data = await computeReport(householdId, startDate, endDate);
     res.json({ period: 'daily', date, ...data, budget: [] });
   } catch (error) {
@@ -94,9 +101,8 @@ router.get('/monthly/:month', async (req, res) => {
   const { month } = req.params;
 
   try {
-    const [year, monthNum] = month.split('-');
-    const startDate = new Date(`${year}-${monthNum}-01`);
-    const endDate = new Date(parseInt(year), parseInt(monthNum), 0, 23, 59, 59, 999);
+    const { gte: startDate, lt: monthEnd } = getMonthRange(month);
+    const endDate = new Date(monthEnd.getTime() - 1);
 
     const [data, budgets] = await Promise.all([
       computeReport(householdId, startDate, endDate),

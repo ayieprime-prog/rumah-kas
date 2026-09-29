@@ -13,8 +13,12 @@ router.get('/', async (req, res) => {
   try {
     const where = { householdId };
     if (date) {
-      const dayStart = new Date(`${date}T00:00:00`);
-      const dayEnd = new Date(`${date}T23:59:59.999`);
+      // Parsed as UTC (trailing Z) to match how "today" is computed
+      // elsewhere (toISOString().slice(0,10)) and how dueDate is stored -
+      // parsing as server-local time here would shift which day a todo
+      // "belongs to" by the server's UTC offset.
+      const dayStart = new Date(`${date}T00:00:00.000Z`);
+      const dayEnd = new Date(`${date}T23:59:59.999Z`);
       where.dueDate = { gte: dayStart, lte: dayEnd };
     }
 

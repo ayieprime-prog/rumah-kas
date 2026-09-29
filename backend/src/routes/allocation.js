@@ -1,5 +1,6 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
+const { getMonthRange, currentMonthString } = require('../utils/dateRange');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -7,12 +8,6 @@ const prisma = new PrismaClient();
 const handlePrismaError = (err, res) => {
   console.error('Database error:', err.message);
   res.status(500).json({ error: 'Database error' });
-};
-
-// Helper function to get year-month string
-const getYearMonth = (date) => {
-  const d = new Date(date);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 };
 
 // GET /api/allocation - Get income allocation for a specific month
@@ -30,19 +25,13 @@ router.get('/', async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     // Use provided month or default to current month
-    const targetMonth = month || getYearMonth(new Date());
-    const [year, monthNum] = targetMonth.split('-');
-    const startDate = new Date(`${year}-${monthNum}-01`);
-    const endDate = new Date(year, parseInt(monthNum), 0); // Last day of month
+    const targetMonth = month || currentMonthString();
 
     // Get all incomes for the month
     const incomes = await prisma.income.findMany({
       where: {
         householdId: user.householdId,
-        date: {
-          gte: startDate,
-          lte: endDate
-        }
+        date: getMonthRange(targetMonth)
       }
     });
 
@@ -65,10 +54,7 @@ router.get('/', async (req, res) => {
     const expenses = await prisma.expense.findMany({
       where: {
         householdId: user.householdId,
-        date: {
-          gte: startDate,
-          lte: endDate
-        }
+        date: getMonthRange(targetMonth)
       }
     });
 
@@ -98,10 +84,7 @@ router.get('/', async (req, res) => {
       by: ['categoryId'],
       where: {
         householdId: user.householdId,
-        date: {
-          gte: startDate,
-          lte: endDate
-        }
+        date: getMonthRange(targetMonth)
       },
       _sum: {
         amount: true
