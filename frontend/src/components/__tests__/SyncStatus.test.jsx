@@ -20,20 +20,20 @@ function mockHook(overrides = {}) {
 describe('SyncStatus', () => {
   afterEach(() => jest.clearAllMocks())
 
-  it('shows an initializing state before the hook reports ready', () => {
+  it('shows a preparing state before the hook reports ready', () => {
     mockHook({ isInitialized: false })
     render(<SyncStatus />)
-    expect(screen.getByText('Initializing sync...')).toBeInTheDocument()
+    expect(screen.getByText('Menyiapkan sinkronisasi...')).toBeInTheDocument()
   })
 
   it('renders the sync schedule once initialized', async () => {
     mockHook()
     render(<SyncStatus />)
 
-    expect(await screen.findByText('Data Sync Status')).toBeInTheDocument()
-    expect(screen.getByText('Sync Schedule')).toBeInTheDocument()
-    expect(screen.getByText('Expenses')).toBeInTheDocument()
-    expect(screen.getByText('Every 30 minutes')).toBeInTheDocument()
+    expect(await screen.findByText('Status Sinkronisasi Data')).toBeInTheDocument()
+    expect(screen.getByText('Jadwal Sinkronisasi')).toBeInTheDocument()
+    expect(screen.getByText('Pengeluaran')).toBeInTheDocument()
+    expect(screen.getByText('Setiap 30 menit')).toBeInTheDocument()
   })
 
   it('displays cache size formatted from getSyncStats', async () => {
@@ -45,30 +45,30 @@ describe('SyncStatus', () => {
     expect(await screen.findByText('2 KB')).toBeInTheDocument()
   })
 
-  it('clicking Sync Now refreshes stats', async () => {
+  it('clicking Sinkronkan refreshes stats', async () => {
     const getSyncStats = jest.fn().mockResolvedValue({ totalRecords: 1, caches: [], totalSize: 1024 })
     mockHook({ getSyncStats })
     const user = userEvent.setup()
 
     render(<SyncStatus />)
-    await screen.findByText('Data Sync Status')
+    await screen.findByText('Status Sinkronisasi Data')
     getSyncStats.mockClear()
 
-    await user.click(screen.getByRole('button', { name: /Sync Now/ }))
+    await user.click(screen.getByRole('button', { name: /Sinkronkan/ }))
 
     expect(getSyncStats).toHaveBeenCalled()
   })
 
-  it('clicking Clear Old Cache calls clearOldCache after confirmation', async () => {
+  it('clicking Hapus Cache Lama calls clearOldCache after confirmation', async () => {
     const clearOldCache = jest.fn().mockResolvedValue(undefined)
     mockHook({ clearOldCache })
     window.confirm = jest.fn().mockReturnValue(true)
     const user = userEvent.setup()
 
     render(<SyncStatus />)
-    await screen.findByText('Data Sync Status')
+    await screen.findByText('Status Sinkronisasi Data')
 
-    await user.click(screen.getByRole('button', { name: /Clear Old Cache/ }))
+    await user.click(screen.getByRole('button', { name: /Hapus Cache Lama/ }))
 
     expect(window.confirm).toHaveBeenCalled()
     expect(clearOldCache).toHaveBeenCalledTimes(1)
@@ -81,9 +81,9 @@ describe('SyncStatus', () => {
     const user = userEvent.setup()
 
     render(<SyncStatus />)
-    await screen.findByText('Data Sync Status')
+    await screen.findByText('Status Sinkronisasi Data')
 
-    await user.click(screen.getByRole('button', { name: /Clear Old Cache/ }))
+    await user.click(screen.getByRole('button', { name: /Hapus Cache Lama/ }))
 
     expect(clearOldCache).not.toHaveBeenCalled()
   })
@@ -95,9 +95,9 @@ describe('SyncStatus', () => {
     const user = userEvent.setup()
 
     render(<SyncStatus />)
-    await screen.findByText('Data Sync Status')
+    await screen.findByText('Status Sinkronisasi Data')
 
-    await user.click(screen.getByRole('button', { name: /Clear Old Cache/ }))
+    await user.click(screen.getByRole('button', { name: /Hapus Cache Lama/ }))
 
     expect(await screen.findByText(/quota exceeded/)).toBeInTheDocument()
   })

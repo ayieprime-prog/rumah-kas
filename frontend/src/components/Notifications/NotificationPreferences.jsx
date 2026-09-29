@@ -1,6 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Bell, BellOff, Loader2 } from 'lucide-react'
 import { usePushNotifications } from '../../utils/pushNotifications'
+import './NotificationPreferences.css'
+
+const PREFERENCE_ITEMS = [
+  { key: 'expenseReminders', title: 'Pengingat Pengeluaran', desc: 'Ingatkan untuk mencatat pengeluaran' },
+  { key: 'budgetAlerts', title: 'Peringatan Anggaran', desc: 'Peringatkan saat anggaran mencapai 80% atau lebih' },
+  { key: 'billDueNotifications', title: 'Tagihan Jatuh Tempo', desc: 'Ingatkan saat tagihan mendekati jatuh tempo' },
+  { key: 'goalMilestones', title: 'Target Tabungan', desc: 'Rayakan saat target tabungan tercapai' },
+  { key: 'weeklyReport', title: 'Laporan Mingguan', desc: 'Ringkasan keuangan setiap hari Senin' }
+]
 
 /**
  * `userId` is passed in as a prop rather than pulled from a global auth
@@ -40,13 +49,13 @@ export function NotificationPreferences({ userId }) {
     try {
       if (isSubscribed) {
         await unsubscribe()
-        setSuccess('Unsubscribed from push notifications')
+        setSuccess('Notifikasi push dinonaktifkan')
       } else {
         await subscribe()
-        setSuccess('Subscribed to push notifications')
+        setSuccess('Notifikasi push diaktifkan')
       }
     } catch (err) {
-      setError(err.message || 'Failed to update subscription')
+      setError(err.message || 'Gagal mengubah status notifikasi')
       console.error('Subscription error:', err)
     } finally {
       setIsSaving(false)
@@ -65,10 +74,10 @@ export function NotificationPreferences({ userId }) {
 
     try {
       await updatePreferences(updated)
-      setSuccess('Preferences updated')
+      setSuccess('Preferensi tersimpan')
     } catch (err) {
-      setError(err.message || 'Failed to update preferences')
-      setLocalPrefs(preferences)
+      setError(err.message || 'Gagal menyimpan preferensi')
+      if (preferences) setLocalPrefs(preferences)
     } finally {
       setIsSaving(false)
     }
@@ -76,172 +85,62 @@ export function NotificationPreferences({ userId }) {
 
   if (isLoading) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
-        <div className="flex items-center justify-center gap-2">
-          <Loader2 className="w-4 h-4 animate-spin" />
-          <p className="text-gray-600 dark:text-gray-400">Loading preferences...</p>
-        </div>
+      <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+        <Loader2 size={16} className="spinning" />
+        <span className="notif-tip">Memuat preferensi...</span>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      {/* Subscription Status */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
-        <div className="flex items-center justify-between mb-4">
+    <>
+      <div className="card">
+        <div className="notif-header">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Push Notifications
-            </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              {isSubscribed
-                ? '✅ Enabled - You will receive notifications'
-                : '❌ Disabled - Notifications are turned off'
-              }
+            <p className="notif-status-title">Notifikasi Push</p>
+            <p className="notif-status-subtitle">
+              {isSubscribed ? 'Aktif - Anda akan menerima notifikasi' : 'Nonaktif - Notifikasi dimatikan'}
             </p>
           </div>
           <button
             onClick={handleToggleSubscription}
             disabled={isSaving}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-              isSubscribed
-                ? 'bg-red-50 dark:bg-red-900 text-red-700 dark:text-red-200 hover:bg-red-100 dark:hover:bg-red-800'
-                : 'bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-200 hover:bg-green-100 dark:hover:bg-green-800'
-            } disabled:opacity-50 disabled:cursor-not-allowed`}
+            className={`notif-toggle-btn ${isSubscribed ? 'disable' : 'enable'}`}
           >
             {isSaving ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 size={14} className="spinning" />
             ) : isSubscribed ? (
-              <>
-                <BellOff className="w-4 h-4" />
-                Disable
-              </>
+              <><BellOff size={14} /> Matikan</>
             ) : (
-              <>
-                <Bell className="w-4 h-4" />
-                Enable
-              </>
+              <><Bell size={14} /> Aktifkan</>
             )}
           </button>
         </div>
 
-        {error && (
-          <div className="mt-4 p-3 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded text-sm text-red-700 dark:text-red-200">
-            {error}
-          </div>
-        )}
-
-        {success && (
-          <div className="mt-4 p-3 bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 rounded text-sm text-green-700 dark:text-green-200">
-            {success}
-          </div>
-        )}
+        {error && <div className="alert alert-error" style={{ marginTop: 12, marginBottom: 0 }}>{error}</div>}
+        {success && <div className="alert alert-success" style={{ marginTop: 12, marginBottom: 0 }}>{success}</div>}
       </div>
 
-      {/* Notification Type Preferences */}
       {isSubscribed && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Notification Types
-          </h3>
-
-          <div className="space-y-4">
-            {/* Expense Reminders */}
-            <label className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+        <div className="card">
+          <p className="notif-types-title">Jenis Notifikasi</p>
+          {PREFERENCE_ITEMS.map(item => (
+            <label key={item.key} className="notif-pref-row">
               <input
                 type="checkbox"
-                checked={localPrefs.expenseReminders}
-                onChange={() => handlePreferenceChange('expenseReminders')}
+                checked={localPrefs[item.key]}
+                onChange={() => handlePreferenceChange(item.key)}
                 disabled={isSaving}
-                className="w-4 h-4 rounded accent-blue-600"
               />
-              <div className="flex-1">
-                <p className="font-medium text-gray-900 dark:text-white">Expense Reminders</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Get reminders to log your expenses
-                </p>
+              <div>
+                <p className="notif-pref-title">{item.title}</p>
+                <p className="notif-pref-desc">{item.desc}</p>
               </div>
             </label>
-
-            {/* Budget Alerts */}
-            <label className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-              <input
-                type="checkbox"
-                checked={localPrefs.budgetAlerts}
-                onChange={() => handlePreferenceChange('budgetAlerts')}
-                disabled={isSaving}
-                className="w-4 h-4 rounded accent-blue-600"
-              />
-              <div className="flex-1">
-                <p className="font-medium text-gray-900 dark:text-white">Budget Alerts</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Alert when budget reaches 80% or more
-                </p>
-              </div>
-            </label>
-
-            {/* Bill Due Notifications */}
-            <label className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-              <input
-                type="checkbox"
-                checked={localPrefs.billDueNotifications}
-                onChange={() => handlePreferenceChange('billDueNotifications')}
-                disabled={isSaving}
-                className="w-4 h-4 rounded accent-blue-600"
-              />
-              <div className="flex-1">
-                <p className="font-medium text-gray-900 dark:text-white">Bill Due Notifications</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Reminder when bills are due
-                </p>
-              </div>
-            </label>
-
-            {/* Goal Milestones */}
-            <label className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-              <input
-                type="checkbox"
-                checked={localPrefs.goalMilestones}
-                onChange={() => handlePreferenceChange('goalMilestones')}
-                disabled={isSaving}
-                className="w-4 h-4 rounded accent-blue-600"
-              />
-              <div className="flex-1">
-                <p className="font-medium text-gray-900 dark:text-white">Goal Milestones</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Celebrate when you reach goal milestones
-                </p>
-              </div>
-            </label>
-
-            {/* Weekly Report */}
-            <label className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-              <input
-                type="checkbox"
-                checked={localPrefs.weeklyReport}
-                onChange={() => handlePreferenceChange('weeklyReport')}
-                disabled={isSaving}
-                className="w-4 h-4 rounded accent-blue-600"
-              />
-              <div className="flex-1">
-                <p className="font-medium text-gray-900 dark:text-white">Weekly Report</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Weekly financial summary every Monday
-                </p>
-              </div>
-            </label>
-          </div>
+          ))}
         </div>
       )}
-
-      {/* Info Box */}
-      <div className="bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
-        <p className="text-sm text-blue-800 dark:text-blue-200">
-          💡 <strong>Tip:</strong> Enable notifications to stay on top of your finances. You can customize which notifications you receive in the settings above.
-        </p>
-      </div>
-    </div>
+    </>
   )
 }
 

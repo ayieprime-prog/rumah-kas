@@ -25,21 +25,21 @@ describe('NotificationPreferences', () => {
   it('shows a loading state while the hook is loading', () => {
     mockHook({ isLoading: true })
     render(<NotificationPreferences userId="user-1" />)
-    expect(screen.getByText('Loading preferences...')).toBeInTheDocument()
+    expect(screen.getByText('Memuat preferensi...')).toBeInTheDocument()
   })
 
-  it('shows disabled status and an Enable button when not subscribed', () => {
+  it('shows disabled status and an Aktifkan button when not subscribed', () => {
     mockHook({ isSubscribed: false })
     render(<NotificationPreferences userId="user-1" />)
 
-    expect(screen.getByText(/Disabled/)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Enable/ })).toBeInTheDocument()
+    expect(screen.getByText(/Nonaktif/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Aktifkan/ })).toBeInTheDocument()
   })
 
   it('hides the notification-type checkboxes when not subscribed', () => {
     mockHook({ isSubscribed: false })
     render(<NotificationPreferences userId="user-1" />)
-    expect(screen.queryByText('Notification Types')).not.toBeInTheDocument()
+    expect(screen.queryByText('Jenis Notifikasi')).not.toBeInTheDocument()
   })
 
   it('shows enabled status and preference checkboxes when subscribed', () => {
@@ -55,34 +55,34 @@ describe('NotificationPreferences', () => {
     })
     render(<NotificationPreferences userId="user-1" />)
 
-    expect(screen.getByText(/Enabled/)).toBeInTheDocument()
-    expect(screen.getByText('Notification Types')).toBeInTheDocument()
-    expect(screen.getByLabelText(/Budget Alerts/)).not.toBeChecked()
-    expect(screen.getByLabelText(/Expense Reminders/)).toBeChecked()
+    expect(screen.getByText(/^Aktif/)).toBeInTheDocument()
+    expect(screen.getByText('Jenis Notifikasi')).toBeInTheDocument()
+    expect(screen.getByLabelText(/Peringatan Anggaran/)).not.toBeChecked()
+    expect(screen.getByLabelText(/Pengingat Pengeluaran/)).toBeChecked()
   })
 
-  it('clicking Enable calls subscribe() and shows a success message', async () => {
+  it('clicking Aktifkan calls subscribe() and shows a success message', async () => {
     const subscribe = jest.fn().mockResolvedValue(undefined)
     mockHook({ isSubscribed: false, subscribe })
     const user = userEvent.setup()
 
     render(<NotificationPreferences userId="user-1" />)
-    await user.click(screen.getByRole('button', { name: /Enable/ }))
+    await user.click(screen.getByRole('button', { name: /Aktifkan/ }))
 
     expect(subscribe).toHaveBeenCalledTimes(1)
-    expect(await screen.findByText('Subscribed to push notifications')).toBeInTheDocument()
+    expect(await screen.findByText('Notifikasi push diaktifkan')).toBeInTheDocument()
   })
 
-  it('clicking Disable calls unsubscribe() and shows a success message', async () => {
+  it('clicking Matikan calls unsubscribe() and shows a success message', async () => {
     const unsubscribe = jest.fn().mockResolvedValue(undefined)
     mockHook({ isSubscribed: true, unsubscribe, preferences: {} })
     const user = userEvent.setup()
 
     render(<NotificationPreferences userId="user-1" />)
-    await user.click(screen.getByRole('button', { name: /Disable/ }))
+    await user.click(screen.getByRole('button', { name: /Matikan/ }))
 
     expect(unsubscribe).toHaveBeenCalledTimes(1)
-    expect(await screen.findByText('Unsubscribed from push notifications')).toBeInTheDocument()
+    expect(await screen.findByText('Notifikasi push dinonaktifkan')).toBeInTheDocument()
   })
 
   it('shows an error message when toggling the subscription fails', async () => {
@@ -91,7 +91,7 @@ describe('NotificationPreferences', () => {
     const user = userEvent.setup()
 
     render(<NotificationPreferences userId="user-1" />)
-    await user.click(screen.getByRole('button', { name: /Enable/ }))
+    await user.click(screen.getByRole('button', { name: /Aktifkan/ }))
 
     expect(await screen.findByText('permission denied')).toBeInTheDocument()
   })
@@ -112,7 +112,7 @@ describe('NotificationPreferences', () => {
     const user = userEvent.setup()
 
     render(<NotificationPreferences userId="user-1" />)
-    await user.click(screen.getByLabelText(/Weekly Report/))
+    await user.click(screen.getByLabelText(/Laporan Mingguan/))
 
     await waitFor(() => {
       expect(updatePreferences).toHaveBeenCalledWith(
@@ -137,7 +137,7 @@ describe('NotificationPreferences', () => {
     const user = userEvent.setup()
 
     render(<NotificationPreferences userId="user-1" />)
-    await user.click(screen.getByLabelText(/Weekly Report/))
+    await user.click(screen.getByLabelText(/Laporan Mingguan/))
 
     expect(await screen.findByText('save failed')).toBeInTheDocument()
   })

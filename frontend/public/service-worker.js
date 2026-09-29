@@ -16,9 +16,9 @@ const ASSETS_CACHE = 'rumahkas-assets-v1'
 const PRECACHE_URLS = [
   '/',
   '/index.html',
-  '/manifest.json',
-  '/logo-192.png',
-  '/logo-512.png'
+  '/manifest.webmanifest',
+  '/icon-192.png',
+  '/icon-512.png'
 ]
 
 // Install: Cache essential assets
@@ -258,35 +258,57 @@ self.addEventListener('push', event => {
     return
   }
 
+  // Backend sends a JSON payload (see notificationService.js), not plain text
+  let payload
+  try {
+    payload = event.data.json()
+  } catch (error) {
+    payload = { title: 'Pundi', body: event.data.text() }
+  }
+
   const options = {
-    body: event.data.text(),
-    icon: '/logo-192.png',
-    badge: '/logo-192.png',
-    tag: 'rumahkas-notification'
+    body: payload.body || '',
+    icon: payload.icon || '/icon-192.png',
+    badge: payload.badge || '/icon-192.png',
+    tag: payload.tag || 'rumahkas-notification',
+    data: payload.data || {},
+    actions: payload.actions || []
   }
 
   event.waitUntil(
-    self.registration.showNotification('RumahKas', options)
+    self.registration.showNotification(payload.title || 'Pundi', options)
   )
 })
 
 /**
- * Notification click handler
+ * Notification click handler - routes to the relevant page based on the
+ * `data.action` the backend sent (see notificationService.js)
  */
+const NOTIFICATION_ROUTES = {
+  'open-expense': '/expenses',
+  'open-budget': '/budget',
+  'open-debt': '/debt',
+  'open-goals': '/goals',
+  'open-reports': '/reports'
+}
+
 self.addEventListener('notificationclick', event => {
   event.notification.close()
 
+  const path = NOTIFICATION_ROUTES[event.notification.data?.action] || '/'
+
   event.waitUntil(
     clients.matchAll({ type: 'window' }).then(clientList => {
-      // Focus existing window if open
+      // Focus existing window if open, navigating it to the target path
       for (const client of clientList) {
-        if (client.url === '/' && 'focus' in client) {
+        if ('focus' in client) {
+          if ('navigate' in client) client.navigate(path)
           return client.focus()
         }
       }
       // Open new window if not open
       if (clients.openWindow) {
-        return clients.openWindow('/')
+        return clients.openWindow(path)
       }
     })
   )

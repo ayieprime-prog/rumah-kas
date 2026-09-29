@@ -1,0 +1,124 @@
+.sync-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.sync-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-color);
+  margin: 0;
+}
+
+.sync-title svg {
+  color: var(--secondary-color);
+}
+
+.sync-now-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+  background: var(--primary-color);
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.sync-now-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spinning {
+  animation: sync-spin 1s linear infinite;
+}
+
+@keyframes sync-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.sync-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.sync-stat-box {
+  padding: 10px;
+  background: var(--light-color);
+  border-radius: 10px;
+}
+
+.sync-stat-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin: 0 0 4px;
+}
+
+.sync-stat-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-color);
+  margin: 0;
+}
+
+.sync-schedule-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-color);
+  margin: 0 0 12px;
+}
+
+.sync-schedule-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+
+.sync-schedule-row:last-child {
+  margin-bottom: 0;
+}
+
+.sync-schedule-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-color);
+  margin: 0;
+}
+
+.sync-schedule-freq {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.sync-schedule-row svg {
+  color: var(--secondary-color);
+}
+
+.sync-cache-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0 0 12px;
+}

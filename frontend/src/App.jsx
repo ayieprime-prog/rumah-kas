@@ -33,6 +33,11 @@ import ProfilePage from './pages/ProfilePage'
 import Layout from './components/Layout'
 import PrivateRoute from './components/PrivateRoute'
 import ErrorBoundary from './components/ErrorBoundary'
+import OfflineBanner from './components/PWA/OfflineBanner'
+import InstallPrompt from './components/PWA/InstallPrompt'
+
+// PWA
+import { backgroundSync } from './utils/backgroundSync'
 
 // Styles
 import './App.css'
@@ -65,6 +70,18 @@ function App() {
     return () => axios.interceptors.response.eject(interceptor)
   }, [])
 
+  // Only run periodic background sync while actually logged in - there's
+  // nothing to prefetch for a signed-out visitor, and it would just be
+  // hitting authenticated endpoints that will 401.
+  useEffect(() => {
+    if (!user) return
+
+    backgroundSync.registerAllSync()
+    backgroundSync.setupPeriodicRefresh()
+
+    return () => backgroundSync.cleanup()
+  }, [user])
+
   const checkAuth = async () => {
     try {
       const response = await axios.get('/api/auth/me')
@@ -95,6 +112,8 @@ function App() {
 
   return (
     <ErrorBoundary>
+      <OfflineBanner />
+      <InstallPrompt />
       <Router>
         <Routes>
           <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
