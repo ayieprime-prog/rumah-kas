@@ -1,6 +1,7 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const { logAudit } = require('../utils/audit');
+const { invalidateCache } = require('../utils/caching');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -28,6 +29,7 @@ router.post('/', async (req, res) => {
       });
       return created;
     });
+    invalidateCache.dashboard(householdId);
     res.status(201).json(debt);
   } catch (error) {
     res.status(500).json({ error: 'Failed to create debt' });
@@ -79,6 +81,7 @@ router.put('/:id', async (req, res) => {
       await logAudit(tx, { userId, householdId, action, entity: 'DEBT', entityId: id, summary });
       return updated;
     });
+    invalidateCache.dashboard(householdId);
     res.json(debt);
   } catch (error) {
     res.status(500).json({ error: 'Failed to update debt' });
@@ -102,6 +105,7 @@ router.delete('/:id', async (req, res) => {
         summary: `${existing.name} - Rp${existing.totalAmount.toLocaleString('id-ID')}`
       });
     });
+    invalidateCache.dashboard(householdId);
     res.json({ message: 'Debt deleted' });
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete debt' });

@@ -2,12 +2,17 @@ const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const { checkDebtPaymentDue } = require('../utils/notificationTriggers');
 const { getAllLockedAllocations } = require('../utils/incomeLock');
+const { cacheMiddleware, cacheKeys } = require('../utils/caching');
 
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// Get dashboard overview for current month
-router.get('/', async (req, res) => {
+// Get dashboard overview for current month. Cached for 60s - every mutation
+// that affects the numbers here (expenses/income/budget/goals/debt/wallets/
+// transfers) calls invalidateCache.dashboard() on success, so this should
+// rarely actually serve stale data; the TTL is just a safety net for any
+// write path that doesn't (or a bug in one that doesn't).
+router.get('/', cacheMiddleware(req => cacheKeys.dashboard(req.householdId), 60), async (req, res) => {
   const { householdId } = req;
   const now = new Date();
   const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;

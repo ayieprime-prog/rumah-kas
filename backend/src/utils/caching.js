@@ -2,8 +2,10 @@
  * Response Caching Utilities
  *
  * Cache API responses to reduce database hits and improve response times.
- * Not wired into any route yet - see the note on cacheMiddleware below
- * before adding it to a route that money data flows through.
+ * Applied to GET /api/dashboard (see routes/dashboard.js); every mutation
+ * that affects dashboard data (expenses, income, budget, goals, debt,
+ * wallets, transfers) calls invalidateCache.dashboard() on success - see
+ * the note on cacheMiddleware below before applying this to another route.
  */
 
 // Simple in-memory cache (single-instance only - there's no shared store
@@ -77,10 +79,12 @@ const cacheKeys = {
  * call the matching invalidateCache.* function on every successful write -
  * otherwise callers will see stale data for up to ttlSeconds after making a
  * change (e.g. adding an expense and not seeing it reflected on the
- * dashboard). Nothing in this codebase calls invalidateCache yet, so this
- * middleware is intentionally not applied to any route.
+ * dashboard). Currently applied to GET /api/dashboard only, backed by
+ * invalidateCache.dashboard() calls in expenses/income/budget/goals/debt/
+ * wallets/transfers - keep that pairing in mind if this route's data
+ * sources change, or before applying this middleware elsewhere.
  *
- * Usage: router.get('/', cacheMiddleware(dashboardCacheKey, 60), handler)
+ * Usage: router.get('/', cacheMiddleware(req => cacheKeys.dashboard(req.householdId), 60), handler)
  */
 function cacheMiddleware(keyFn, ttlSeconds = 300) {
   return (req, res, next) => {

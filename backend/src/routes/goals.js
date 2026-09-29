@@ -1,6 +1,7 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const { logAudit } = require('../utils/audit');
+const { invalidateCache } = require('../utils/caching');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -26,6 +27,7 @@ router.post('/', async (req, res) => {
       });
       return created;
     });
+    invalidateCache.dashboard(householdId);
     res.status(201).json(goal);
   } catch (error) {
     res.status(500).json({ error: 'Failed to create goal' });
@@ -90,6 +92,7 @@ router.put('/:id', async (req, res) => {
 
       return updated;
     });
+    invalidateCache.dashboard(householdId);
     res.json(goal);
   } catch (error) {
     res.status(500).json({ error: 'Failed to update goal' });
@@ -113,6 +116,7 @@ router.delete('/:id', async (req, res) => {
         summary: `${existing.name} - Rp${existing.currentAmount.toLocaleString('id-ID')} / Rp${existing.targetAmount.toLocaleString('id-ID')}`
       });
     });
+    invalidateCache.dashboard(householdId);
     res.json({ message: 'Goal deleted' });
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete goal' });

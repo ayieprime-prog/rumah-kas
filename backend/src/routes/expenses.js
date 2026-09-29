@@ -2,6 +2,7 @@ const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const { logAudit } = require('../utils/audit');
 const { checkLockExceeded } = require('../utils/incomeLock');
+const { invalidateCache } = require('../utils/caching');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -79,6 +80,7 @@ router.post('/', async (req, res) => {
       return created;
     });
 
+    invalidateCache.dashboard(householdId);
     res.status(201).json(expense);
   } catch (error) {
     console.error('Create expense error:', error);
@@ -186,6 +188,7 @@ router.put('/:id', async (req, res) => {
       return updated;
     });
 
+    invalidateCache.dashboard(householdId);
     res.json(expense);
   } catch (error) {
     console.error('Update expense error:', error);
@@ -214,6 +217,7 @@ router.delete('/:id', async (req, res) => {
       });
     });
 
+    invalidateCache.dashboard(householdId);
     res.json({ message: 'Expense deleted' });
   } catch (error) {
     console.error('Delete expense error:', error);

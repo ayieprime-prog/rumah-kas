@@ -1,5 +1,6 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
+const { invalidateCache } = require('../utils/caching');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -143,6 +144,8 @@ router.post('/', async (req, res) => {
         where: { id: toWalletId },
         data: { balance: { increment: amount } }
       });
+
+      invalidateCache.dashboard(user.householdId);
     }
 
     res.status(201).json(transfer);
@@ -210,6 +213,7 @@ router.put('/:id/approve', async (req, res) => {
       }
     });
 
+    invalidateCache.dashboard(user.householdId);
     res.json(completedTransfer);
   } catch (err) {
     handlePrismaError(err, res);

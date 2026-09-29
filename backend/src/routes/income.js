@@ -2,6 +2,7 @@ const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const { logAudit } = require('../utils/audit');
 const { getAllLockedAllocations } = require('../utils/incomeLock');
+const { invalidateCache } = require('../utils/caching');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -71,6 +72,7 @@ router.post('/', async (req, res) => {
       });
       return created;
     });
+    invalidateCache.dashboard(householdId);
     res.status(201).json(income);
   } catch (error) {
     res.status(500).json({ error: 'Failed to create income' });
@@ -156,6 +158,7 @@ router.put('/:id', async (req, res) => {
       });
       return updated;
     });
+    invalidateCache.dashboard(householdId);
     res.json(income);
   } catch (error) {
     res.status(500).json({ error: 'Failed to update income' });
@@ -180,6 +183,7 @@ router.delete('/:id', async (req, res) => {
         summary: `${existing.source} - Rp${existing.amount.toLocaleString('id-ID')}`
       });
     });
+    invalidateCache.dashboard(householdId);
     res.json({ message: 'Income deleted' });
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete income' });

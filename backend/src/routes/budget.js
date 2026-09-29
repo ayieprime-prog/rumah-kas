@@ -1,5 +1,6 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
+const { invalidateCache } = require('../utils/caching');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -23,6 +24,7 @@ router.post('/', async (req, res) => {
       },
       include: { category: true }
     });
+    invalidateCache.dashboard(householdId);
     res.status(201).json(budget);
   } catch (error) {
     res.status(500).json({ error: 'Failed to create budget' });
@@ -65,6 +67,7 @@ router.put('/:id', async (req, res) => {
       data: { limit: parseFloat(limit) },
       include: { category: true }
     });
+    invalidateCache.dashboard(householdId);
     res.json(budget);
   } catch (error) {
     res.status(500).json({ error: 'Failed to update budget' });
@@ -82,6 +85,7 @@ router.delete('/:id', async (req, res) => {
     }
 
     await prisma.budget.delete({ where: { id } });
+    invalidateCache.dashboard(householdId);
     res.json({ message: 'Budget deleted' });
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete budget' });

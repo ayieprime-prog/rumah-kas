@@ -1,6 +1,7 @@
 const express = require('express')
 const { PrismaClient } = require('@prisma/client')
 const { authenticate } = require('../middleware/auth')
+const { invalidateCache } = require('../utils/caching')
 
 const router = express.Router()
 const prisma = new PrismaClient()
@@ -78,6 +79,7 @@ router.post('/', authenticate, async (req, res) => {
       }
     })
 
+    invalidateCache.dashboard(user.householdId)
     res.status(201).json(wallet)
   } catch (err) {
     res.status(500).json({ error: 'Failed to create wallet' })
@@ -112,6 +114,7 @@ router.put('/:id', authenticate, async (req, res) => {
       }
     })
 
+    invalidateCache.dashboard(user.householdId)
     res.json(updated)
   } catch (err) {
     res.status(500).json({ error: 'Failed to update wallet' })
@@ -149,6 +152,7 @@ router.delete('/:id', authenticate, async (req, res) => {
     // Delete wallet
     await prisma.wallet.delete({ where: { id: walletId } })
 
+    invalidateCache.dashboard(user.householdId)
     res.json({ message: 'Wallet deleted' })
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete wallet' })
