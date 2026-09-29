@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
+import { TrendingUp, TrendingDown } from 'lucide-react'
 import GreetingSection from '../components/GreetingSection'
 import MenuShortcuts from '../components/MenuShortcuts'
 import SummaryToggleTabs from '../components/SummaryToggleTabs'
@@ -30,7 +31,6 @@ const FORECAST_POINTS = [
 ]
 
 const DashboardPage = ({ user }) => {
-  const navigate = useNavigate()
   const [dashboard, setDashboard] = useState(null)
   const [portfolio, setPortfolio] = useState(null)
   const [loading, setLoading] = useState(true)

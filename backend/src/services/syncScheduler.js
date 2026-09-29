@@ -11,6 +11,7 @@
 const cron = require('node-cron')
 const { PrismaClient } = require('@prisma/client')
 const notificationService = require('./notificationService')
+const { processDueRecurringExpenses } = require('../utils/recurringExpenses')
 
 const prisma = new PrismaClient()
 
@@ -46,6 +47,9 @@ class SyncScheduler {
 
     // Cleanup invalid subscriptions daily at 2 AM
     this.scheduleSyncTask('cleanup-subs', '0 2 * * *', () => this.cleanupSubscriptions())
+
+    // Generate due recurring expenses daily at 1 AM
+    this.scheduleSyncTask('recurring-expenses', '0 1 * * *', () => this.processRecurringExpenses())
 
     console.log(`✅ Sync scheduler started with ${this.tasks.size} scheduled tasks`)
   }
@@ -319,6 +323,14 @@ class SyncScheduler {
     }
 
     console.log(`📊 Sent weekly reports to ${sent}/${totalUsers} users`)
+  }
+
+  /**
+   * Generate real Expense rows for any due recurring expense rule
+   */
+  async processRecurringExpenses() {
+    const { rulesProcessed, expensesGenerated } = await processDueRecurringExpenses(prisma)
+    console.log(`🔁 Generated ${expensesGenerated} expense(s) from ${rulesProcessed} recurring rule(s)`)
   }
 
   /**
