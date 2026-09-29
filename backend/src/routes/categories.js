@@ -1,6 +1,7 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const { invalidateCache } = require('../utils/caching');
+const { validateString, validateHexColor, validateIconName } = require('../utils/validation');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -27,29 +28,33 @@ router.post('/', async (req, res) => {
   const { name, icon, color } = req.body;
   const { householdId } = req;
 
-  if (!name) {
-    return res.status(400).json({ error: 'Name is required' });
-  }
-
   try {
-    const existing = await prisma.expenseCategory.findFirst({ where: { householdId, name } });
+    // Validate inputs
+    const validName = validateString(name, 'name', { minLength: 1, maxLength: 100 });
+    const validIcon = validateIconName(icon, 'icon', { required: false });
+    const validColor = color ? validateHexColor(color, 'color', { required: false }) : '#B0E0E6';
+
+    const existing = await prisma.expenseCategory.findFirst({ where: { householdId, name: validName } });
     if (existing) {
       return res.status(409).json({ error: 'Category with this name already exists' });
     }
 
     const category = await prisma.expenseCategory.create({
       data: {
-        name,
-        icon: icon || 'folder',
-        color: color || '#B0E0E6',
+        name: validName,
+        icon: validIcon,
+        color: validColor,
         householdId
       }
     });
 
+    invalidateCache.dashboard(householdId);
     res.status(201).json(category);
   } catch (error) {
     console.error('Create category error:', error);
-    res.status(500).json({ error: 'Failed to create category' });
+    const statusCode = error.message.includes('must') || error.message.includes('valid') ? 400 : 500;
+    const message = statusCode === 400 ? error.message : 'Failed to create category';
+    res.status(statusCode).json({ error: message });
   }
 });
 
@@ -60,32 +65,45 @@ router.put('/:id', async (req, res) => {
   const { householdId } = req;
 
   try {
-    const existing = await prisma.expenseCategory.findFirst({ where: { id, householdId } });
+    // Validate id
+    const validId = validateString(id, 'id', { maxLength: 50 });
+
+    const existing = await prisma.expenseCategory.findFirst({ where: { id: validId, householdId } });
     if (!existing) {
       return res.status(404).json({ error: 'Category not found' });
     }
 
-    if (name && name !== existing.name) {
-      const duplicate = await prisma.expenseCategory.findFirst({ where: { householdId, name } });
-      if (duplicate) {
-        return res.status(409).json({ error: 'Category with this name already exists' });
+    // Validate updates if provided
+    const updateData = {};
+    if (name) {
+      const validName = validateString(name, 'name', { minLength: 1, maxLength: 100 });
+      if (validName !== existing.name) {
+        const duplicate = await prisma.expenseCategory.findFirst({ where: { householdId, name: validName } });
+        if (duplicate) {
+          return res.status(409).json({ error: 'Category with this name already exists' });
+        }
       }
+      updateData.name = validName;
+    }
+    if (icon) {
+      updateData.icon = validateIconName(icon, 'icon', { required: false });
+    }
+    if (color) {
+      updateData.color = validateHexColor(color, 'color', { required: false });
     }
 
     const category = await prisma.expenseCategory.update({
-      where: { id },
-      data: {
-        ...(name && { name }),
-        ...(icon && { icon }),
-        ...(color && { color })
-      }
+      where: { id: validId },
+      data: updateData
     });
 
     invalidateCache.dashboard(householdId);
     res.json(category);
   } catch (error) {
     console.error('Update category error:', error);
-    res.status(500).json({ error: 'Failed to update category' });
+    const statusCode = error.message.includes('must') || error.message.includes('valid') ? 400 : 500;
+    const message = statusCode === 400 ? error.message : 'Failed to update category';
+    res.status(statusCode).json({ error: message });
   }
 });
 

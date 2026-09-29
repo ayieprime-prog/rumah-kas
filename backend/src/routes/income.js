@@ -4,6 +4,7 @@ const { logAudit } = require('../utils/audit');
 const { getAllLockedAllocations } = require('../utils/incomeLock');
 const { invalidateCache } = require('../utils/caching');
 const { getMonthRange } = require('../utils/dateRange');
+const { validateString, validateAmount, validateDate, validateEnum, validatePagination } = require('../utils/validation');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -33,48 +34,51 @@ router.post('/', async (req, res) => {
   const { source, amount, date, walletId, lockedCategoryId, scope } = req.body;
   const { householdId, userId } = req;
 
-  if (scope && !SCOPES.includes(scope)) {
-    return res.status(400).json({ error: `Scope must be one of: ${SCOPES.join(', ')}` });
-  }
-
   try {
-    if (walletId) {
-      const wallet = await prisma.wallet.findFirst({ where: { id: walletId, householdId } });
+    // Validate all inputs before processing
+    const validSource = validateString(source, 'source', { minLength: 1, maxLength: 200 });
+    const validAmount = validateAmount(amount, 'amount');
+    const validDate = validateDate(date, 'date');
+    const validScope = scope ? validateEnum(scope, 'scope', SCOPES, { required: false }) : 'KELUARGA';
+    const validWalletId = walletId ? validateString(walletId, 'walletId', { maxLength: 50, required: false }) : null;
+    const validLockedCategoryId = lockedCategoryId ? validateString(lockedCategoryId, 'lockedCategoryId', { maxLength: 50, required: false }) : null;
+
+    if (validWalletId) {
+      const wallet = await prisma.wallet.findFirst({ where: { id: validWalletId, householdId } });
       if (!wallet) {
         return res.status(404).json({ error: 'Wallet not found' });
       }
     }
 
-    if (lockedCategoryId) {
-      const category = await prisma.expenseCategory.findFirst({ where: { id: lockedCategoryId, householdId } });
+    if (validLockedCategoryId) {
+      const category = await prisma.expenseCategory.findFirst({ where: { id: validLockedCategoryId, householdId } });
       if (!category) {
         return res.status(404).json({ error: 'Category not found' });
       }
     }
 
-    const parsedAmount = parseFloat(amount);
     const income = await prisma.$transaction(async (tx) => {
       const created = await tx.income.create({
         data: {
-          source,
-          amount: parsedAmount,
-          date: new Date(date),
+          source: validSource,
+          amount: validAmount,
+          date: validDate,
           householdId,
-          walletId: walletId || null,
-          lockedCategoryId: lockedCategoryId || null,
-          scope: scope || 'KELUARGA'
+          walletId: validWalletId,
+          lockedCategoryId: validLockedCategoryId,
+          scope: validScope
         },
         include: { wallet: true, lockedCategory: true }
       });
-      await adjustWalletBalance(tx, walletId, parsedAmount);
+      await adjustWalletBalance(tx, validWalletId, validAmount);
       await logAudit(tx, {
         userId, householdId, action: 'CREATE_INCOME', entity: 'INCOME', entityId: created.id,
-        summary: `${source} - Rp${parsedAmount.toLocaleString('id-ID')}`
+        summary: `${validSource} - Rp${validAmount.toLocaleString('id-ID')}`
       });
       await tx.notification.create({
         data: {
           type: 'INCOME_RECORDED',
-          message: `Pemasukan baru dicatat: ${source} - Rp${parsedAmount.toLocaleString('id-ID')}`,
+          message: `Pemasukan baru dicatat: ${validSource} - Rp${validAmount.toLocaleString('id-ID')}`,
           householdId
         }
       });
@@ -83,18 +87,27 @@ router.post('/', async (req, res) => {
     invalidateCache.dashboard(householdId);
     res.status(201).json(income);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to create income' });
+    console.error('Create income error:', error);
+    const statusCode = error.message.includes('must') || error.message.includes('required') ? 400 : 500;
+    const message = statusCode === 400 ? error.message : 'Failed to create income';
+    res.status(statusCode).json({ error: message });
   }
 });
 
 router.get('/', async (req, res) => {
   const { householdId } = req;
-  const { month, limit = 50, offset = 0 } = req.query;
+  const { month } = req.query;
 
   try {
+    // Validate pagination parameters
+    const { limit, offset } = validatePagination(req.query);
+
     const where = { householdId };
     if (month) {
-      where.date = getMonthRange(month);
+      const validMonth = validateString(month, 'month', { maxLength: 7, required: false });
+      if (validMonth && /^\d{4}-\d{2}$/.test(validMonth)) {
+        where.date = getMonthRange(validMonth);
+      }
     }
 
     const [incomes, total] = await Promise.all([
@@ -102,8 +115,8 @@ router.get('/', async (req, res) => {
         where,
         include: { wallet: true, lockedCategory: true },
         orderBy: { date: 'desc' },
-        take: parseInt(limit),
-        skip: parseInt(offset)
+        take: limit,
+        skip: offset
       }),
       prisma.income.count({ where })
     ]);

@@ -4,6 +4,7 @@ const { logAudit } = require('../utils/audit');
 const { checkLockExceeded } = require('../utils/incomeLock');
 const { invalidateCache } = require('../utils/caching');
 const { getMonthRange } = require('../utils/dateRange');
+const { validateString, validateAmount, validateDate, validateEnum, validatePagination } = require('../utils/validation');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -42,47 +43,46 @@ router.post('/', async (req, res) => {
   const { description, amount, categoryId, date, walletId, scope } = req.body;
   const { householdId, userId } = req;
 
-  if (!description || !amount || !categoryId || !date) {
-    return res.status(400).json({ error: 'Missing required fields' });
-  }
-
-  if (scope && !SCOPES.includes(scope)) {
-    return res.status(400).json({ error: `Scope must be one of: ${SCOPES.join(', ')}` });
-  }
-
   try {
-    const category = await prisma.expenseCategory.findFirst({ where: { id: categoryId, householdId } });
+    // Validate all inputs before processing
+    const validDescription = validateString(description, 'description', { minLength: 1, maxLength: 200 });
+    const validAmount = validateAmount(amount, 'amount');
+    const validCategoryId = validateString(categoryId, 'categoryId', { maxLength: 50 });
+    const validDate = validateDate(date, 'date');
+    const validScope = scope ? validateEnum(scope, 'scope', SCOPES, { required: false }) : 'KELUARGA';
+    const validWalletId = walletId ? validateString(walletId, 'walletId', { maxLength: 50, required: false }) : null;
+
+    const category = await prisma.expenseCategory.findFirst({ where: { id: validCategoryId, householdId } });
     if (!category) {
       return res.status(404).json({ error: 'Category not found' });
     }
 
-    if (walletId) {
-      const wallet = await prisma.wallet.findFirst({ where: { id: walletId, householdId } });
+    if (validWalletId) {
+      const wallet = await prisma.wallet.findFirst({ where: { id: validWalletId, householdId } });
       if (!wallet) {
         return res.status(404).json({ error: 'Wallet not found' });
       }
     }
 
-    const parsedAmount = parseFloat(amount);
     const expense = await prisma.$transaction(async (tx) => {
       const created = await tx.expense.create({
-        data: { description, amount: parsedAmount, date: new Date(date), householdId, categoryId, walletId: walletId || null, scope: scope || 'KELUARGA' },
+        data: { description: validDescription, amount: validAmount, date: validDate, householdId, categoryId: validCategoryId, walletId: validWalletId, scope: validScope },
         include: { category: true, wallet: true }
       });
-      await adjustBudgetSpent(tx, householdId, monthOf(date), categoryId, parsedAmount);
-      await adjustWalletBalance(tx, walletId, -parsedAmount);
+      await adjustBudgetSpent(tx, householdId, monthOf(validDate), validCategoryId, validAmount);
+      await adjustWalletBalance(tx, validWalletId, -validAmount);
       await logAudit(tx, {
         userId, householdId, action: 'CREATE_EXPENSE', entity: 'EXPENSE', entityId: created.id,
-        summary: `${description} - Rp${parsedAmount.toLocaleString('id-ID')}`
+        summary: `${validDescription} - Rp${validAmount.toLocaleString('id-ID')}`
       });
       await tx.notification.create({
         data: {
           type: 'EXPENSE_RECORDED',
-          message: `Pengeluaran baru dicatat: ${description} - Rp${parsedAmount.toLocaleString('id-ID')}`,
+          message: `Pengeluaran baru dicatat: ${validDescription} - Rp${validAmount.toLocaleString('id-ID')}`,
           householdId
         }
       });
-      await checkLockExceeded(tx, householdId, categoryId, monthOf(date));
+      await checkLockExceeded(tx, householdId, validCategoryId, monthOf(validDate));
       return created;
     });
 
@@ -90,24 +90,34 @@ router.post('/', async (req, res) => {
     res.status(201).json(expense);
   } catch (error) {
     console.error('Create expense error:', error);
-    res.status(500).json({ error: 'Failed to create expense' });
+    const statusCode = error.message.includes('must') || error.message.includes('required') ? 400 : 500;
+    const message = statusCode === 400 ? error.message : 'Failed to create expense';
+    res.status(statusCode).json({ error: message });
   }
 });
 
 // Get expenses with filters
 router.get('/', async (req, res) => {
   const { householdId } = req;
-  const { month, categoryId, limit = 50, offset = 0 } = req.query;
+  const { month, categoryId } = req.query;
 
   try {
+    // Validate pagination parameters
+    const { limit, offset } = validatePagination(req.query);
+
     const where = { householdId };
 
+    // Validate month if provided
     if (month) {
-      where.date = getMonthRange(month);
+      const validMonth = validateString(month, 'month', { maxLength: 7, required: false });
+      if (validMonth && /^\d{4}-\d{2}$/.test(validMonth)) {
+        where.date = getMonthRange(validMonth);
+      }
     }
 
+    // Validate category if provided
     if (categoryId) {
-      where.categoryId = categoryId;
+      where.categoryId = validateString(categoryId, 'categoryId', { maxLength: 50, required: false });
     }
 
     const [expenses, total] = await Promise.all([
