@@ -42,9 +42,10 @@
 
 /* When a personal wallpaper is set, give it room to actually read as a
    photo instead of a thin strip. min-height (not height) so it only ever
-   grows the card -- never clips content or locks page scroll. */
+   grows the card -- never clips content or locks page scroll. Tall enough
+   to make the uploaded photo the dominant element on screen. */
 .dashboard-header.has-wallpaper {
-  min-height: 180px;
+  min-height: 320px;
   display: flex;
   align-items: flex-end;
   padding: 24px 16px;
