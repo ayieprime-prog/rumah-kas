@@ -9,7 +9,7 @@ const MENU_SHORTCUTS = [
   { label: 'Conversation', icon: BookOpen, path: '/berdua', bg: '#a85a7a', color: '#ffffff' },
   { label: 'Jurnal Keluarga', icon: BookOpen, path: '/journal', bg: '#a85a7a', color: '#ffffff' },
   { label: 'Laporan', icon: BarChart3, path: '/reports', bg: '#5b6fa0', color: '#ffffff' },
-  { label: 'Bantuan & FAQ', icon: HelpCircle, path: '/help-faq', bg: '#6b8c7d', color: '#ffffff' },
+  { label: 'Bantuan & FAQ', icon: HelpCircle, path: '/help-faq', bg: '#c1784f', color: '#ffffff' },
   { label: 'Lainnya', icon: MoreHorizontal, path: '/lainnya', bg: '#5a9a6a', color: '#ffffff' },
 ]
 
