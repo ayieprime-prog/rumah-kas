@@ -46,10 +46,13 @@ router.post('/unsubscribe', authenticate, async (req, res) => {
       return res.status(400).json({ error: 'Endpoint required' })
     }
 
-    await notificationService.removeSubscription(endpoint)
+    await notificationService.removeSubscription(endpoint, userId)
 
     res.json({ message: 'Unsubscribed from push notifications' })
   } catch (error) {
+    if (error.statusCode === 404) {
+      return res.status(404).json({ error: 'Subscription not found' })
+    }
     console.error('Unsubscribe error:', error)
     res.status(500).json({ error: 'Failed to unsubscribe' })
   }

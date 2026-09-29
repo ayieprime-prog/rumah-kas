@@ -292,12 +292,18 @@ class NotificationService {
   /**
    * Remove push subscription
    */
-  async removeSubscription(endpoint) {
+  async removeSubscription(endpoint, userId) {
     try {
-      await prisma.pushSubscription.update({
-        where: { endpoint },
+      const result = await prisma.pushSubscription.updateMany({
+        where: { endpoint, userId },
         data: { active: false }
       })
+
+      if (result.count === 0) {
+        const notFoundError = new Error('Subscription not found')
+        notFoundError.statusCode = 404
+        throw notFoundError
+      }
 
       console.log(`✅ Subscription removed: ${endpoint}`)
     } catch (error) {
