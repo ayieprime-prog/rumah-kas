@@ -215,10 +215,10 @@ const AssetPage = () => {
                     </div>
                   )}
                 </div>
-                <button className="icon-btn" onClick={() => handleOpenEdit(asset)}>
+                <button className="icon-btn" onClick={() => handleOpenEdit(asset)} aria-label="Edit aset">
                   <Edit2 size={16} />
                 </button>
-                <button className="icon-btn" onClick={() => handleDelete(asset.id)}>
+                <button className="icon-btn" onClick={() => handleDelete(asset.id)} aria-label="Hapus aset">
                   <Trash2 size={16} />
                 </button>
               </div>

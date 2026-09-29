@@ -116,10 +116,10 @@ const WalletPage = () => {
                     Rp {(wallet.balance || 0).toLocaleString('id-ID')}
                   </div>
                 </div>
-                <button className="icon-btn" onClick={() => handleEdit(wallet)} title="Edit">
+                <button className="icon-btn" onClick={() => handleEdit(wallet)} aria-label="Edit dompet">
                   <Edit2 size={16} />
                 </button>
-                <button className="icon-btn" onClick={() => handleDelete(wallet.id)} title="Hapus">
+                <button className="icon-btn" onClick={() => handleDelete(wallet.id)} aria-label="Hapus dompet">
                   <Trash2 size={16} />
                 </button>
               </div>

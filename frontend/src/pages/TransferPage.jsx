@@ -216,7 +216,7 @@ const TransferPage = () => {
                       <button
                         className="icon-btn"
                         onClick={() => handleApprove(transfer.id)}
-                        title="Setujui"
+                        aria-label="Setujui transfer"
                         style={{ color: '#66BB6A' }}
                       >
                         <Check size={16} />
@@ -224,7 +224,7 @@ const TransferPage = () => {
                       <button
                         className="icon-btn"
                         onClick={() => handleReject(transfer.id)}
-                        title="Tolak"
+                        aria-label="Tolak transfer"
                         style={{ color: '#EF5350' }}
                       >
                         <XCircle size={16} />

@@ -122,7 +122,7 @@ const AllocationPage = () => {
             <button
               onClick={handlePrevMonth}
               className="icon-btn"
-              title="Bulan sebelumnya"
+              aria-label="Bulan sebelumnya"
             >
               <ChevronLeft size={20} />
             </button>
@@ -132,7 +132,7 @@ const AllocationPage = () => {
             <button
               onClick={handleNextMonth}
               className="icon-btn"
-              title="Bulan berikutnya"
+              aria-label="Bulan berikutnya"
             >
               <ChevronRight size={20} />
             </button>
@@ -285,7 +285,7 @@ const AllocationPage = () => {
             <button
               onClick={() => setYear(year - 1)}
               className="icon-btn"
-              title="Tahun sebelumnya"
+              aria-label="Tahun sebelumnya"
             >
               <ChevronLeft size={20} />
             </button>
@@ -295,7 +295,7 @@ const AllocationPage = () => {
             <button
               onClick={() => setYear(year + 1)}
               className="icon-btn"
-              title="Tahun berikutnya"
+              aria-label="Tahun berikutnya"
             >
               <ChevronRight size={20} />
             </button>
