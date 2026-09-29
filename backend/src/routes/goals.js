@@ -2,6 +2,7 @@ const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const { logAudit } = require('../utils/audit');
 const { invalidateCache } = require('../utils/caching');
+const { validateString, validateAmount, validateDate } = require('../utils/validation');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -11,26 +12,33 @@ router.post('/', async (req, res) => {
   const { householdId, userId } = req;
 
   try {
+    const validName = validateString(name, 'name', { minLength: 1, maxLength: 200 });
+    const validTargetAmount = validateAmount(targetAmount, 'targetAmount');
+    const validTargetDate = validateDate(targetDate, 'targetDate');
+    const validDescription = description ? validateString(description, 'description', { maxLength: 500, required: false }) : null;
+
     const goal = await prisma.$transaction(async (tx) => {
       const created = await tx.goal.create({
         data: {
-          name,
-          targetAmount: parseFloat(targetAmount),
-          targetDate: new Date(targetDate),
-          description,
+          name: validName,
+          targetAmount: validTargetAmount,
+          targetDate: validTargetDate,
+          description: validDescription,
           householdId
         }
       });
       await logAudit(tx, {
         userId, householdId, action: 'CREATE_GOAL', entity: 'GOAL', entityId: created.id,
-        summary: `${name} - target Rp${created.targetAmount.toLocaleString('id-ID')}`
+        summary: `${validName} - target Rp${created.targetAmount.toLocaleString('id-ID')}`
       });
       return created;
     });
     invalidateCache.dashboard(householdId);
     res.status(201).json(goal);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to create goal' });
+    const statusCode = error.message.includes('must') || error.message.includes('valid') ? 400 : 500;
+    const message = statusCode === 400 ? error.message : 'Failed to create goal';
+    res.status(statusCode).json({ error: message });
   }
 });
 
@@ -54,21 +62,23 @@ router.put('/:id', async (req, res) => {
   const { householdId, userId } = req;
 
   try {
-    const existing = await prisma.goal.findFirst({ where: { id, householdId } });
+    const validId = validateString(id, 'id', { maxLength: 50 });
+    const existing = await prisma.goal.findFirst({ where: { id: validId, householdId } });
     if (!existing) {
       return res.status(404).json({ error: 'Goal not found' });
     }
 
+    const updateData = {};
+    if (name) updateData.name = validateString(name, 'name', { minLength: 1, maxLength: 200 });
+    if (targetAmount) updateData.targetAmount = validateAmount(targetAmount, 'targetAmount');
+    if (targetDate) updateData.targetDate = validateDate(targetDate, 'targetDate');
+    if (currentAmount !== undefined) updateData.currentAmount = validateAmount(currentAmount, 'currentAmount');
+    if (description) updateData.description = validateString(description, 'description', { maxLength: 500, required: false });
+
     const goal = await prisma.$transaction(async (tx) => {
       const updated = await tx.goal.update({
-        where: { id },
-        data: {
-          name,
-          targetAmount: targetAmount ? parseFloat(targetAmount) : undefined,
-          targetDate: targetDate ? new Date(targetDate) : undefined,
-          currentAmount: currentAmount !== undefined ? parseFloat(currentAmount) : undefined,
-          description
-        }
+        where: { id: validId },
+        data: updateData
       });
       const action = currentAmount !== undefined ? 'ADD_GOAL_FUNDS' : 'UPDATE_GOAL';
       const summary = currentAmount !== undefined
@@ -95,7 +105,9 @@ router.put('/:id', async (req, res) => {
     invalidateCache.dashboard(householdId);
     res.json(goal);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to update goal' });
+    const statusCode = error.message.includes('must') || error.message.includes('valid') ? 400 : 500;
+    const message = statusCode === 400 ? error.message : 'Failed to update goal';
+    res.status(statusCode).json({ error: message });
   }
 });
 
@@ -104,7 +116,8 @@ router.delete('/:id', async (req, res) => {
   const { householdId, userId } = req;
 
   try {
-    const existing = await prisma.goal.findFirst({ where: { id, householdId } });
+    const validId = validateString(id, 'id', { maxLength: 50 });
+    const existing = await prisma.goal.findFirst({ where: { id: validId, householdId } });
     if (!existing) {
       return res.status(404).json({ error: 'Goal not found' });
     }
