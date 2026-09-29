@@ -1,10 +1,17 @@
 import '@testing-library/jest-dom'
+import 'fake-indexeddb/auto'
 
 // Polyfill TextEncoder/TextDecoder for jest environment
 if (typeof global.TextEncoder === 'undefined') {
   const { TextEncoder, TextDecoder } = require('util')
   global.TextEncoder = TextEncoder
   global.TextDecoder = TextDecoder
+}
+
+// jsdom doesn't expose structuredClone, but fake-indexeddb needs it to
+// clone values on put()/add()
+if (typeof global.structuredClone === 'undefined') {
+  global.structuredClone = obj => JSON.parse(JSON.stringify(obj))
 }
 
 // Mock window.matchMedia

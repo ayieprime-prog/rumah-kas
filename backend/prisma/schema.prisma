@@ -56,6 +56,10 @@ model User {
   auditLogs      AuditLog[]
   journalEntries JournalEntry[]
 
+  pushSubscriptions       PushSubscription[]
+  notificationPreference  NotificationPreference?
+  notificationLogs        NotificationLog[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -237,6 +241,61 @@ model Notification {
 
   @@index([householdId])
   @@index([read])
+}
+
+// Web Push subscription for one browser/device. A user can have several
+// (phone, laptop, etc.), so this is 1-to-many off User.
+model PushSubscription {
+  id           String   @id @default(cuid())
+  endpoint     String   @unique
+  subscription String   // JSON-encoded PushSubscription (endpoint + keys)
+  active       Boolean  @default(true)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([active])
+}
+
+// Per-user opt-in/out for each push notification type. One row per user.
+model NotificationPreference {
+  id                   String  @id @default(cuid())
+  expenseReminders     Boolean @default(true)
+  budgetAlerts         Boolean @default(true)
+  billDueNotifications Boolean @default(true)
+  goalMilestones       Boolean @default(true)
+  weeklyReport         Boolean @default(false)
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// History of push notifications actually sent (for the /logs endpoint and
+// debugging delivery issues), distinct from the in-app Notification model.
+model NotificationLog {
+  id                String @id @default(cuid())
+  title             String
+  body              String?
+  type              String
+  sent              Int    @default(0)
+  failed            Int    @default(0)
+  subscriptionCount Int    @default(0)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
 }
 
 // ============= WALLET MANAGEMENT =============

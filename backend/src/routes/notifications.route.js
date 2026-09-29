@@ -15,7 +15,7 @@ const notificationService = require('../services/notificationService')
 router.post('/subscribe', authenticate, async (req, res) => {
   try {
     const { subscription } = req.body
-    const userId = req.user.id
+    const userId = req.userId
 
     if (!subscription) {
       return res.status(400).json({ error: 'Subscription required' })
@@ -40,7 +40,7 @@ router.post('/subscribe', authenticate, async (req, res) => {
 router.post('/unsubscribe', authenticate, async (req, res) => {
   try {
     const { endpoint } = req.body
-    const userId = req.user.id
+    const userId = req.userId
 
     if (!endpoint) {
       return res.status(400).json({ error: 'Endpoint required' })
@@ -61,7 +61,7 @@ router.post('/unsubscribe', authenticate, async (req, res) => {
  */
 router.get('/preferences', authenticate, async (req, res) => {
   try {
-    const userId = req.user.id
+    const userId = req.userId
 
     const preferences = await notificationService.getPreferences(userId)
 
@@ -79,7 +79,7 @@ router.get('/preferences', authenticate, async (req, res) => {
 router.put('/preferences', authenticate, async (req, res) => {
   try {
     const { preferences } = req.body
-    const userId = req.user.id
+    const userId = req.userId
 
     if (!preferences) {
       return res.status(400).json({ error: 'Preferences required' })
@@ -103,7 +103,7 @@ router.put('/preferences', authenticate, async (req, res) => {
  */
 router.get('/logs', authenticate, async (req, res) => {
   try {
-    const userId = req.user.id
+    const userId = req.userId
     const limit = parseInt(req.query.limit) || 50
 
     const logs = await notificationService.getNotificationLogs(userId, limit)
@@ -128,7 +128,7 @@ router.post('/test', authenticate, async (req, res) => {
       return res.status(403).json({ error: 'Test notifications disabled in production' })
     }
 
-    const userId = req.user.id
+    const userId = req.userId
     const { title, body } = req.body
 
     const result = await notificationService.sendNotification(

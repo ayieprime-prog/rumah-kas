@@ -1,14 +1,15 @@
 import { Suspense, useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Home, Wallet, Calendar, Users, Settings, Loader2 } from 'lucide-react'
-import { useAuth } from '../../context/AuthContext'
 
 /**
  * App Shell Component
  * Minimal shell that loads instantly, content loads progressively
+ *
+ * `user` is passed in as a prop (e.g. { name }) rather than pulled from a
+ * global auth context, since this project has no such context yet.
  */
-export function AppShell({ children }) {
-  const { user } = useAuth()
+export function AppShell({ children, user }) {
   const location = useLocation()
   const [isShellReady, setIsShellReady] = useState(false)
 
@@ -92,7 +93,7 @@ function BottomNavigation({ currentPath }) {
     <div className="flex items-center justify-around h-16">
       {navItems.map(item => {
         const Icon = item.icon
-        const isActive = currentPath.startsWith(item.path)
+        const isActive = item.path === '/' ? currentPath === '/' : currentPath.startsWith(item.path)
 
         return (
           <a
@@ -132,7 +133,7 @@ function SideNavigation({ currentPath }) {
       <div className="flex flex-col gap-2">
         {navItems.map(item => {
           const Icon = item.icon
-          const isActive = currentPath.startsWith(item.path)
+          const isActive = item.path === '/' ? currentPath === '/' : currentPath.startsWith(item.path)
 
           return (
             <a

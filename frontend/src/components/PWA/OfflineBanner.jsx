@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { WiFiOff, Wifi, RefreshCw, AlertCircle } from 'lucide-react'
+import { WifiOff, RefreshCw } from 'lucide-react'
 import { offlineStorage, offlineSync } from '../../utils/offlineStorage'
 
 export function OfflineBanner() {
@@ -63,15 +63,16 @@ export function OfflineBanner() {
     }
   }
 
-  // Show banner only when offline
-  if (isOnline) return null
+  // Show the banner while offline, and keep it briefly after reconnecting
+  // so the auto-sync result (syncStatus) has a chance to be seen.
+  if (isOnline && !syncStatus) return null
 
   return (
     <div className="fixed top-0 left-0 right-0 bg-yellow-50 dark:bg-yellow-900 border-b border-yellow-200 dark:border-yellow-700 z-40">
       <div className="max-w-7xl mx-auto px-4 py-3">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <WiFiOff className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0" />
+            <WifiOff className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0" />
             <div>
               <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
                 Anda sedang offline
@@ -90,7 +91,7 @@ export function OfflineBanner() {
                 {syncStatus}
               </span>
             )}
-            {pendingCount > 0 && isOnline && (
+            {pendingCount > 0 && (
               <button
                 onClick={triggerSync}
                 disabled={isSyncing}

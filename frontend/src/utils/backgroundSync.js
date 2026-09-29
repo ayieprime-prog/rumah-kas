@@ -3,6 +3,8 @@
  * Schedule and manage automatic data syncing
  */
 
+import React from 'react'
+
 const SYNC_TAGS = {
   EXPENSES: 'sync-expenses-data',
   INCOME: 'sync-income-data',
@@ -14,8 +16,13 @@ const SYNC_TAGS = {
 
 class BackgroundSyncManager {
   constructor() {
-    this.isSupported = 'serviceWorker' in navigator && 'SyncManager' in window
     this.syncIntervals = new Map()
+  }
+
+  // Getter rather than a value frozen at construction time - see the same
+  // note on PushNotificationManager.isSupported in pushNotifications.js.
+  get isSupported() {
+    return 'serviceWorker' in navigator && 'SyncManager' in window
   }
 
   /**
@@ -60,7 +67,7 @@ class BackgroundSyncManager {
   setupPeriodicRefresh(options = {}) {
     const {
       expensesInterval = 30 * 60 * 1000, // 30 minutes
-      incomceInterval = 60 * 60 * 1000,  // 1 hour
+      incomeInterval = 60 * 60 * 1000,  // 1 hour
       budgetsInterval = 60 * 60 * 1000,  // 1 hour
       goalsInterval = 24 * 60 * 60 * 1000, // 1 day
       dashboardInterval = 15 * 60 * 1000,  // 15 minutes
@@ -105,15 +112,10 @@ class BackgroundSyncManager {
    */
   async prefetchExpenses() {
     try {
-      const token = this.getAuthToken()
-      if (!token) return
-
       const currentMonth = new Date().toISOString().slice(0, 7)
       const response = await fetch(
         `/api/expenses?month=${currentMonth}`,
-        {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }
+        { credentials: 'include' }
       )
 
       if (response.ok) {
@@ -131,15 +133,10 @@ class BackgroundSyncManager {
    */
   async prefetchIncome() {
     try {
-      const token = this.getAuthToken()
-      if (!token) return
-
       const currentMonth = new Date().toISOString().slice(0, 7)
       const response = await fetch(
         `/api/income?month=${currentMonth}`,
-        {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }
+        { credentials: 'include' }
       )
 
       if (response.ok) {
@@ -157,15 +154,10 @@ class BackgroundSyncManager {
    */
   async prefetchBudgets() {
     try {
-      const token = this.getAuthToken()
-      if (!token) return
-
       const currentMonth = new Date().toISOString().slice(0, 7)
       const response = await fetch(
-        `/api/budgets?month=${currentMonth}`,
-        {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }
+        `/api/budget?month=${currentMonth}`,
+        { credentials: 'include' }
       )
 
       if (response.ok) {
@@ -183,12 +175,7 @@ class BackgroundSyncManager {
    */
   async prefetchGoals() {
     try {
-      const token = this.getAuthToken()
-      if (!token) return
-
-      const response = await fetch('/api/goals', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
+      const response = await fetch('/api/goals', { credentials: 'include' })
 
       if (response.ok) {
         const data = await response.json()
@@ -205,12 +192,7 @@ class BackgroundSyncManager {
    */
   async prefetchDashboard() {
     try {
-      const token = this.getAuthToken()
-      if (!token) return
-
-      const response = await fetch('/api/dashboard', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
+      const response = await fetch('/api/dashboard', { credentials: 'include' })
 
       if (response.ok) {
         const data = await response.json()
@@ -227,15 +209,10 @@ class BackgroundSyncManager {
    */
   async prefetchReports() {
     try {
-      const token = this.getAuthToken()
-      if (!token) return
-
       const currentMonth = new Date().toISOString().slice(0, 7)
       const response = await fetch(
         `/api/reports?month=${currentMonth}`,
-        {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }
+        { credentials: 'include' }
       )
 
       if (response.ok) {
@@ -252,8 +229,9 @@ class BackgroundSyncManager {
    * Cache data in IndexedDB
    */
   async cacheData(key, data) {
+    let db
     try {
-      const db = await this.openDB()
+      db = await this.openDB()
       const transaction = db.transaction(['sync-cache'], 'readwrite')
       const store = transaction.objectStore('sync-cache')
 
@@ -271,6 +249,8 @@ class BackgroundSyncManager {
       })
     } catch (error) {
       console.error('Error caching data:', error)
+    } finally {
+      db?.close()
     }
   }
 
@@ -278,12 +258,13 @@ class BackgroundSyncManager {
    * Get cached data
    */
   async getCachedData(key) {
+    let db
     try {
-      const db = await this.openDB()
+      db = await this.openDB()
       const transaction = db.transaction(['sync-cache'], 'readonly')
       const store = transaction.objectStore('sync-cache')
 
-      return new Promise((resolve, reject) => {
+      return await new Promise((resolve, reject) => {
         const request = store.get(key)
         request.onerror = () => reject(request.error)
         request.onsuccess = () => {
@@ -298,6 +279,8 @@ class BackgroundSyncManager {
     } catch (error) {
       console.error('Error getting cached data:', error)
       return null
+    } finally {
+      db?.close()
     }
   }
 
@@ -305,12 +288,13 @@ class BackgroundSyncManager {
    * Get cache age in minutes
    */
   async getCacheAge(key) {
+    let db
     try {
-      const db = await this.openDB()
+      db = await this.openDB()
       const transaction = db.transaction(['sync-cache'], 'readonly')
       const store = transaction.objectStore('sync-cache')
 
-      return new Promise((resolve, reject) => {
+      return await new Promise((resolve, reject) => {
         const request = store.get(key)
         request.onerror = () => reject(request.error)
         request.onsuccess = () => {
@@ -327,6 +311,8 @@ class BackgroundSyncManager {
     } catch (error) {
       console.error('Error getting cache age:', error)
       return -1
+    } finally {
+      db?.close()
     }
   }
 
@@ -334,12 +320,13 @@ class BackgroundSyncManager {
    * Get cache stats
    */
   async getCacheStats() {
+    let db
     try {
-      const db = await this.openDB()
+      db = await this.openDB()
       const transaction = db.transaction(['sync-cache'], 'readonly')
       const store = transaction.objectStore('sync-cache')
 
-      return new Promise((resolve, reject) => {
+      return await new Promise((resolve, reject) => {
         const request = store.getAll()
         request.onerror = () => reject(request.error)
         request.onsuccess = () => {
@@ -359,6 +346,8 @@ class BackgroundSyncManager {
     } catch (error) {
       console.error('Error getting cache stats:', error)
       return { totalRecords: 0, caches: [], totalSize: 0 }
+    } finally {
+      db?.close()
     }
   }
 
@@ -366,15 +355,16 @@ class BackgroundSyncManager {
    * Clear old cache entries
    */
   async clearOldCache(maxAgeMinutes = 24 * 60) {
+    let db
     try {
-      const db = await this.openDB()
+      db = await this.openDB()
       const transaction = db.transaction(['sync-cache'], 'readwrite')
       const store = transaction.objectStore('sync-cache')
       const index = store.index('timestamp')
 
       const cutoffTime = Date.now() - (maxAgeMinutes * 60 * 1000)
 
-      return new Promise((resolve, reject) => {
+      return await new Promise((resolve, reject) => {
         const request = index.openCursor(IDBKeyRange.upperBound(cutoffTime))
         let deleted = 0
 
@@ -395,6 +385,8 @@ class BackgroundSyncManager {
     } catch (error) {
       console.error('Error clearing old cache:', error)
       return 0
+    } finally {
+      db?.close()
     }
   }
 
@@ -403,12 +395,11 @@ class BackgroundSyncManager {
    */
   async smartPrefetch(userId) {
     try {
-      // Get user's most accessed pages
-      const token = this.getAuthToken()
-      if (!token) return
-
+      // NOTE: this endpoint does not exist on the backend yet (no access-pattern
+      // tracking has been built). This call will 404 and the method below will
+      // simply no-op until that tracking is implemented.
       const response = await fetch(`/api/users/${userId}/access-patterns`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include'
       })
 
       if (!response.ok) return
@@ -489,13 +480,6 @@ class BackgroundSyncManager {
         }
       }
     })
-  }
-
-  /**
-   * Get auth token
-   */
-  getAuthToken() {
-    return localStorage.getItem('authToken') || ''
   }
 
   /**

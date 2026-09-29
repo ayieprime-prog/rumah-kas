@@ -3,6 +3,8 @@
  * Placeholders while content loads progressively
  */
 
+import { Suspense } from 'react'
+
 export function SkeletonCard() {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg p-4 animate-pulse">

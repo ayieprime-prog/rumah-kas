@@ -3,13 +3,23 @@
  * Handle subscription, notification display, and user preferences
  */
 
-const VAPID_PUBLIC_KEY = process.env.REACT_APP_VAPID_PUBLIC_KEY
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:3000'
+import React from 'react'
+
+const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 class PushNotificationManager {
   constructor() {
     this.subscription = null
-    this.isSupported = 'serviceWorker' in navigator && 'PushManager' in window
+    this.vapidPublicKey = VAPID_PUBLIC_KEY
+  }
+
+  // A getter (rather than a value frozen in the constructor) so it always
+  // reflects the current environment - this module is a singleton created
+  // once at import time, so a frozen value would never notice a browser
+  // that gains/mocks support afterwards.
+  get isSupported() {
+    return 'serviceWorker' in navigator && 'PushManager' in window
   }
 
   /**
@@ -57,10 +67,15 @@ class PushNotificationManager {
       let subscription = await registration.pushManager.getSubscription()
 
       if (!subscription) {
+        if (!this.vapidPublicKey) {
+          console.warn('Cannot subscribe: VITE_VAPID_PUBLIC_KEY is not configured')
+          return null
+        }
+
         // Subscribe to push
         subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: this.urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+          applicationServerKey: this.urlBase64ToUint8Array(this.vapidPublicKey)
         })
 
         console.log('✅ Subscribed to push notifications:', subscription)
@@ -118,11 +133,11 @@ class PushNotificationManager {
    */
   async saveSubscriptionToServer(subscription, userId) {
     try {
-      const response = await fetch(`${API_BASE}/api/notifications/subscribe`, {
+      const response = await fetch(`${API_BASE}/api/push-notifications/subscribe`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.getAuthToken()}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           userId,
@@ -147,11 +162,11 @@ class PushNotificationManager {
    */
   async removeSubscriptionFromServer(subscription, userId) {
     try {
-      const response = await fetch(`${API_BASE}/api/notifications/unsubscribe`, {
+      const response = await fetch(`${API_BASE}/api/push-notifications/unsubscribe`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.getAuthToken()}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           userId,
@@ -175,11 +190,11 @@ class PushNotificationManager {
    */
   async updatePreferences(userId, preferences) {
     try {
-      const response = await fetch(`${API_BASE}/api/notifications/preferences`, {
+      const response = await fetch(`${API_BASE}/api/push-notifications/preferences`, {
         method: 'PUT',
+        credentials: 'include',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.getAuthToken()}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           userId,
@@ -210,11 +225,9 @@ class PushNotificationManager {
    */
   async getPreferences(userId) {
     try {
-      const response = await fetch(`${API_BASE}/api/notifications/preferences`, {
+      const response = await fetch(`${API_BASE}/api/push-notifications/preferences`, {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${this.getAuthToken()}`
-        }
+        credentials: 'include'
       })
 
       if (!response.ok) {
@@ -245,13 +258,6 @@ class PushNotificationManager {
     }
 
     return outputArray
-  }
-
-  /**
-   * Get auth token from localStorage
-   */
-  getAuthToken() {
-    return localStorage.getItem('authToken') || ''
   }
 }
 

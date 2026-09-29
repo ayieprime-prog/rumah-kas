@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Bell, BellOff, Loader2 } from 'lucide-react'
 import { usePushNotifications } from '../../utils/pushNotifications'
-import { useAuth } from '../../context/AuthContext'
 
-export function NotificationPreferences() {
-  const { user } = useAuth()
-  const { isSubscribed, isLoading, preferences, subscribe, unsubscribe, updatePreferences } = usePushNotifications(user?.id)
+/**
+ * `userId` is passed in as a prop rather than pulled from a global auth
+ * context, since this project has no such context yet.
+ */
+export function NotificationPreferences({ userId }) {
+  const { isSubscribed, isLoading, preferences, subscribe, unsubscribe, updatePreferences } = usePushNotifications(userId)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(null)

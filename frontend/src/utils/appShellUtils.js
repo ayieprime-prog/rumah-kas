@@ -3,6 +3,8 @@
  * Progressive content loading and shell optimization
  */
 
+import React from 'react'
+
 class AppShellManager {
   constructor() {
     this.shell = null
@@ -311,18 +313,19 @@ export function useAppShell() {
 }
 
 /**
- * Route-based code splitting with progressive loading
+ * Route-based code splitting with progressive loading.
+ * Points at the actual page files (all default exports).
  */
 export const lazyRoutes = {
-  dashboard: () => import('../pages/Dashboard').then(m => ({ default: m.Dashboard })),
-  keuangan: () => import('../pages/Keuangan').then(m => ({ default: m.Keuangan })),
-  calendar: () => import('../pages/Calendar').then(m => ({ default: m.Calendar })),
-  shared: () => import('../pages/Shared').then(m => ({ default: m.Shared })),
-  settings: () => import('../pages/Settings').then(m => ({ default: m.Settings })),
-  expenses: () => import('../pages/Expenses').then(m => ({ default: m.Expenses })),
-  budgets: () => import('../pages/Budgets').then(m => ({ default: m.Budgets })),
-  goals: () => import('../pages/Goals').then(m => ({ default: m.Goals })),
-  reports: () => import('../pages/Reports').then(m => ({ default: m.Reports }))
+  dashboard: () => import('../pages/DashboardPage'),
+  keuangan: () => import('../pages/KeuanganHubPage'),
+  calendar: () => import('../pages/CalendarPage'),
+  shared: () => import('../pages/BerduaHubPage'),
+  settings: () => import('../pages/LainnyaHubPage'),
+  expenses: () => import('../pages/ExpensesPage'),
+  budgets: () => import('../pages/BudgetPage'),
+  goals: () => import('../pages/GoalsPage'),
+  reports: () => import('../pages/ReportsPage')
 }
 
 /**

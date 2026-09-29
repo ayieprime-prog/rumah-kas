@@ -1,11 +1,16 @@
 /**
  * Periodic Sync Scheduler Service
  * Manage scheduled data refreshes and syncing
+ *
+ * Data model note: Expense/Budget/Goal/Income are scoped to Household
+ * (not User) in this app's schema. Push notification preferences and
+ * subscriptions are scoped to User, since each household member can opt
+ * in/out independently. Tasks below reflect that split.
  */
 
 const cron = require('node-cron')
 const { PrismaClient } = require('@prisma/client')
-const { notificationService } = require('./notificationService')
+const notificationService = require('./notificationService')
 
 const prisma = new PrismaClient()
 
@@ -36,19 +41,13 @@ class SyncScheduler {
     // Sync dashboard every 15 minutes
     this.scheduleSyncTask('dashboard', '*/15 * * * *', () => this.syncDashboardData())
 
-    // Sync reports every 24 hours
-    this.scheduleSyncTask('reports', '0 0 * * *', () => this.syncReportsData())
-
     // Send weekly reports every Monday at 9 AM
     this.scheduleSyncTask('weekly-report', '0 9 * * 1', () => this.sendWeeklyReports())
 
     // Cleanup invalid subscriptions daily at 2 AM
     this.scheduleSyncTask('cleanup-subs', '0 2 * * *', () => this.cleanupSubscriptions())
 
-    // Clear old cache entries daily at 3 AM
-    this.scheduleSyncTask('cleanup-cache', '0 3 * * *', () => this.cleanupCache())
-
-    console.log('✅ Sync scheduler started with 9 scheduled tasks')
+    console.log(`✅ Sync scheduler started with ${this.tasks.size} scheduled tasks`)
   }
 
   /**
@@ -65,7 +64,6 @@ class SyncScheduler {
           const duration = Date.now() - startTime
           console.log(`✅ Completed sync task: ${name} (${duration}ms)`)
 
-          // Track stats
           this.recordSyncStat(name, {
             status: 'success',
             duration,
@@ -91,316 +89,223 @@ class SyncScheduler {
   }
 
   /**
-   * Sync expenses data
+   * Current month boundaries as Date objects (avoids invalid dates like "2024-02-32")
+   */
+  getCurrentMonthRange() {
+    const now = new Date()
+    const start = new Date(now.getFullYear(), now.getMonth(), 1)
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+    return { start, end }
+  }
+
+  /**
+   * Sync expenses data (consistency scan, household-scoped)
    */
   async syncExpensesData() {
-    try {
-      const users = await prisma.user.findMany({
-        where: { active: true }
-      })
+    const households = await prisma.household.findMany({ select: { id: true } })
+    const { start, end } = this.getCurrentMonthRange()
 
-      let synced = 0
-      for (const user of users) {
-        try {
-          const currentMonth = new Date().toISOString().slice(0, 7)
-          await prisma.expense.findMany({
-            where: {
-              userId: user.id,
-              date: {
-                gte: new Date(`${currentMonth}-01`),
-                lt: new Date(`${currentMonth}-32`)
-              }
-            }
-          })
-          synced++
-        } catch (error) {
-          console.error(`Error syncing expenses for user ${user.id}:`, error)
-        }
+    let synced = 0
+    for (const household of households) {
+      try {
+        await prisma.expense.findMany({
+          where: {
+            householdId: household.id,
+            date: { gte: start, lt: end }
+          }
+        })
+        synced++
+      } catch (error) {
+        console.error(`Error syncing expenses for household ${household.id}:`, error)
       }
-
-      console.log(`💾 Synced expenses for ${synced}/${users.length} users`)
-    } catch (error) {
-      console.error('Error syncing expenses data:', error)
-      throw error
     }
+
+    console.log(`💾 Synced expenses for ${synced}/${households.length} households`)
   }
 
   /**
-   * Sync income data
+   * Sync income data (consistency scan, household-scoped)
    */
   async syncIncomeData() {
-    try {
-      const users = await prisma.user.findMany({
-        where: { active: true }
-      })
+    const households = await prisma.household.findMany({ select: { id: true } })
+    const { start, end } = this.getCurrentMonthRange()
 
-      let synced = 0
-      for (const user of users) {
-        try {
-          const currentMonth = new Date().toISOString().slice(0, 7)
-          await prisma.income.findMany({
-            where: {
-              userId: user.id,
-              date: {
-                gte: new Date(`${currentMonth}-01`),
-                lt: new Date(`${currentMonth}-32`)
-              }
-            }
-          })
-          synced++
-        } catch (error) {
-          console.error(`Error syncing income for user ${user.id}:`, error)
-        }
+    let synced = 0
+    for (const household of households) {
+      try {
+        await prisma.income.findMany({
+          where: {
+            householdId: household.id,
+            date: { gte: start, lt: end }
+          }
+        })
+        synced++
+      } catch (error) {
+        console.error(`Error syncing income for household ${household.id}:`, error)
       }
-
-      console.log(`💾 Synced income for ${synced}/${users.length} users`)
-    } catch (error) {
-      console.error('Error syncing income data:', error)
-      throw error
     }
+
+    console.log(`💾 Synced income for ${synced}/${households.length} households`)
   }
 
   /**
-   * Sync budgets data
+   * Sync budgets and send alerts at 80%/90%/100% usage
+   *
+   * Known limitation: there's no persisted "already notified" flag on
+   * Budget, so an alert can repeat on subsequent hourly runs while the
+   * budget stays over threshold. Fine for now, but worth revisiting
+   * (e.g. a notifiedAt column) if it turns out to be noisy in practice.
    */
   async syncBudgetsData() {
-    try {
-      const users = await prisma.user.findMany({
-        where: { active: true }
-      })
+    const { start, end } = this.getCurrentMonthRange()
+    const currentMonth = start.toISOString().slice(0, 7)
 
-      let synced = 0
-      for (const user of users) {
-        try {
-          const currentMonth = new Date().toISOString().slice(0, 7)
-          const budgets = await prisma.budget.findMany({
-            where: {
-              userId: user.id,
-              month: currentMonth
-            },
-            include: {
-              _count: {
-                select: { expenses: true }
-              }
-            }
-          })
+    const households = await prisma.household.findMany({
+      include: { users: true }
+    })
 
-          // Check for budget alerts
-          for (const budget of budgets) {
-            const spent = await prisma.expense.aggregate({
-              where: {
-                userId: user.id,
-                budgetId: budget.id,
-                date: {
-                  gte: new Date(`${currentMonth}-01`),
-                  lt: new Date(`${currentMonth}-32`)
-                }
-              },
-              _sum: { amount: true }
-            })
+    let synced = 0
+    for (const household of households) {
+      try {
+        const budgets = await prisma.budget.findMany({
+          where: {
+            householdId: household.id,
+            month: currentMonth
+          },
+          include: { category: true }
+        })
 
-            const spentAmount = spent._sum.amount || 0
-            const percentage = (spentAmount / budget.limit) * 100
+        for (const budget of budgets) {
+          if (!budget.limit) continue
+          const percentage = (budget.spent / budget.limit) * 100
 
-            // Alert at 80% and 90%
-            if (percentage >= 80 && percentage < 90) {
-              // Sent at 80%
-            } else if (percentage >= 90) {
-              // Send alert at 90%
+          if (percentage >= 80) {
+            for (const user of household.users) {
+              await notificationService.sendBudgetAlert(user.id, {
+                category: budget.category?.name || 'Anggaran',
+                spent: budget.spent,
+                limit: budget.limit
+              })
             }
           }
-
-          synced++
-        } catch (error) {
-          console.error(`Error syncing budgets for user ${user.id}:`, error)
         }
-      }
 
-      console.log(`💾 Synced budgets for ${synced}/${users.length} users`)
-    } catch (error) {
-      console.error('Error syncing budgets data:', error)
-      throw error
+        synced++
+      } catch (error) {
+        console.error(`Error syncing budgets for household ${household.id}:`, error)
+      }
     }
+
+    console.log(`💾 Synced budgets for ${synced}/${households.length} households`)
   }
 
   /**
-   * Sync goals data
+   * Sync goals and send milestone notifications
+   *
+   * Known limitation: same as budgets, no persisted "already notified"
+   * flag per milestone, so this can re-fire on later runs.
    */
   async syncGoalsData() {
-    try {
-      const users = await prisma.user.findMany({
-        where: { active: true }
-      })
+    const households = await prisma.household.findMany({
+      include: { users: true }
+    })
 
-      let synced = 0
-      for (const user of users) {
-        try {
-          const goals = await prisma.goal.findMany({
-            where: { userId: user.id }
-          })
+    let synced = 0
+    for (const household of households) {
+      try {
+        const goals = await prisma.goal.findMany({
+          where: { householdId: household.id }
+        })
 
-          // Check for goal milestones
-          for (const goal of goals) {
-            const percentage = (goal.currentAmount / goal.targetAmount) * 100
+        for (const goal of goals) {
+          if (!goal.targetAmount) continue
+          const percentage = (goal.currentAmount / goal.targetAmount) * 100
 
-            // Check if milestone reached (25%, 50%, 75%, 100%)
-            const milestones = [25, 50, 75, 100]
-            for (const milestone of milestones) {
-              if (percentage >= milestone && !goal[`notified${milestone}`]) {
-                // Send milestone notification
-              }
+          const reachedMilestone = [100, 75, 50, 25].find(m => percentage >= m)
+          if (reachedMilestone) {
+            for (const user of household.users) {
+              await notificationService.sendGoalMilestone(user.id, {
+                name: goal.name,
+                current: goal.currentAmount,
+                target: goal.targetAmount
+              })
             }
           }
-
-          synced++
-        } catch (error) {
-          console.error(`Error syncing goals for user ${user.id}:`, error)
         }
-      }
 
-      console.log(`💾 Synced goals for ${synced}/${users.length} users`)
-    } catch (error) {
-      console.error('Error syncing goals data:', error)
-      throw error
+        synced++
+      } catch (error) {
+        console.error(`Error syncing goals for household ${household.id}:`, error)
+      }
     }
+
+    console.log(`💾 Synced goals for ${synced}/${households.length} households`)
   }
 
   /**
-   * Sync dashboard data
+   * Sync dashboard summary data (consistency scan, household-scoped)
    */
   async syncDashboardData() {
-    try {
-      const users = await prisma.user.findMany({
-        where: { active: true }
-      })
+    const households = await prisma.household.findMany({ select: { id: true } })
+    const { start, end } = this.getCurrentMonthRange()
+    const currentMonth = start.toISOString().slice(0, 7)
 
-      let synced = 0
-      for (const user of users) {
-        try {
-          // Get dashboard summary
-          const currentMonth = new Date().toISOString().slice(0, 7)
-
-          const [expenses, income, budgets] = await Promise.all([
-            prisma.expense.aggregate({
-              where: {
-                userId: user.id,
-                date: {
-                  gte: new Date(`${currentMonth}-01`),
-                  lt: new Date(`${currentMonth}-32`)
-                }
-              },
-              _sum: { amount: true }
-            }),
-            prisma.income.aggregate({
-              where: {
-                userId: user.id,
-                date: {
-                  gte: new Date(`${currentMonth}-01`),
-                  lt: new Date(`${currentMonth}-32`)
-                }
-              },
-              _sum: { amount: true }
-            }),
-            prisma.budget.findMany({
-              where: {
-                userId: user.id,
-                month: currentMonth
-              }
-            })
-          ])
-
-          synced++
-        } catch (error) {
-          console.error(`Error syncing dashboard for user ${user.id}:`, error)
-        }
-      }
-
-      console.log(`💾 Synced dashboard for ${synced}/${users.length} users`)
-    } catch (error) {
-      console.error('Error syncing dashboard data:', error)
-      throw error
-    }
-  }
-
-  /**
-   * Sync reports data
-   */
-  async syncReportsData() {
-    try {
-      const users = await prisma.user.findMany({
-        where: { active: true }
-      })
-
-      let synced = 0
-      for (const user of users) {
-        try {
-          const currentMonth = new Date().toISOString().slice(0, 7)
-
-          // Generate monthly report
-          await prisma.report.upsert({
-            where: {
-              userId_month: {
-                userId: user.id,
-                month: currentMonth
-              }
-            },
-            update: { updatedAt: new Date() },
-            create: {
-              userId: user.id,
-              month: currentMonth,
-              totalExpenses: 0,
-              totalIncome: 0,
-              categories: []
-            }
+    let synced = 0
+    for (const household of households) {
+      try {
+        await Promise.all([
+          prisma.expense.aggregate({
+            where: { householdId: household.id, date: { gte: start, lt: end } },
+            _sum: { amount: true }
+          }),
+          prisma.income.aggregate({
+            where: { householdId: household.id, date: { gte: start, lt: end } },
+            _sum: { amount: true }
+          }),
+          prisma.budget.findMany({
+            where: { householdId: household.id, month: currentMonth }
           })
-
-          synced++
-        } catch (error) {
-          console.error(`Error syncing reports for user ${user.id}:`, error)
-        }
+        ])
+        synced++
+      } catch (error) {
+        console.error(`Error syncing dashboard for household ${household.id}:`, error)
       }
-
-      console.log(`💾 Synced reports for ${synced}/${users.length} users`)
-    } catch (error) {
-      console.error('Error syncing reports data:', error)
-      throw error
     }
+
+    console.log(`💾 Synced dashboard for ${synced}/${households.length} households`)
   }
 
   /**
-   * Send weekly reports to users
+   * Send weekly reports to users who opted in
    */
   async sendWeeklyReports() {
-    try {
-      const users = await prisma.user.findMany({
-        where: { active: true }
+    const households = await prisma.household.findMany({
+      include: { users: true }
+    })
+
+    const today = new Date()
+    const weekStart = new Date(today)
+    weekStart.setDate(today.getDate() - today.getDay())
+    weekStart.setHours(0, 0, 0, 0)
+
+    let sent = 0
+    let totalUsers = 0
+
+    for (const household of households) {
+      const weekExpenses = await prisma.expense.aggregate({
+        where: {
+          householdId: household.id,
+          date: { gte: weekStart }
+        },
+        _sum: { amount: true }
       })
 
-      let sent = 0
-      for (const user of users) {
+      for (const user of household.users) {
+        totalUsers++
         try {
-          // Check if user wants weekly reports
-          const prefs = await prisma.notificationPreference.findUnique({
-            where: { userId: user.id }
-          })
-
+          const prefs = await notificationService.getPreferences(user.id)
           if (!prefs?.weeklyReport) continue
 
-          // Get week's expenses
-          const today = new Date()
-          const weekStart = new Date(today.setDate(today.getDate() - today.getDay()))
-
-          const weekExpenses = await prisma.expense.aggregate({
-            where: {
-              userId: user.id,
-              date: {
-                gte: weekStart
-              }
-            },
-            _sum: { amount: true }
-          })
-
-          // Send weekly report notification
           await notificationService.sendWeeklyReport(user.id, {
             totalExpense: weekExpenses._sum.amount || 0,
             week: Math.ceil(weekStart.getDate() / 7)
@@ -411,42 +316,17 @@ class SyncScheduler {
           console.error(`Error sending weekly report for user ${user.id}:`, error)
         }
       }
-
-      console.log(`📊 Sent weekly reports to ${sent}/${users.length} users`)
-    } catch (error) {
-      console.error('Error sending weekly reports:', error)
-      throw error
     }
+
+    console.log(`📊 Sent weekly reports to ${sent}/${totalUsers} users`)
   }
 
   /**
    * Cleanup invalid push subscriptions
    */
   async cleanupSubscriptions() {
-    try {
-      const deleted = await notificationService.cleanupInvalidSubscriptions()
-      console.log(`🧹 Cleaned up ${deleted} invalid subscriptions`)
-    } catch (error) {
-      console.error('Error cleaning up subscriptions:', error)
-      throw error
-    }
-  }
-
-  /**
-   * Cleanup old cache entries
-   */
-  async cleanupCache() {
-    try {
-      // Clear cache entries older than 30 days
-      const before30Days = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-
-      // This would be implemented in IndexedDB on frontend
-      // or in Redis/cache on backend
-      console.log('🧹 Cleaned up old cache entries')
-    } catch (error) {
-      console.error('Error cleaning up cache:', error)
-      throw error
-    }
+    const deleted = await notificationService.cleanupInvalidSubscriptions()
+    console.log(`🧹 Cleaned up ${deleted} invalid subscriptions`)
   }
 
   /**

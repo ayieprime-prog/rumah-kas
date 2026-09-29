@@ -5,6 +5,8 @@
  * Queue actions for sync when online
  */
 
+import React from 'react'
+
 class OfflineStorage {
   constructor() {
     this.db = null

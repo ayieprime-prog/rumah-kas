@@ -46,6 +46,19 @@ try {
   console.error('========================================================');
 }
 
+// Push notifications + periodic sync are optional add-ons (require the
+// `web-push` / `node-cron` packages). Loaded in their own try/catch so a
+// missing dependency only disables these features instead of putting the
+// entire API in degraded mode like the block above would.
+let pushNotificationRoutes = null;
+let syncScheduler = null;
+try {
+  pushNotificationRoutes = require('./routes/notifications.route');
+  syncScheduler = require('./services/syncScheduler');
+} catch (err) {
+  console.error('⚠️  Push notifications / background sync disabled:', err.message);
+}
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -152,6 +165,7 @@ if (assetRoutes) app.use('/api/assets', authenticate, assetRoutes);
 if (transferRoutes) app.use('/api/transfers', authenticate, transferRoutes);
 if (allocationRoutes) app.use('/api/allocation', authenticate, allocationRoutes);
 if (budgetAnalyticsRoutes) app.use('/api/budget-analytics', authenticate, budgetAnalyticsRoutes);
+if (pushNotificationRoutes) app.use('/api/push-notifications', authenticate, pushNotificationRoutes);
 
 // Serve frontend build (single-service deployment). Vite fingerprints every
 // file under assets/ with a content hash, so those are safe to cache forever
@@ -183,6 +197,10 @@ app.listen(PORT, () => {
   console.log(`🚀 Pundi API running on http://localhost:${PORT}`);
   console.log(`🏠 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`💾 Database: ${process.env.DATABASE_URL ? 'Connected' : 'Not configured'}`);
+
+  if (syncScheduler) {
+    syncScheduler.start();
+  }
 });
 
 module.exports = app;
