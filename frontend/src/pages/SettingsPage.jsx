@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
 import { Users, Home, UserPlus, X, LogOut, History, UserCircle, ChevronRight } from 'lucide-react'
+import { NotificationPreferences } from '../components/Notifications/NotificationPreferences'
+import { SyncStatus } from '../components/Sync/SyncStatus'
 import './ListPages.css'
 
 const ACTION_LABELS = {
@@ -136,6 +138,10 @@ const SettingsPage = ({ onLogout }) => {
           </div>
         ))}
       </div>
+
+      {me && <NotificationPreferences userId={me.id} />}
+
+      <SyncStatus />
 
       <div className="card">
         <h2 className="section-title"><History size={16} style={{ verticalAlign: 'middle', marginRight: 6 }} />Aktivitas Terbaru</h2>
