@@ -65,6 +65,8 @@ const cache = new MemoryCache();
 // (Expense/Budget/Dashboard etc. all belong to a Household, not a User).
 const cacheKeys = {
   dashboard: (householdId) => `dashboard:${householdId}`,
+  neraca: (householdId) => `dashboard:${householdId}_neraca`,
+  neracaSummary: (householdId) => `dashboard:${householdId}_neraca_summary`,
   expenses: (householdId, month) => `expenses:${householdId}:${month}`,
   budgets: (householdId, month) => `budgets:${householdId}:${month}`,
   goals: (householdId) => `goals:${householdId}`,
@@ -129,6 +131,8 @@ const invalidateCache = {
   wallets(householdId) {
     cache.delete(cacheKeys.wallets(householdId));
     cache.delete(cacheKeys.dashboard(householdId));
+    cache.delete(cacheKeys.neraca(householdId));
+    cache.delete(cacheKeys.neracaSummary(householdId));
   },
 
   reports(householdId, month) {

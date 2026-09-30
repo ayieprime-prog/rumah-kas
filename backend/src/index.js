@@ -13,7 +13,7 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('../openapi.json');
 
 // Import routes with error handling
-let authRoutes, householdRoutes, expenseRoutes, incomeRoutes, budgetRoutes, goalRoutes, debtRoutes, dashboardRoutes, reportsRoutes, notificationRoutes, linkRoutes, maintenanceRoutes, eventRoutes, journalRoutes, auditLogRoutes, walletRoutes, assetRoutes, transferRoutes, allocationRoutes, budgetAnalyticsRoutes, performanceRoutes, categoryRoutes, recurringRoutes, todoRoutes;
+let authRoutes, householdRoutes, expenseRoutes, incomeRoutes, budgetRoutes, goalRoutes, debtRoutes, dashboardRoutes, reportsRoutes, notificationRoutes, linkRoutes, maintenanceRoutes, eventRoutes, journalRoutes, auditLogRoutes, walletRoutes, assetRoutes, transferRoutes, allocationRoutes, budgetAnalyticsRoutes, performanceRoutes, categoryRoutes, recurringRoutes, todoRoutes, neracaRoutes;
 let routeLoadError = null;
 
 try {
@@ -41,6 +41,7 @@ try {
   categoryRoutes = require('./routes/categories');
   recurringRoutes = require('./routes/recurring');
   todoRoutes = require('./routes/todos');
+  neracaRoutes = require('./routes/neraca');
 } catch (err) {
   routeLoadError = err.message;
   console.error('========================================================');
@@ -173,6 +174,7 @@ if (performanceRoutes) app.use('/api/performance', authenticate, performanceRout
 if (categoryRoutes) app.use('/api/categories', authenticate, categoryRoutes);
 if (recurringRoutes) app.use('/api/recurring', authenticate, recurringRoutes);
 if (todoRoutes) app.use('/api/todos', authenticate, todoRoutes);
+if (neracaRoutes) app.use('/api/neraca', authenticate, neracaRoutes);
 if (pushNotificationRoutes) app.use('/api/push-notifications', authenticate, pushNotificationRoutes);
 
 // Serve frontend build (single-service deployment). Vite fingerprints every

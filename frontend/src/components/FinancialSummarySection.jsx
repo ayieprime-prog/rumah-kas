@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { Eye, EyeOff, ChevronDown, ChevronUp } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Eye, EyeOff, ChevronDown, ChevronUp, Scale } from 'lucide-react'
 
 const WALLET_TYPE_MAP = { tunai: 'CASH', bank: 'BANK_ACCOUNT', digital: 'DIGITAL_WALLET' }
 
@@ -84,14 +85,20 @@ const FinancialSummarySection = ({
         <div className="kekayaan-detail">
           Harta {formatRp(totalHarta)} – Utang {formatRp(totalUtang)}
         </div>
-        <button
-          className="kekayaan-detail-btn"
-          onClick={() => setShowKekayaanDetail(!showKekayaanDetail)}
-          aria-expanded={showKekayaanDetail}
-        >
-          {showKekayaanDetail ? 'Sembunyikan rincian' : 'Lihat rincian'}
-          {showKekayaanDetail ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-        </button>
+        <div className="kekayaan-buttons">
+          <button
+            className="kekayaan-detail-btn"
+            onClick={() => setShowKekayaanDetail(!showKekayaanDetail)}
+            aria-expanded={showKekayaanDetail}
+          >
+            {showKekayaanDetail ? 'Sembunyikan rincian' : 'Lihat rincian'}
+            {showKekayaanDetail ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </button>
+          <Link to="/neraca" className="kekayaan-neraca-link">
+            <Scale size={16} />
+            Neraca Lengkap
+          </Link>
+        </div>
 
         {showKekayaanDetail && (
           <div className="kekayaan-breakdown">

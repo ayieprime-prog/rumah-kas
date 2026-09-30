@@ -77,41 +77,46 @@
   word-break: break-word;
 }
 
-/* Menu Grid */
+/* Menu Grid - 4 Kolom Cards (Seruma Style) */
 .menu-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
-  padding: 0 16px;
+  padding: 0 16px 24px 16px;
 }
 
 .menu-card {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 14px;
-  padding: 14px 16px;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 16px 12px;
   background: white;
   border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  border-radius: 16px;
   cursor: pointer;
   transition: all 0.2s ease;
   text-decoration: none;
   color: inherit;
+  text-align: center;
+  min-height: 140px;
 }
 
 .menu-card:active {
-  transform: scale(0.98);
+  transform: scale(0.95);
   background: #f9fafb;
 }
 
 .menu-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
 }
 
 .card-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
   background: #f3f4f6;
   display: flex;
   align-items: center;
@@ -123,27 +128,49 @@
 .card-body {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
 }
 
 .card-title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   color: #1f2937;
-  margin-bottom: 2px;
+  margin-bottom: 0;
+  line-height: 1.3;
 }
 
 .card-desc {
-  font-size: 12px;
+  font-size: 11px;
   color: #6b7280;
-  line-height: 1.4;
+  line-height: 1.3;
+  display: none;
 }
 
 .card-chevron {
-  color: #d4a574;
-  flex-shrink: 0;
+  display: none;
 }
 
 /* Responsive */
+@media (max-width: 768px) {
+  .menu-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .card-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .card-title {
+    font-size: 12px;
+  }
+}
+
 @media (max-width: 480px) {
   .page-header h1 {
     font-size: 20px;
@@ -153,15 +180,189 @@
     grid-template-columns: 1fr;
   }
 
+  .menu-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    padding: 0 12px 20px 12px;
+  }
+
   .menu-card {
-    padding: 12px 14px;
+    padding: 14px 10px;
+    min-height: 130px;
+  }
+
+  .card-icon {
+    width: 48px;
+    height: 48px;
   }
 
   .card-title {
-    font-size: 13px;
+    font-size: 11px;
+  }
+}
+
+/* ============= NERACA HERO CARD (SERUMA STYLE) ============= */
+
+.neraca-hero-card {
+  display: block;
+  background: linear-gradient(135deg, #1a472a 0%, #2d5a3d 100%);
+  color: white;
+  padding: 32px;
+  border-radius: 24px;
+  margin: 0 16px 24px 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.neraca-hero-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.neraca-hero-card:active {
+  transform: translateY(-2px);
+}
+
+.neraca-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+
+.neraca-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.neraca-eye-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.85;
+  transition: all 0.2s ease;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.neraca-eye-btn:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.neraca-content {
+  margin-bottom: 28px;
+}
+
+.neraca-label {
+  font-size: 14px;
+  opacity: 0.85;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.neraca-amount {
+  font-size: 44px;
+  font-weight: 700;
+  letter-spacing: -1px;
+  margin-bottom: 12px;
+  line-height: 1.2;
+}
+
+.neraca-description {
+  font-size: 12px;
+  opacity: 0.8;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.neraca-boxes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.neraca-box {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 18px 16px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.neraca-box-label {
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 1;
+}
+
+.neraca-box-sublabel {
+  font-size: 11px;
+  opacity: 0.75;
+  font-weight: 400;
+}
+
+.neraca-box-amount {
+  font-size: 18px;
+  font-weight: 700;
+  margin-top: 4px;
+  letter-spacing: -0.5px;
+}
+
+.neraca-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0.9;
+  letter-spacing: 0.3px;
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .neraca-hero-card {
+    margin: 0 12px 20px 12px;
+    padding: 24px 20px;
   }
 
-  .card-desc {
+  .neraca-title {
     font-size: 11px;
+    letter-spacing: 0.8px;
+  }
+
+  .neraca-amount {
+    font-size: 36px;
+    margin-bottom: 10px;
+  }
+
+  .neraca-boxes {
+    gap: 12px;
+  }
+
+  .neraca-box {
+    padding: 16px 14px;
+  }
+
+  .neraca-box-amount {
+    font-size: 16px;
+  }
+
+  .neraca-footer {
+    font-size: 12px;
   }
 }

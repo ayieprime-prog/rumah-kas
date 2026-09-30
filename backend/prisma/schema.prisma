@@ -319,11 +319,17 @@ model NotificationLog {
 model Wallet {
   id        String   @id @default(cuid())
   name      String   // e.g., "Tunai", "BCA", "Dompet Digital"
-  type      String   @default("CASH") // CASH, BANK_ACCOUNT, DIGITAL_WALLET
+  type      String   @default("CASH") // CASH, BANK_ACCOUNT, DIGITAL_WALLET (physical type)
   balance   Float    @default(0)
   icon      String   @default("wallet")
   isActive  Boolean  @default(true)
   scope     String   @default("KELUARGA") // "KELUARGA" or "PRIBADI"
+
+  // Balance sheet classification (for Neraca Keluarga feature)
+  accountType   String?  // ASSET, LIABILITY, EQUITY
+  assetClass    String?  // LIQUID, INVESTMENT, RECEIVABLE, DEBT
+  parentId      String?  // For hierarchical grouping (e.g., "Kas & Setara Kas" parent)
+  displayOrder  Int      @default(0) // Sort order in UI
 
   householdId String
   household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
@@ -333,11 +339,15 @@ model Wallet {
   transfersFrom Transfer[] @relation("fromWallet")
   transfersTo   Transfer[] @relation("toWallet")
   recurringExpenses RecurringExpense[]
+  childWallets  Wallet[]   @relation("WalletHierarchy")
+  parentWallet  Wallet?    @relation("WalletHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([householdId])
+  @@index([accountType])
+  @@index([assetClass])
 }
 
 // ============= TRANSFER MANAGEMENT =============

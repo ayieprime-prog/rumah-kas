@@ -30,6 +30,7 @@ import BudgetAnalyticsPage from './pages/BudgetAnalyticsPage'
 import ProfilePage from './pages/ProfilePage'
 import CategoriesPage from './pages/CategoriesPage'
 import RecurringPage from './pages/RecurringPage'
+import NeracaPage from './pages/NeracaPage'
 
 // Components
 import Layout from './components/Layout'
@@ -131,6 +132,7 @@ function App() {
                       <Route path="/" element={<DashboardPage user={user} />} />
                       <Route path="/profile" element={<ProfilePage user={user} onUserUpdate={setUser} />} />
                       <Route path="/keuangan" element={<KeuanganHubPage />} />
+                      <Route path="/neraca" element={<NeracaPage />} />
                       <Route path="/expenses" element={<ExpensesPage />} />
                       <Route path="/income" element={<IncomePages />} />
                       <Route path="/budget" element={<BudgetPage />} />

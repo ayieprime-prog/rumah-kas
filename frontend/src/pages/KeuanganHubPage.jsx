@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Wallet, TrendingUp, DollarSign, Target, CreditCard, BarChart3, ChevronRight, Landmark, Building2, ArrowLeftRight, PieChart, Activity, Eye, EyeOff, Tag, Repeat } from 'lucide-react'
+import { Wallet, TrendingUp, DollarSign, Target, CreditCard, BarChart3, ChevronRight, Landmark, Building2, ArrowLeftRight, PieChart, Activity, Eye, EyeOff, Tag, Repeat, Scale } from 'lucide-react'
 import axios from 'axios'
 import './KeuanganPage.css'
 
@@ -22,11 +22,13 @@ const items = [
 
 const KeuanganHubPage = () => {
   const [dashboard, setDashboard] = useState(null)
+  const [neraca, setNeraca] = useState(null)
   const [loading, setLoading] = useState(true)
   const [showBalance, setShowBalance] = useState(true)
 
   useEffect(() => {
     fetchDashboard()
+    fetchNeraca()
   }, [])
 
   const fetchDashboard = async () => {
@@ -40,6 +42,15 @@ const KeuanganHubPage = () => {
     }
   }
 
+  const fetchNeraca = async () => {
+    try {
+      const response = await axios.get('/api/neraca/summary')
+      setNeraca(response.data)
+    } catch (err) {
+      console.error('Error fetching neraca:', err)
+    }
+  }
+
   const totalGoals = dashboard?.goals?.reduce((sum, g) => sum + g.currentAmount, 0) || 0
   const totalLocked = dashboard?.incomeLocks?.totalRemaining || 0
   const uangBebas = dashboard ? dashboard.overview.balance - totalGoals - totalLocked : 0
@@ -49,6 +60,57 @@ const KeuanganHubPage = () => {
       <div className="page-header">
         <h1>Keuangan</h1>
       </div>
+
+      {/* Neraca Hero Card */}
+      {neraca && (
+        <Link to="/neraca" className="neraca-hero-card">
+          <div className="neraca-header">
+            <div className="neraca-title">
+              NERACA KELUARGA · {new Date(neraca.date + 'T00:00:00').toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).toUpperCase()}
+            </div>
+            <button
+              className="neraca-eye-btn"
+              onClick={(e) => {
+                e.preventDefault()
+                setShowBalance(!showBalance)
+              }}
+            >
+              {showBalance ? <Eye size={24} /> : <EyeOff size={24} />}
+            </button>
+          </div>
+
+          <div className="neraca-content">
+            <div className="neraca-label">Kekayaan bersih</div>
+            <div className="neraca-amount">
+              {showBalance ? `Rp ${neraca.totalWealth.toLocaleString('id-ID')}` : '••••••••'}
+            </div>
+            <div className="neraca-description">
+              sisa kekayaan kalau semua utang dilunasi hari ini
+            </div>
+          </div>
+
+          <div className="neraca-boxes">
+            <div className="neraca-box">
+              <div className="neraca-box-label">Harta</div>
+              <div className="neraca-box-sublabel">yang dipunya</div>
+              <div className="neraca-box-amount">
+                {showBalance ? `Rp ${neraca.totalAssets.toLocaleString('id-ID')}` : '••••••••'}
+              </div>
+            </div>
+            <div className="neraca-box">
+              <div className="neraca-box-label">− Utang</div>
+              <div className="neraca-box-sublabel">yang harus dibayar</div>
+              <div className="neraca-box-amount">
+                {showBalance ? `Rp ${neraca.totalLiabilities.toLocaleString('id-ID')}` : '••••••••'}
+              </div>
+            </div>
+          </div>
+
+          <div className="neraca-footer">
+            Lihat neraca lengkap ›
+          </div>
+        </Link>
+      )}
 
       {/* Balance Summary Cards */}
       {!loading && dashboard && (
