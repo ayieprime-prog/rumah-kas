@@ -371,10 +371,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
   padding: 12px 16px;
   cursor: pointer;
   transition: all 0.2s ease;
   border-bottom: 1px solid #e5e7eb;
+  min-height: 56px;
 }
 
 .neraca-wallet-item:last-child {
@@ -390,31 +392,44 @@
   align-items: center;
   gap: 12px;
   flex: 1;
+  min-width: 0;
 }
 
 .neraca-wallet-icon {
-  font-size: 20px;
-  width: 32px;
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .neraca-wallet-text {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
+  flex: 1;
 }
 
 .neraca-wallet-name {
   font-size: 13px;
   font-weight: 600;
   color: #1f2937;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .neraca-wallet-type {
   font-size: 11px;
   color: #9ca3af;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .neraca-wallet-balance {
@@ -422,6 +437,8 @@
   font-weight: 600;
   color: #1f2937;
   text-align: right;
+  flex-shrink: 0;
+  min-width: 100px;
 }
 
 .neraca-modal-overlay {
