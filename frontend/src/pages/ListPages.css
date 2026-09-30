@@ -230,3 +230,286 @@
   border-color: var(--accent-color);
   background: var(--accent-soft);
 }
+
+/* ============= NERACA PAGE STYLING ============= */
+
+.neraca-page {
+  padding: 16px;
+  animation: fadeIn 0.3s ease;
+}
+
+.neraca-hero {
+  background: linear-gradient(135deg, #1a472a 0%, #2d5a3d 100%);
+  color: white;
+  padding: 24px;
+  border-radius: 20px;
+  margin-bottom: 24px;
+}
+
+.neraca-hero-label {
+  font-size: 13px;
+  opacity: 0.85;
+  margin-bottom: 8px;
+}
+
+.neraca-hero-amount {
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.neraca-hero-breakdown {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.neraca-hero-item {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.neraca-hero-item-label {
+  font-size: 11px;
+  opacity: 0.8;
+  margin-bottom: 4px;
+}
+
+.neraca-hero-item-value {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.neraca-section {
+  margin-bottom: 24px;
+}
+
+.neraca-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 12px;
+  padding: 12px 0;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.neraca-asset-class {
+  margin-bottom: 8px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.neraca-asset-class-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.neraca-asset-class-header:hover {
+  background: #f9fafb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.neraca-asset-class-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.neraca-asset-class-icon {
+  font-size: 24px;
+  width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.neraca-asset-class-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.neraca-asset-class-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.neraca-asset-class-text small {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.neraca-asset-class-amount {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.neraca-wallets-list {
+  background: #f9fafb;
+  padding: 12px 0;
+  border-top: 1px solid #e5e7eb;
+}
+
+.neraca-wallet-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.neraca-wallet-item:last-child {
+  border-bottom: none;
+}
+
+.neraca-wallet-item:hover {
+  background: white;
+}
+
+.neraca-wallet-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.neraca-wallet-icon {
+  font-size: 20px;
+  width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.neraca-wallet-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.neraca-wallet-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.neraca-wallet-type {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.neraca-wallet-balance {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2937;
+  text-align: right;
+}
+
+.neraca-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-end;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+.neraca-modal {
+  background: white;
+  width: 100%;
+  max-width: 500px;
+  border-radius: 20px 20px 0 0;
+  padding: 24px;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+
+.neraca-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.neraca-modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.neraca-modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: #9ca3af;
+}
+
+.neraca-modal-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.neraca-detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.neraca-detail-label {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.neraca-detail-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .neraca-hero {
+    padding: 20px;
+  }
+
+  .neraca-modal {
+    max-height: 90vh;
+  }
+}
