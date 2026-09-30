@@ -79,10 +79,11 @@
 
 /* Menu Grid - 4 Kolom Cards (Seruma Style) */
 .menu-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  padding: 0 16px 24px 16px;
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 12px !important;
+  padding: 0 16px 24px 16px !important;
+  background-color: #fffacd !important;
 }
 
 .menu-card {
